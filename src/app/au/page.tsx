@@ -1,13 +1,15 @@
+import Link from "next/link"
+
 export default function AuPage() {
   return (
     <div className="relative min-h-svh bg-gradient-to-b from-[#0b1220] to-[#0f1c35] text-white">
       <div className="absolute left-6 top-6 z-20">
-        <a href="#" className="flex items-center gap-2 font-medium">
+        <Link href="/" className="flex items-center gap-2 font-medium">
           <div className="bg-blue-600 text-primary-foreground flex size-7 items-center justify-center rounded-md">
             U
           </div>
           <span className="text-lg font-semibold tracking-wide">UBIG</span>
-        </a>
+        </Link>
       </div>
       {/* subtle pattern */}
       <div

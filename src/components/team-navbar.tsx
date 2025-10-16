@@ -11,7 +11,7 @@ export function TeamNavbar() {
   return (
     <header className="flex items-center justify-between px-6 py-4 border-b border-white/10">
       <div className="flex items-center gap-8">
-        <Link href="/team" className="flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-2">
           <div className="h-7 w-7 rounded-md bg-blue-600" />
           <span className="font-semibold">UBIG Team</span>
         </Link>
