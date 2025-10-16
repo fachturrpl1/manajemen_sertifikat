@@ -26,3 +26,24 @@ function Separator({
 }
 
 export { Separator }
+
+export function ModalOverlay({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      className={cn("fixed inset-0 z-40 bg-black/60 backdrop-blur-sm", className)}
+      {...props}
+    />
+  )
+}
+
+export function ModalContent({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      className={cn(
+        "fixed inset-0 z-50 flex items-center justify-center p-4",
+        className
+      )}
+      {...props}
+    />
+  )
+}

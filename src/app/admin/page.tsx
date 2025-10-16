@@ -22,10 +22,6 @@ export default function AdminPage() {
             <label className="block text-sm text-white/70 mb-2">Select Templates</label>
             <input type="template" className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm" />
           </div>
-          <div>
-            <label className="block text-sm text-white/70 mb-2">Select Templates</label>
-            <input type="template" className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm" />
-          </div>
           <div className="text-center text-white/70 mb-2">
             <span className="text-white/70 mb-2">or</span>
           </div>

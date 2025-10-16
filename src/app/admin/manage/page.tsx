@@ -28,7 +28,7 @@ export default function ManagePage() {
           </div>
         </div>
       </div>
-      {tab === "cert" ? <ManageContent /> : <MemberManageContent />}
+      {tab === "cert" ? <ManageContent role="admin" /> : <MemberManageContent />}
     </div>
   )
 }
