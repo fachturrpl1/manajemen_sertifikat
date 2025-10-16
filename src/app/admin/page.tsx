@@ -36,6 +36,12 @@ export default function AdminPage() {
             <input type="color" className="h-10 w-full rounded-md border border-white/10 bg-white/5 p-1" />
           </div>
           <div>
+            <label className="block text-sm text-white/70 mb-2">Enter Description</label>
+            <textarea className="h-28 w-full rounded-md border border-white/10 bg-white/5 p-3 text-sm" placeholder="Enter description, e.g. This is a certificate of completion for the course ..." />
+            <label className="block text-sm text-white/70 mb-2">Font Color</label>
+            <input type="color" className="h-10 w-full rounded-md border border-white/10 bg-white/5 p-1" />
+          </div>
+          <div>
             <label className="block text-sm text-white/70 mb-2">Font Family</label>
             <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm">
               <option>Arial</option>
