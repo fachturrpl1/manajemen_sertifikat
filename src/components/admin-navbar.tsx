@@ -1,0 +1,47 @@
+"use client"
+
+import Link from "next/link"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+
+export function AdminNavbar() {
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
+  const router = useRouter()
+
+  return (
+    <header className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+      <div className="flex items-center gap-8">
+        <Link href="/admin" className="flex items-center gap-2">
+          <div className="h-7 w-7 rounded-md bg-blue-600" />
+          <span className="font-semibold">UBIG Admin</span>
+        </Link>
+        <nav className="hidden md:flex items-center gap-6 text-sm text-white/70">
+          <Link className="hover:text-white" href="/admin">Home</Link>
+          <Link className="hover:text-white" href="/admin/manage">Manage</Link>
+          <Link className="hover:text-white" href="/admin/faq">FAQ</Link>
+        </nav>
+      </div>
+      <div className="flex items-center gap-4 text-sm">
+        <button onClick={() => setShowLogoutConfirm(true)} className="text-sm text-blue-400 hover:text-white">Logout</button>
+      </div>
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/70 animate-in fade-in duration-200"
+            onClick={() => setShowLogoutConfirm(false)}
+          />
+          <div className="relative z-10 w-full max-w-sm rounded-xl border border-white/10 bg-[#0d172b] p-6 shadow-2xl animate-in zoom-in-95 fade-in duration-200">
+            <h3 className="text-lg font-semibold mb-1">Konfirmasi Logout</h3>
+            <p className="text-white/70 mb-4">Anda yakin ingin keluar?</p>
+            <div className="flex justify-end gap-3">
+              <button onClick={() => setShowLogoutConfirm(false)} className="rounded-md border border-white/10 bg-white/5 px-4 py-2 text-sm hover:bg-white/10">Batal</button>
+              <button onClick={() => { setShowLogoutConfirm(false); router.push('/login') }} className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium hover:bg-blue-500">Logout</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </header>
+  )
+}
+
+
