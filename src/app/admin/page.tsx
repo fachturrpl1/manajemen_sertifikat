@@ -19,7 +19,14 @@ export default function AdminPage() {
 
         <aside className="rounded-xl border border-white/10 bg-[#0d172b] p-5 space-y-4">
           <div>
-            <label className="block text-sm text-white/70 mb-2">Upload Template</label>
+            <label className="block text-sm text-white/70 mb-2">Select Templates</label>
+            <input type="template" className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm" />
+          </div>
+          <div className="text-center text-white/70 mb-2">
+            <span className="text-white/70 mb-2">or</span>
+          </div>
+          <div>
+            <label className="block text-sm text-white/70 mb-2">Upload Background</label>
             <input type="file" className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm" />
           </div>
           <div>

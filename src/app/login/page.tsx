@@ -23,7 +23,7 @@ export default function LoginPage() {
       </div>
       <div className="relative hidden lg:block">
         <img
-          src="/window.svg"
+          src="/window.svg" 
           alt="Image"
           className="absolute inset-0 h-full w-full object-cover opacity-10"
         />
