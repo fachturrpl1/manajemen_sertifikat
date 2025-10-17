@@ -173,7 +173,7 @@ export default function AdminPage() {
   }
 
   return (
-    <ProtectedRoute allowedRoles={['admin']}>
+    <ProtectedRoute allowedRoles={['admin','team']}>
       <div className="min-h-svh bg-gradient-to-b from-[#0b1220] to-[#0f1c35] text-white">
         <AdminNavbar />
         <main className="mx-auto max-w-7xl px-4 md:px-6 py-6 grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-6">
@@ -257,14 +257,14 @@ export default function AdminPage() {
             <div>
               <label className="block text-sm text-white/70 mb-1">Edit Elemen</label>
               <div className="grid grid-cols-3 gap-2">
-                <button className={`rounded-md border border-white/10 px-3 py-2 text-sm ${activeElement==='title'?'bg-white/15':'bg-white/5'}`} onClick={()=>setActiveElement('title')}>Title</button>
+                <button className={`rounded-md border border-white/10 px-3 py-2 text-sm ${activeElement==='title'?'bg-white/15':'bg-white/5'}`} onClick={()=>setActiveElement('title')}>Nama</button>
                 <button className={`rounded-md border border-white/10 px-3 py-2 text-sm ${activeElement==='description'?'bg-white/15':'bg-white/5'}`} onClick={()=>setActiveElement('description')}>Deskripsi</button>
                 <button className={`rounded-md border border-white/10 px-3 py-2 text-sm ${activeElement==='date'?'bg-white/15':'bg-white/5'}`} onClick={()=>setActiveElement('date')}>Tanggal</button>
               </div>
             </div>
             {activeElement === 'title' && (
               <div>
-                <label className="block text-sm text-white/70 mb-1">Title</label>
+                <label className="block text-sm text-white/70 mb-1">Nama Peserta</label>
                 <input
                   className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm"
                   value={title}
@@ -272,7 +272,7 @@ export default function AdminPage() {
                     const v = e.target.value; setTitle(v)
                     if (certificateId) await supabase.from("certificates").update({ title: v }).eq("id", certificateId)
                   }}
-                  placeholder="Judul sertifikat"
+                  placeholder="Nama peserta"
                 />
               </div>
             )}
@@ -287,7 +287,7 @@ export default function AdminPage() {
                     const v = e.target.value; setDescription(v)
                     if (certificateId) await supabase.from("certificates").update({ description: v }).eq("id", certificateId)
                   }}
-                  placeholder="Deskripsi singkat"
+                  placeholder={getDescriptionPlaceholder(category)}
                 />
               </div>
             )}
@@ -429,79 +429,86 @@ export default function AdminPage() {
               <button
                 className="rounded-md border border-purple-500/40 bg-purple-500/10 px-3 py-2 text-sm hover:bg-purple-500/20 disabled:opacity-50"
                 onClick={async () => {
-                  if (!certificateId) return
-                  const container = document.querySelector('[data-preview-container="1"]') as HTMLElement | null
-                  if (!container) return
-                  const rect = container.getBoundingClientRect()
-                  const scale = 2
-                  const cw = Math.max(1, Math.round(rect.width)) * scale
-                  const ch = Math.max(1, Math.round(rect.height)) * scale
-                  const canvas = document.createElement('canvas')
-                  const ctx = canvas.getContext('2d')!
-                  canvas.width = cw
-                  canvas.height = ch
-                  // background putih
-                  ctx.fillStyle = '#ffffff'
-                  ctx.fillRect(0,0,cw,ch)
-                  // gambar template
-                  if (previewSrc) {
-                    const img = await new Promise<HTMLImageElement>((res, rej) => {
-                      const i = new Image()
-                      i.crossOrigin = 'anonymous'
-                      i.onload = () => res(i)
-                      i.onerror = rej
-                      i.src = `/${previewSrc}`
-                    })
-                    const ratio = Math.min(cw / img.width, ch / img.height)
-                    const w = img.width * ratio
-                    const h = img.height * ratio
-                    const ox = (cw - w) / 2
-                    const oy = (ch - h) / 2
-                    ctx.drawImage(img, ox, oy, w, h)
+                  try {
+                    if (!certificateId) return
+                    const container = document.querySelector('[data-preview-container="1"]') as HTMLElement | null
+                    if (!container) throw new Error('Preview container tidak ditemukan')
+                    const rect = container.getBoundingClientRect()
+                    const scale = 2
+                    const cw = Math.max(1, Math.round(rect.width)) * scale
+                    const ch = Math.max(1, Math.round(rect.height)) * scale
+                    const canvas = document.createElement('canvas')
+                    const ctx = canvas.getContext('2d')!
+                    canvas.width = cw
+                    canvas.height = ch
+                    // background putih
+                    ctx.fillStyle = '#ffffff'
+                    ctx.fillRect(0,0,cw,ch)
+                    // gambar template bila image
+                    if (previewSrc && !previewSrc.endsWith('.pdf')) {
+                      const img = await new Promise<HTMLImageElement>((res, rej) => {
+                        const i = new Image()
+                        if (!previewSrc.startsWith('data:')) i.crossOrigin = 'anonymous'
+                        i.onload = () => res(i)
+                        i.onerror = () => rej(new Error('Gagal memuat gambar template'))
+                        i.src = `/${previewSrc}`
+                      })
+                      const ratio = Math.min(cw / img.width, ch / img.height)
+                      const w = img.width * ratio
+                      const h = img.height * ratio
+                      const ox = (cw - w) / 2
+                      const oy = (ch - h) / 2
+                      ctx.drawImage(img, ox, oy, w, h)
+                    }
+                    // helper
+                    const toAlign = (a: string): CanvasTextAlign => (a as any) as CanvasTextAlign
+                    const drawText = (text: string, x: number, y: number, size: number, color: string, align: string, font: string, bold=false) => {
+                      ctx.fillStyle = color
+                      ctx.textAlign = toAlign(align)
+                      ctx.textBaseline = 'top'
+                      ctx.font = `${bold?'700 ':''}${Math.round(size*scale)}px ${font}`
+                      ctx.fillText(text, Math.round(x*scale), Math.round(y*scale))
+                    }
+                    // tulis teks
+                    drawText(title || '', titleX, titleY, titleSize, titleColor, titleAlign, titleFont, true)
+                    drawText(description || '', descX, descY, descSize, descColor, descAlign, descFont, false)
+                    if (issuedAt) {
+                      drawText(issuedAt, dateX, dateY, dateSize, dateColor, titleAlign, dateFont, false)
+                    }
+                    // ke PDF
+                    const imgData = canvas.toDataURL('image/png', 1.0)
+                    const pdf = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' })
+                    const pw = pdf.internal.pageSize.getWidth(); const ph = pdf.internal.pageSize.getHeight()
+                    const r = Math.min(pw / cw, ph / ch); const rw=cw*r; const rh=ch*r; const x=(pw-rw)/2; const y=(ph-rh)/2
+                    pdf.addImage(imgData, 'PNG', x, y, rw, rh)
+                    const pdfBlob = pdf.output('blob')
+                    // Unduh lokal
+                    const dlUrl = URL.createObjectURL(pdfBlob)
+                    const a = document.createElement('a')
+                    a.href = dlUrl
+                    a.download = `certificate_${certificateId}.pdf`
+                    document.body.appendChild(a)
+                    a.click()
+                    a.remove()
+                    URL.revokeObjectURL(dlUrl)
+                    // Simpan best-effort
+                    const ab = await pdfBlob.arrayBuffer()
+                    const base64 = btoa(String.fromCharCode(...new Uint8Array(ab)))
+                    const payload = {
+                      certificate_id: certificateId,
+                      filename: `certificate_${certificateId}.pdf`,
+                      mimetype: 'application/pdf',
+                      size: pdfBlob.size,
+                      data_base64: base64,
+                    }
+                    const { error } = await supabase.from('certificate_files').insert(payload)
+                    if (error) setMessage('Gagal menyimpan PDF: ' + error.message)
+                    else { setMessage('PDF berhasil diunduh & disimpan'); setTimeout(()=>setMessage(''),1500) }
+                  } catch (err: unknown) {
+                    const msg = err instanceof Error ? err.message : String(err)
+                    setMessage('Gagal export: ' + msg)
+                    setTimeout(()=>setMessage(''), 2500)
                   }
-                  // helper
-                  const toAlign = (a: string): CanvasTextAlign => (a as any) as CanvasTextAlign
-                  const drawText = (text: string, x: number, y: number, size: number, color: string, align: string, font: string, bold=false) => {
-                    ctx.fillStyle = color
-                    ctx.textAlign = toAlign(align)
-                    ctx.textBaseline = 'top'
-                    ctx.font = `${bold?'700 ':''}${Math.round(size*scale)}px ${font}`
-                    ctx.fillText(text, Math.round(x*scale), Math.round(y*scale))
-                  }
-                  // tulis teks
-                  drawText(title || '', titleX, titleY, titleSize, titleColor, titleAlign, titleFont, true)
-                  drawText(description || '', descX, descY, descSize, descColor, descAlign, descFont, false)
-                  if (issuedAt) {
-                    drawText(issuedAt, dateX, dateY, dateSize, datePos.color, titleAlign, dateFont, false)
-                  }
-                  // ke PDF
-                  const imgData = canvas.toDataURL('image/png', 1.0)
-                  const pdf = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' })
-                  const pw = pdf.internal.pageSize.getWidth(); const ph = pdf.internal.pageSize.getHeight()
-                  const r = Math.min(pw / cw, ph / ch); const rw=cw*r; const rh=ch*r; const x=(pw-rw)/2; const y=(ph-rh)/2
-                  pdf.addImage(imgData, 'PNG', x, y, rw, rh)
-                  const pdfBlob = pdf.output('blob')
-                  // Unduh lokal
-                  const dlUrl = URL.createObjectURL(pdfBlob)
-                  const a = document.createElement('a')
-                  a.href = dlUrl
-                  a.download = `certificate_${certificateId}.pdf`
-                  document.body.appendChild(a)
-                  a.click()
-                  a.remove()
-                  URL.revokeObjectURL(dlUrl)
-                  const ab = await pdfBlob.arrayBuffer()
-                  const base64 = btoa(String.fromCharCode(...new Uint8Array(ab)))
-                  const payload = {
-                    certificate_id: certificateId,
-                    filename: `certificate_${certificateId}.pdf`,
-                    mimetype: 'application/pdf',
-                    size: pdfBlob.size,
-                    data_base64: base64,
-                  }
-                  const { error } = await supabase.from('certificate_files').insert(payload)
-                  if (error) setMessage('Gagal menyimpan PDF: ' + error.message)
-                  else { setMessage('PDF berhasil diunduh & disimpan'); setTimeout(()=>setMessage(''),1500) }
                 }}
                 disabled={!certificateId}
               >
@@ -710,6 +717,23 @@ function TemplateChooser({ category, onChoose }: { category: string; onChoose?: 
       )}
     </div>
   )
+}
+
+function getDescriptionPlaceholder(category: string): string {
+  const key = (category || "").toLowerCase()
+  if (key.includes("mou")) {
+    return "Sebagai tanda telah terjalinnya kerja sama antara PT Universal Big Data dan pihak terkait dalam mendukung kegiatan yang bertujuan meningkatkan kolaborasi, pengembangan, serta implementasi teknologi informasi dan data secara berkelanjutan.";
+  }
+  if (key.includes("magang")) {
+    return "Sebagai tanda telah menyelesaikan kegiatan Praktik Kerja Lapangan (Magang) di PT Universal Big Data, serta berkontribusi dalam pengembangan keterampilan dan pemahaman di bidang teknologi informasi dan analisis data.";
+  }
+  if (key.includes("latih")) {
+    return "Sebagai tanda telah mengikuti dan menyelesaikan kegiatan Pelatihan yang diselenggarakan oleh PT Universal Big Data, guna meningkatkan kompetensi, pengetahuan, serta keterampilan di bidang teknologi dan inovasi digital.";
+  }
+  if (key.includes("kunjungan") || key.includes("industri")) {
+    return "Sebagai tanda telah mengikuti kegiatan Kunjungan Industri ke PT Universal Big Data, untuk menambah wawasan mengenai penerapan teknologi informasi dan manajemen data dalam dunia industri.";
+  }
+  return "Deskripsi singkat";
 }
 
 

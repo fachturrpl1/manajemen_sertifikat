@@ -43,8 +43,6 @@ export default function AuPage() {
               Coba Verifikasi Publik
             </a>
           </div>
-
-          <p className="mt-3 text-xs text-white/50">* Tidak diperlukan kartu kredit</p>
         </div>
 
         <div className="relative">

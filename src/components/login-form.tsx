@@ -38,37 +38,53 @@ export function LoginForm({
     const password = passwordInput?.value || ""
 
     try {
-      // Query ke tabel users di Supabase
-      const { data: user, error: userError } = await supabase
+      // 1) Coba login sebagai admin di tabel users
+      const { data: adminUser, error: adminError } = await supabase
         .from('users')
-        .select('*')
+        .select('id,email,role,password')
         .eq('email', email)
         .eq('password', password)
         .single()
 
-      if (userError || !user) {
-        console.error("Login error:", userError)
-        setError("Email atau password salah")
+      if (adminUser && !adminError) {
+        console.log("Admin login successful:", adminUser.email)
+        login({
+          id: adminUser.id,
+          email: adminUser.email,
+          role: (adminUser as any).role ?? 'admin'
+        })
+        if (((adminUser as any).role ?? 'admin') === 'admin') {
+          router.push('/admin')
+        } else if ((adminUser as any).role === 'team') {
+          router.push('/team')
+        } else {
+          router.push('/all')
+        }
         return
       }
 
-      console.log("Login successful:", user.email)
+      // 2) Jika tidak ada di users, coba login sebagai member (team)
+      const { data: member, error: memberError } = await supabase
+        .from('members')
+        .select('id,email,password')
+        .eq('email', email)
+        .eq('password', password)
+        .single()
 
-      // Simpan data user menggunakan hook
-      login({
-        id: user.id,
-        email: user.email,
-        role: user.role
-      })
-
-      // Redirect berdasarkan role
-      if (user.role === 'admin') {
-        router.push("/admin")
-      } else if (user.role === 'team') {
-        router.push("/team")
-      } else {
-        router.push("/all")
+      if (member && !memberError) {
+        console.log("Member login successful:", member.email)
+        login({
+          id: member.id,
+          email: member.email,
+          role: 'team'
+        })
+        router.push('/team')
+        return
       }
+
+      // Jika keduanya gagal
+      console.error('Login error:', adminError ?? memberError)
+      setError('Email atau password salah')
     } catch (error) {
       console.error('Login error:', error)
       setError("Terjadi kesalahan saat login")

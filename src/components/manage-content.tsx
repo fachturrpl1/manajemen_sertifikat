@@ -6,6 +6,7 @@ import { Eye, Pencil, Trash2, X } from "lucide-react"
 import { ModalOverlay, ModalContent } from "@/components/ui/separator"
 import { supabase } from "@/lib/supabase"
 import { useEffect } from "react"
+import { useRouter } from "next/navigation"
 
 type CertificateRow = {
   id?: string
@@ -23,6 +24,7 @@ type ManageContentProps = {
 }
 
 export function ManageContent({ role = "admin" }: ManageContentProps) {
+  const router = useRouter()
   const [rows, setRows] = useState<CertificateRow[]>([])
   const [query, setQuery] = useState("")
   const fileInputRef = useRef<HTMLInputElement | null>(null)
@@ -302,7 +304,13 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                                 aria-label="Edit"
                                 title="Edit"
                                 className="rounded-md border border-white/10 bg-white/5 px-2 py-1"
-                                onClick={() => { setEditingIndex(idx); setDraft(r); setShowModal(true) }}
+                                onClick={() => {
+                                  if (role === "team" && r.id) {
+                                    router.push(`/team/edit?id=${r.id}`)
+                                  } else {
+                                    setEditingIndex(idx); setDraft(r); setShowModal(true)
+                                  }
+                                }}
                               >
                                 <Pencil className="h-4 w-4 text-white" />
                               </button>
