@@ -5,6 +5,8 @@ import { ProtectedRoute } from "@/components/protected-route"
 import { useEffect, useMemo, useState, useRef } from "react"
 import { useSearchParams } from "next/navigation"
 import { supabase } from "@/lib/supabase"
+import html2canvas from "html2canvas"
+import jsPDF from "jspdf"
 
 export default function AdminPage() {
   const params = useSearchParams()
@@ -13,6 +15,9 @@ export default function AdminPage() {
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState("")
   const [uploading, setUploading] = useState(false)
+  const [uiSaving, setUiSaving] = useState(false)
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [savingAll, setSavingAll] = useState(false)
   const [selectedTemplate, setSelectedTemplate] = useState<string>("")
   const [previewSrc, setPreviewSrc] = useState<string>("")
   // Text/editor settings
@@ -37,8 +42,23 @@ export default function AdminPage() {
   const [dateSize, setDateSize] = useState<number>(14)
   const [dateColor, setDateColor] = useState<string>("#000")
 
-  const [align, setAlign] = useState<"left" | "center" | "right">("center")
-  const [fontFamily, setFontFamily] = useState("Inter, ui-sans-serif, system-ui")
+  // Align & font per elemen
+  const [titleAlign, setTitleAlign] = useState<"left" | "center" | "right">("center")
+  const [descAlign, setDescAlign] = useState<"left" | "center" | "right">("center")
+  const [titleFont, setTitleFont] = useState("Inter, ui-sans-serif, system-ui")
+  const [descFont, setDescFont] = useState("Inter, ui-sans-serif, system-ui")
+  const [dateFont, setDateFont] = useState("Inter, ui-sans-serif, system-ui")
+
+  // Helper: queue save with debounce to Supabase
+  function queueSave(update: Record<string, unknown>) {
+    if (!certificateId) return
+    setUiSaving(true)
+    if (saveTimer.current) clearTimeout(saveTimer.current)
+    saveTimer.current = setTimeout(async () => {
+      await supabase.from("certificates").update(update).eq("id", certificateId)
+      setUiSaving(false)
+    }, 500)
+  }
 
   // Opsi kategori (samakan dengan kategori pada sistem)
   const categoryOptions = useMemo(
@@ -165,14 +185,24 @@ export default function AdminPage() {
           titlePos={{ x: titleX, y: titleY, size: titleSize, color: titleColor }}
           descPos={{ x: descX, y: descY, size: descSize, color: descColor }}
           datePos={{ x: dateX, y: dateY, size: dateSize, color: dateColor }}
-          align={align}
-          fontFamily={fontFamily}
+          titleAlign={titleAlign}
+          descAlign={descAlign}
+          titleFont={titleFont}
+          descFont={descFont}
+          dateFont={dateFont}
           issuedAt={issuedAt}
           active={activeElement}
           onDragPosition={(nx, ny) => {
             if (activeElement === "title") { setTitleX(nx); setTitleY(ny) }
             else if (activeElement === "description") { setDescX(nx); setDescY(ny) }
             else { setDateX(nx); setDateY(ny) }
+          }}
+          onCommitPosition={(nx, ny) => {
+            if (activeElement === "title") {
+              queueSave({ title_x: nx, title_y: ny })
+            } else if (activeElement === "description") {
+              queueSave({ desc_x: nx, desc_y: ny })
+            }
           }}
         />
         <aside className="rounded-xl border border-white/10 bg-[#0d172b] p-5 space-y-4">
@@ -272,48 +302,212 @@ export default function AdminPage() {
               <div>
                 <label className="block text-sm text-white/70 mb-1">Posisi X</label>
                 <input type="number" className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm" value={activeElement==='title'?titleX:activeElement==='description'?descX:dateX}
-                  onChange={(e) => { const n = Math.max(0, Number(e.target.value)||0); if(activeElement==='title') setTitleX(n); else if(activeElement==='description') setDescX(n); else setDateX(n) }} />
+                  onChange={(e) => { const n = Math.max(0, Number(e.target.value)||0); if(activeElement==='title'){ setTitleX(n); queueSave({ title_x: n }) } else if(activeElement==='description'){ setDescX(n); queueSave({ desc_x: n }) } else { setDateX(n) } }} />
               </div>
               <div>
                 <label className="block text-sm text-white/70 mb-1">Posisi Y</label>
                 <input type="number" className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm" value={activeElement==='title'?titleY:activeElement==='description'?descY:dateY}
-                  onChange={(e) => { const n = Math.max(0, Number(e.target.value)||0); if(activeElement==='title') setTitleY(n); else if(activeElement==='description') setDescY(n); else setDateY(n) }} />
+                  onChange={(e) => { const n = Math.max(0, Number(e.target.value)||0); if(activeElement==='title'){ setTitleY(n); queueSave({ title_y: n }) } else if(activeElement==='description'){ setDescY(n); queueSave({ desc_y: n }) } else { setDateY(n) } }} />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-sm text-white/70 mb-1">Justify</label>
-                <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={align}
-                  onChange={async (e)=>{ const v = e.target.value as "left"|"center"|"right"; setAlign(v); if (certificateId) await supabase.from("certificates").update({ text_align: v }).eq("id", certificateId)}}>
-                  <option value="left">Left</option>
-                  <option value="center">Center</option>
-                  <option value="right">Right</option>
-                </select>
-            </div>
-            <div>
-                <label className="block text-sm text-white/70 mb-1">Font</label>
-                <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={fontFamily}
-                  onChange={async (e)=>{ const v=e.target.value; setFontFamily(v); if (certificateId) await supabase.from("certificates").update({ text_font: v }).eq("id", certificateId)}}>
-                  <option value="Inter, ui-sans-serif, system-ui">Inter</option>
-                  <option value="Arial, Helvetica, sans-serif">Arial</option>
-                  <option value="Times New Roman, Times, serif">Times New Roman</option>
-                  <option value="Georgia, serif">Georgia</option>
-                </select>
+            {/* Justify & Font per elemen */}
+            {activeElement === 'title' && (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm text-white/70 mb-1">Justify (Title)</label>
+                  <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={titleAlign}
+                    onChange={(e)=>{ const v = e.target.value as "left"|"center"|"right"; setTitleAlign(v); queueSave({ title_align: v }) }}>
+                    <option value="left">Left</option>
+                    <option value="center">Center</option>
+                    <option value="right">Right</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm text-white/70 mb-1">Font (Title)</label>
+                  <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={titleFont}
+                    onChange={(e)=>{ const v=e.target.value; setTitleFont(v); queueSave({ title_font: v }) }}>
+                    <option value="Inter, ui-sans-serif, system-ui">Inter</option>
+                    <option value="Arial, Helvetica, sans-serif">Arial</option>
+                    <option value="Times New Roman, Times, serif">Times New Roman</option>
+                    <option value="Georgia, serif">Georgia</option>
+                  </select>
+                </div>
               </div>
-            </div>
+            )}
+            {activeElement === 'description' && (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm text-white/70 mb-1">Justify (Deskripsi)</label>
+                  <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={descAlign}
+                    onChange={(e)=>{ const v = e.target.value as "left"|"center"|"right"; setDescAlign(v); queueSave({ desc_align: v }) }}>
+                    <option value="left">Left</option>
+                    <option value="center">Center</option>
+                    <option value="right">Right</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm text-white/70 mb-1">Font (Deskripsi)</label>
+                  <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={descFont}
+                    onChange={(e)=>{ const v=e.target.value; setDescFont(v); queueSave({ desc_font: v }) }}>
+                    <option value="Inter, ui-sans-serif, system-ui">Inter</option>
+                    <option value="Arial, Helvetica, sans-serif">Arial</option>
+                    <option value="Times New Roman, Times, serif">Times New Roman</option>
+                    <option value="Georgia, serif">Georgia</option>
+                  </select>
+                </div>
+              </div>
+            )}
+            {activeElement === 'date' && (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm text-white/70 mb-1">Font (Tanggal)</label>
+                  <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={dateFont}
+                    onChange={(e)=>{ const v=e.target.value; setDateFont(v); queueSave({ date_font: v }) }}>
+                    <option value="Inter, ui-sans-serif, system-ui">Inter</option>
+                    <option value="Arial, Helvetica, sans-serif">Arial</option>
+                    <option value="Times New Roman, Times, serif">Times New Roman</option>
+                    <option value="Georgia, serif">Georgia</option>
+                  </select>
+                </div>
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm text-white/70 mb-1">Font Size</label>
                 <input type="number" className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm" value={activeElement==='title'?titleSize:activeElement==='description'?descSize:dateSize}
-                  onChange={(e)=>{ const n=Number(e.target.value)||12; if(activeElement==='title') setTitleSize(n); else if(activeElement==='description') setDescSize(n); else setDateSize(n) }} />
+                  onChange={(e)=>{ const n=Number(e.target.value)||12; if(activeElement==='title'){ setTitleSize(n); queueSave({ title_size: n }) } else if(activeElement==='description'){ setDescSize(n); queueSave({ desc_size: n }) } else { setDateSize(n) } }} />
               </div>
               <div>
                 <label className="block text-sm text-white/70 mb-1">Warna</label>
                 <input type="color" className="h-10 w-full rounded-md border border-white/10 bg-white/5 p-1" value={activeElement==='title'?titleColor:activeElement==='description'?descColor:dateColor}
-                  onChange={(e)=>{ const v=e.target.value; if(activeElement==='title') setTitleColor(v); else if(activeElement==='description') setDescColor(v); else setDateColor(v) }} />
+                  onChange={(e)=>{ const v=e.target.value; if(activeElement==='title'){ setTitleColor(v); queueSave({ title_color: v }) } else if(activeElement==='description'){ setDescColor(v); queueSave({ desc_color: v }) } else { setDateColor(v) } }} />
               </div>
             </div>
-            
+            <div className="text-right text-xs text-white/50 h-4">{uiSaving ? "Menyimpan..." : "Tersimpan"}</div>
+            <div className="flex justify-end gap-2">
+              <button
+                className="rounded-md border border-blue-500/40 bg-blue-500/10 px-3 py-2 text-sm hover:bg-blue-500/20 disabled:opacity-50"
+                onClick={async () => {
+                  if (!certificateId) return
+                  if (saveTimer.current) { clearTimeout(saveTimer.current); saveTimer.current = null }
+                  setSavingAll(true)
+                  const payload = {
+                    title: title || null,
+                    description: description || null,
+                    issued_at: issuedAt || null,
+                    title_align: titleAlign,
+                    desc_align: descAlign,
+                    title_font: titleFont,
+                    desc_font: descFont,
+                    date_font: dateFont,
+                    title_x: titleX,
+                    title_y: titleY,
+                    title_size: titleSize,
+                    title_color: titleColor,
+                    desc_x: descX,
+                    desc_y: descY,
+                    desc_size: descSize,
+                    desc_color: descColor,
+                    date_x: dateX,
+                    date_y: dateY,
+                    date_size: dateSize,
+                    date_color: dateColor,
+                  }
+                  const { error } = await supabase.from('certificates').update(payload).eq('id', certificateId)
+                  if (error) {
+                    setMessage('Gagal menyimpan: ' + error.message)
+                  } else {
+                    setMessage('Perubahan disimpan')
+                    setTimeout(() => setMessage(''), 1500)
+                  }
+                  setSavingAll(false)
+                }}
+                disabled={!certificateId || savingAll || uiSaving}
+              >
+                {savingAll ? 'Menyimpan...' : 'Save'}
+              </button>
+              <button
+                className="rounded-md border border-purple-500/40 bg-purple-500/10 px-3 py-2 text-sm hover:bg-purple-500/20 disabled:opacity-50"
+                onClick={async () => {
+                  if (!certificateId) return
+                  const container = document.querySelector('[data-preview-container="1"]') as HTMLElement | null
+                  if (!container) return
+                  const rect = container.getBoundingClientRect()
+                  const scale = 2
+                  const cw = Math.max(1, Math.round(rect.width)) * scale
+                  const ch = Math.max(1, Math.round(rect.height)) * scale
+                  const canvas = document.createElement('canvas')
+                  const ctx = canvas.getContext('2d')!
+                  canvas.width = cw
+                  canvas.height = ch
+                  // background putih
+                  ctx.fillStyle = '#ffffff'
+                  ctx.fillRect(0,0,cw,ch)
+                  // gambar template
+                  if (previewSrc) {
+                    const img = await new Promise<HTMLImageElement>((res, rej) => {
+                      const i = new Image()
+                      i.crossOrigin = 'anonymous'
+                      i.onload = () => res(i)
+                      i.onerror = rej
+                      i.src = `/${previewSrc}`
+                    })
+                    const ratio = Math.min(cw / img.width, ch / img.height)
+                    const w = img.width * ratio
+                    const h = img.height * ratio
+                    const ox = (cw - w) / 2
+                    const oy = (ch - h) / 2
+                    ctx.drawImage(img, ox, oy, w, h)
+                  }
+                  // helper
+                  const toAlign = (a: string): CanvasTextAlign => (a as any) as CanvasTextAlign
+                  const drawText = (text: string, x: number, y: number, size: number, color: string, align: string, font: string, bold=false) => {
+                    ctx.fillStyle = color
+                    ctx.textAlign = toAlign(align)
+                    ctx.textBaseline = 'top'
+                    ctx.font = `${bold?'700 ':''}${Math.round(size*scale)}px ${font}`
+                    ctx.fillText(text, Math.round(x*scale), Math.round(y*scale))
+                  }
+                  // tulis teks
+                  drawText(title || '', titleX, titleY, titleSize, titleColor, titleAlign, titleFont, true)
+                  drawText(description || '', descX, descY, descSize, descColor, descAlign, descFont, false)
+                  if (issuedAt) {
+                    drawText(issuedAt, dateX, dateY, dateSize, datePos.color, titleAlign, dateFont, false)
+                  }
+                  // ke PDF
+                  const imgData = canvas.toDataURL('image/png', 1.0)
+                  const pdf = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' })
+                  const pw = pdf.internal.pageSize.getWidth(); const ph = pdf.internal.pageSize.getHeight()
+                  const r = Math.min(pw / cw, ph / ch); const rw=cw*r; const rh=ch*r; const x=(pw-rw)/2; const y=(ph-rh)/2
+                  pdf.addImage(imgData, 'PNG', x, y, rw, rh)
+                  const pdfBlob = pdf.output('blob')
+                  // Unduh lokal
+                  const dlUrl = URL.createObjectURL(pdfBlob)
+                  const a = document.createElement('a')
+                  a.href = dlUrl
+                  a.download = `certificate_${certificateId}.pdf`
+                  document.body.appendChild(a)
+                  a.click()
+                  a.remove()
+                  URL.revokeObjectURL(dlUrl)
+                  const ab = await pdfBlob.arrayBuffer()
+                  const base64 = btoa(String.fromCharCode(...new Uint8Array(ab)))
+                  const payload = {
+                    certificate_id: certificateId,
+                    filename: `certificate_${certificateId}.pdf`,
+                    mimetype: 'application/pdf',
+                    size: pdfBlob.size,
+                    data_base64: base64,
+                  }
+                  const { error } = await supabase.from('certificate_files').insert(payload)
+                  if (error) setMessage('Gagal menyimpan PDF: ' + error.message)
+                  else { setMessage('PDF berhasil diunduh & disimpan'); setTimeout(()=>setMessage(''),1500) }
+                }}
+                disabled={!certificateId}
+              >
+                Export PDF (Canvas)
+              </button>
+            </div>
           </div>
         </aside>
         </main>
@@ -322,7 +516,7 @@ export default function AdminPage() {
   )
 }
 
-function PreviewPanel({ category, previewSrc, title, description, titlePos, descPos, datePos, align, fontFamily, issuedAt, active, onDragPosition, onCommitPosition }: { category: string; previewSrc?: string; title?: string; description?: string; titlePos: { x: number; y: number; size: number; color: string }; descPos: { x: number; y: number; size: number; color: string }; datePos: { x: number; y: number; size: number; color: string }; align: "left"|"center"|"right"; fontFamily: string; issuedAt?: string; active: "title"|"description"|"date"; onDragPosition?: (x: number, y: number) => void; onCommitPosition?: (x: number, y: number) => void }) {
+function PreviewPanel({ category, previewSrc, title, description, titlePos, descPos, datePos, titleAlign, descAlign, titleFont, descFont, dateFont, issuedAt, active, onDragPosition, onCommitPosition }: { category: string; previewSrc?: string; title?: string; description?: string; titlePos: { x: number; y: number; size: number; color: string }; descPos: { x: number; y: number; size: number; color: string }; datePos: { x: number; y: number; size: number; color: string }; titleAlign: "left"|"center"|"right"; descAlign: "left"|"center"|"right"; titleFont: string; descFont: string; dateFont: string; issuedAt?: string; active: "title"|"description"|"date"; onDragPosition?: (x: number, y: number) => void; onCommitPosition?: (x: number, y: number) => void }) {
   const [dragging, setDragging] = useState(false)
   const containerRef = useRef<HTMLDivElement | null>(null)
   const [containerSize, setContainerSize] = useState<{ width: number; height: number }>({ width: 0, height: 0 })
@@ -398,6 +592,7 @@ function PreviewPanel({ category, previewSrc, title, description, titlePos, desc
       <div
         className={`mt-4 h-[420px] rounded-lg border border-white/10 bg-white/5 relative overflow-hidden ${dragging ? "cursor-grabbing" : "cursor-grab"}`}
         ref={containerRef}
+        data-preview-container="1"
         onMouseDown={(e) => {
           // Mulai drag hanya saat menekan pada overlay teks
           const overlay = (e.currentTarget as HTMLDivElement).querySelector('[data-overlay="text"]') as HTMLElement | null
@@ -436,7 +631,7 @@ function PreviewPanel({ category, previewSrc, title, description, titlePos, desc
         {/* Overlay text - title */}
         <div
           className="absolute"
-          style={{ left: `${clampX(titlePos.x)}px`, top: `${clampY(titlePos.y)}px`, width: "calc(100% - 40px)", transform: align === "center" ? "translateX(-50%)" : undefined, textAlign: align as "left"|"center"|"right", fontFamily, fontSize: `${titlePos.size}px`, color: titlePos.color }}
+          style={{ left: `${clampX(titlePos.x)}px`, top: `${clampY(titlePos.y)}px`, width: "calc(100% - 40px)", transform: titleAlign === "center" ? "translateX(-50%)" : undefined, textAlign: titleAlign as "left"|"center"|"right", fontFamily: titleFont, fontSize: `${titlePos.size}px`, color: titlePos.color }}
           data-overlay="text"
         >
           <div className="font-bold">{title}</div>
@@ -444,7 +639,7 @@ function PreviewPanel({ category, previewSrc, title, description, titlePos, desc
         {/* Overlay text - description */}
         <div
           className="absolute"
-          style={{ left: `${clampX(descPos.x)}px`, top: `${clampY(descPos.y)}px`, width: "calc(100% - 40px)", transform: align === "center" ? "translateX(-50%)" : undefined, textAlign: align as "left"|"center"|"right", fontFamily, fontSize: `${descPos.size}px`, color: descPos.color }}
+          style={{ left: `${clampX(descPos.x)}px`, top: `${clampY(descPos.y)}px`, width: "calc(100% - 40px)", transform: descAlign === "center" ? "translateX(-50%)" : undefined, textAlign: descAlign as "left"|"center"|"right", fontFamily: descFont, fontSize: `${descPos.size}px`, color: descPos.color }}
         >
           <div className="opacity-90">{description}</div>
         </div>
@@ -452,7 +647,7 @@ function PreviewPanel({ category, previewSrc, title, description, titlePos, desc
         {issuedAt && (
           <div
             className="absolute"
-            style={{ left: `${clampX(datePos.x)}px`, top: `${clampY(datePos.y)}px`, width: "calc(100% - 40px)", transform: align === "center" ? "translateX(-50%)" : undefined, textAlign: align as "left"|"center"|"right", fontFamily, fontSize: `${datePos.size}px`, color: datePos.color }}
+            style={{ left: `${clampX(datePos.x)}px`, top: `${clampY(datePos.y)}px`, width: "calc(100% - 40px)", transform: titleAlign === "center" ? "translateX(-50%)" : undefined, textAlign: titleAlign as "left"|"center"|"right", fontFamily: dateFont, fontSize: `${datePos.size}px`, color: datePos.color }}
           >
             <div className="mt-1 opacity-80">{issuedAt}</div>
           </div>

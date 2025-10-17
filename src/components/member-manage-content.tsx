@@ -73,27 +73,27 @@ export function MemberManageContent() {
         { event: '*', schema: 'public', table: 'members' },
         async () => {
           // Refetch data when any change occurs
-          const { data, error } = await supabase
-            .from("members")
+      const { data, error } = await supabase
+        .from("members")
             .select("id,name,organization,phone,email,job,dob,address,city,notes,password")
-          if (error) {
-            console.error("Supabase members fetch error:", error)
-            return
-          }
-          const mapped: MemberRow[] = (data ?? []).map((r: any) => ({
-            id: r.id,
-            name: r.name,
-            organization: r.organization,
-            phone: r.phone,
-            email: r.email,
-            job: r.job,
-            dob: r.dob ?? undefined,
-            address: r.address,
-            city: r.city,
-            notes: r.notes,
+      if (error) {
+        console.error("Supabase members fetch error:", error)
+        return
+      }
+      const mapped: MemberRow[] = (data ?? []).map((r: any) => ({
+        id: r.id,
+        name: r.name,
+        organization: r.organization,
+        phone: r.phone,
+        email: r.email,
+        job: r.job,
+        dob: r.dob ?? undefined,
+        address: r.address,
+        city: r.city,
+        notes: r.notes,
             password: r.password,
-          }))
-          setRows(mapped)
+      }))
+      setRows(mapped)
         }
       )
       .subscribe()
@@ -313,16 +313,16 @@ export function MemberManageContent() {
                                         return
                                       }
                                     }
-                                    const copy = rows.slice()
+                                  const copy = rows.slice()
                                     copy.splice(idx, 1)
-                                    setRows(copy)
+                                  setRows(copy)
                                   }
                                   doDelete()
                                 }}
                               >
                                 <Trash2 className="h-4 w-4 text-white" />
                               </button>
-                            </div>
+                        </div>
                       </td>
                     </tr>
                   )
@@ -691,397 +691,3 @@ export function MemberManageContent() {
     </main>
   )
 }
-
-
-
-                    // Reset draft ke data asli tanpa menyimpan perubahan
-
-                    if (editingIndex !== null) {
-
-                      setDraft(rows[editingIndex])
-
-                    }
-
-                    setShowModal(false)
-
-                    setUpdateMessage("")
-
-                    setIsUpdating(false)
-
-                    setEditingIndex(null)
-
-                    setDraft(null)
-
-                  }}
-
-                  disabled={isUpdating}
-
-                >
-
-                  Batal
-
-                </button>
-
-                <button
-
-                  className="rounded-md border border-green-500/30 bg-green-500/10 px-3 py-2 text-green-300 disabled:opacity-50 disabled:cursor-not-allowed"
-
-                  onClick={async () => {
-
-                    if (editingIndex == null || !draft) return
-
-                    
-
-                    setIsUpdating(true)
-
-                    setUpdateMessage("")
-
-                    
-
-                    try {
-
-                      const row = draft
-
-                      if (row.id) {
-
-                        // Check if email already exists for another record
-                        if (row.email) {
-                          const { data: existingRecord, error: checkError } = await supabase
-                            .from("members")
-                            .select("id, email")
-                            .eq("email", row.email)
-                            .neq("id", row.id)
-                            .single()
-                          
-                          if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = no rows returned
-                            console.error("Check error:", checkError)
-                            setUpdateMessage("Gagal memeriksa email")
-                            return
-                          }
-                          
-                          if (existingRecord) {
-                            setUpdateMessage("Email sudah digunakan oleh member lain")
-                            return
-                          }
-                        }
-                        
-                        // Update existing record
-
-                        const { error } = await supabase
-
-                          .from("members")
-
-                          .update({
-
-                            name: row.name ?? null,
-
-                            organization: row.organization ?? null,
-
-                            phone: row.phone ?? null,
-
-                            email: row.email ?? null,
-
-                            job: row.job ?? null,
-
-                            dob: row.dob ?? null,
-
-                            address: row.address ?? null,
-
-                            city: row.city ?? null,
-
-                            notes: row.notes ?? null,
-
-                            password: row.password ?? null,
-                          })
-
-                          .eq("id", row.id)
-
-                        
-
-                        if (error) {
-
-                          console.error("Update error:", error)
-
-                          setUpdateMessage("Gagal memperbarui data: " + error.message)
-
-                          return
-
-                        }
-
-                      } else {
-
-                        // Check if email already exists for new record
-                        if (row.email) {
-                          const { data: existingRecord, error: checkError } = await supabase
-                            .from("members")
-                            .select("id, email")
-                            .eq("email", row.email)
-                            .single()
-                          
-                          if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = no rows returned
-                            console.error("Check error:", checkError)
-                            setUpdateMessage("Gagal memeriksa email")
-                            return
-                          }
-                          
-                          if (existingRecord) {
-                            setUpdateMessage("Email sudah digunakan")
-                            return
-                          }
-                        }
-                        
-                        // Insert new record
-
-                        const { data, error } = await supabase
-
-                          .from("members")
-
-                          .insert({
-
-                            name: row.name ?? null,
-
-                            organization: row.organization ?? null,
-
-                            phone: row.phone ?? null,
-
-                            email: row.email ?? null,
-
-                            job: row.job ?? null,
-
-                            dob: row.dob ?? null,
-
-                            address: row.address ?? null,
-
-                            city: row.city ?? null,
-
-                            notes: row.notes ?? null,
-
-                            password: row.password ?? null,
-                          })
-
-                          .select("id")
-
-                          .single()
-
-                        
-
-                        if (error) {
-
-                          console.error("Insert error:", error)
-
-                          setUpdateMessage("Gagal menambahkan data: " + error.message)
-
-                          return
-
-                        }
-
-                        row.id = data?.id
-
-                      }
-
-                      
-
-                      // Update local state immediately
-
-                      const copy = rows.slice()
-
-                      copy[editingIndex] = row
-
-                      setRows(copy)
-
-                      
-
-                      setUpdateMessage("Data berhasil diperbarui!")
-
-                      
-
-                      // Close modal after a short delay to show success message
-
-                      setTimeout(() => {
-
-                        setEditingIndex(null)
-
-                        setDraft(null)
-
-                        setShowModal(false)
-
-                        setUpdateMessage("")
-
-                        setIsUpdating(false)
-
-                      }, 1500)
-
-                      
-
-                    } catch (error) {
-
-                      console.error("Unexpected error:", error)
-
-                      setUpdateMessage("Terjadi kesalahan yang tidak terduga")
-
-                    } finally {
-
-                      setIsUpdating(false)
-
-                    }
-
-                  }}
-
-                  disabled={isUpdating}
-
-                >
-
-                  {isUpdating ? "Memproses..." : "Kirim"}
-
-                </button>
-
-              </div>
-
-            </div>
-
-          </ModalContent>
-
-        </>
-
-      )}
-
-
-      {/* Add Member Modal */}
-      {showAddModal && draft && (
-        <>
-          <ModalOverlay onClick={() => setShowAddModal(false)} />
-          <ModalContent>
-            <div className="w-full max-w-2xl rounded-xl border border-white/10 bg-[#0d1223] p-4 text-sm">
-              <div className="mb-3 flex items-center justify-between">
-                <div className="font-semibold">Tambah Member Baru</div>
-                <button onClick={() => setShowAddModal(false)} className="rounded-md border border-white/10 bg-white/5 p-1" aria-label="Close">
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div>
-                  <div className="mb-1 text-white/70">Name</div>
-                  <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.name ?? ""} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
-                </div>
-                <div>
-                  <div className="mb-1 text-white/70">Organization</div>
-                  <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.organization ?? ""} onChange={(e) => setDraft({ ...draft, organization: e.target.value })} />
-                </div>
-                <div>
-                  <div className="mb-1 text-white/70">Phone</div>
-                  <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.phone ?? ""} onChange={(e) => setDraft({ ...draft, phone: e.target.value })} />
-                </div>
-                <div>
-                  <div className="mb-1 text-white/70">Email</div>
-                  <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.email ?? ""} onChange={(e) => setDraft({ ...draft, email: e.target.value })} />
-                </div>
-                <div>
-                  <div className="mb-1 text-white/70">Job</div>
-                  <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.job ?? ""} onChange={(e) => setDraft({ ...draft, job: e.target.value })} />
-                </div>
-                <div>
-                  <div className="mb-1 text-white/70">Date of Birth</div>
-                  <input type="date" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.dob ?? ""} onChange={(e) => setDraft({ ...draft, dob: e.target.value })} />
-                </div>
-                <div>
-                  <div className="mb-1 text-white/70">Address</div>
-                  <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.address ?? ""} onChange={(e) => setDraft({ ...draft, address: e.target.value })} />
-                </div>
-                <div>
-                  <div className="mb-1 text-white/70">City</div>
-                  <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.city ?? ""} onChange={(e) => setDraft({ ...draft, city: e.target.value })} />
-                </div>
-                <div>
-                  <div className="mb-1 text-white/70">Password</div>
-                  <input type="password" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.password ?? ""} onChange={(e) => setDraft({ ...draft, password: e.target.value })} />
-                </div>
-                <div className="md:col-span-2">
-                  <div className="mb-1 text-white/70">Notes</div>
-                  <textarea className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" rows={3} value={draft.notes ?? ""} onChange={(e) => setDraft({ ...draft, notes: e.target.value })} />
-                </div>
-              </div>
-              {updateMessage && (
-                <div className={`mb-6 mt-6 rounded-md p-4 text-sm ${
-                  updateMessage.includes('berhasil') 
-                    ? 'bg-green-500/10 border border-green-500/20 text-green-400' 
-                    : 'bg-red-500/10 border border-red-500/20 text-red-400'
-                }`}>
-                  {updateMessage}
-                </div>
-              )}
-              <div className="mt-4 flex justify-end gap-2">
-                <button className="rounded-md border border-white/10 bg-white/5 px-3 py-2" onClick={() => setShowAddModal(false)}>Batal</button>
-                <button
-                  className="rounded-md border border-green-500/30 bg-green-500/10 px-3 py-2 text-green-300"
-                  onClick={() => {
-                    const doAdd = async () => {
-                      if (!draft) return
-                      
-                      setIsUpdating(true)
-                      setUpdateMessage("")
-                      
-                      try {
-                        const { data, error } = await supabase
-                          .from("members")
-                          .insert({
-                            name: draft.name ?? null,
-                            organization: draft.organization ?? null,
-                            phone: draft.phone ?? null,
-                            email: draft.email ?? null,
-                            job: draft.job ?? null,
-                            dob: draft.dob ?? null,
-                            address: draft.address ?? null,
-                            city: draft.city ?? null,
-                            notes: draft.notes ?? null,
-                            password: draft.password ?? null,
-                          })
-                          .select("id")
-                          .single()
-                        
-                        if (error) {
-                          console.error("Insert error:", error)
-                          setUpdateMessage("Gagal menambahkan data: " + error.message)
-                          return
-                        }
-                        
-                        // Add to local state
-                        const newRow = { ...draft, id: data?.id }
-                        setRows([...rows, newRow])
-                        
-                        setUpdateMessage("Member berhasil ditambahkan!")
-                        
-                        // Close modal after a short delay
-                        setTimeout(() => {
-                          setShowAddModal(false)
-                          setUpdateMessage("")
-                          setIsUpdating(false)
-                        }, 1500)
-                        
-                      } catch (error) {
-                        console.error("Unexpected error:", error)
-                        setUpdateMessage("Terjadi kesalahan yang tidak terduga")
-                      } finally {
-                        setIsUpdating(false)
-                      }
-                    }
-                    doAdd()
-                  }}
-                >
-                  {isUpdating ? "Memproses..." : "Tambah"}
-                </button>
-              </div>
-            </div>
-          </ModalContent>
-        </>
-      )}
-    </main>
-
-  )
-
-}
-
-
-
-
-
-
