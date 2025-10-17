@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react"
 import * as XLSX from "xlsx"
-import { Eye, Pencil, X } from "lucide-react"
+import { Pencil, Trash2, X } from "lucide-react"
 import { ModalOverlay, ModalContent } from "@/components/ui/separator"
 import { supabase } from "@/lib/supabase"
 
@@ -17,6 +17,7 @@ type MemberRow = {
   address?: string
   city?: string
   notes?: string
+  password?: string
 }
 
 export function MemberManageContent() {
@@ -26,6 +27,7 @@ export function MemberManageContent() {
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const [draft, setDraft] = useState<MemberRow | null>(null)
   const [showModal, setShowModal] = useState(false)
+  const [showAddModal, setShowAddModal] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [isUpdating, setIsUpdating] = useState(false)
   const [updateMessage, setUpdateMessage] = useState("")
@@ -36,12 +38,14 @@ export function MemberManageContent() {
       setIsLoading(true)
       const { data, error } = await supabase
         .from("members")
-        .select("id,name,organization,phone,email,job,dob,address,city,notes")
+        .select("id,name,organization,phone,email,job,dob,address,city,notes,password")
+      
       if (error) {
         console.error("Supabase members fetch error:", error)
         setIsLoading(false)
         return
       }
+      
       const mapped: MemberRow[] = (data ?? []).map((r: Record<string, unknown>) => ({
         id: r.id as string | undefined,
         name: r.name as string | undefined,
@@ -53,7 +57,9 @@ export function MemberManageContent() {
         address: r.address as string | undefined,
         city: r.city as string | undefined,
         notes: r.notes as string | undefined,
+        password: r.password as string | undefined,
       }))
+      
       setRows(mapped)
       setIsLoading(false)
     }
@@ -69,7 +75,7 @@ export function MemberManageContent() {
           // Refetch data when any change occurs
           const { data, error } = await supabase
             .from("members")
-            .select("id,name,organization,phone,email,job,dob,address,city,notes")
+            .select("id,name,organization,phone,email,job,dob,address,city,notes,password")
           if (error) {
             console.error("Supabase members fetch error:", error)
             return
@@ -85,6 +91,7 @@ export function MemberManageContent() {
             address: r.address,
             city: r.city,
             notes: r.notes,
+            password: r.password,
           }))
           setRows(mapped)
         }
@@ -190,14 +197,31 @@ export function MemberManageContent() {
   return (
     <main className="mx-auto max-w-7xl px-4 md:px-6 py-6 space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-extrabold tracking-tight">Manajemen Member</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight text-white">Manajemen Member</h1>
       </div>
 
       <div className="flex items-center gap-3">
-        <button className="rounded-md border border-blue-600/50 bg-blue-600/10 px-3 py-2 text-sm hover:bg-blue-600/20">
+        <button 
+          onClick={() => {
+            setDraft({
+              name: "",
+              organization: "",
+              phone: "",
+              email: "",
+              job: "",
+              dob: "",
+              address: "",
+              city: "",
+              notes: "",
+              password: ""
+            })
+            setShowAddModal(true)
+          }}
+          className="rounded-md border border-blue-600/50 bg-blue-600/10 px-3 py-2 text-sm text-white hover:bg-blue-600/20"
+        >
           + Baru
         </button>
-        <button onClick={handleImportClick} className="rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm hover:bg-white/10">
+        <button onClick={handleImportClick} className="rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white hover:bg-white/10">
           Import Excel
         </button>
         <input
@@ -213,7 +237,7 @@ export function MemberManageContent() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Pencarian"
-              className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2 text-sm placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-blue-500/60"
+              className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-blue-500/60"
             />
             <div className="pointer-events-none absolute inset-0 rounded-md ring-1 ring-white/5" />
           </div>
@@ -233,6 +257,7 @@ export function MemberManageContent() {
                 <th className="px-4 py-3 font-medium">DATE OF BIRTH</th>
                 <th className="px-4 py-3 font-medium">ADDRESS</th>
                 <th className="px-4 py-3 font-medium">CITY</th>
+                <th className="px-4 py-3 font-medium">PASSWORD</th>
                 <th className="px-4 py-3 font-medium">NOTES</th>
                 <th className="px-4 py-3 font-medium">AKSI</th>
               </tr>
@@ -240,13 +265,13 @@ export function MemberManageContent() {
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={10} className="px-4 py-10 text-center text-white/50">
+                  <td colSpan={11} className="px-4 py-10 text-center text-white/50">
                     Memuat data...
                   </td>
                 </tr>
               ) : filteredRows.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="px-4 py-10 text-center text-white/50">
+                  <td colSpan={11} className="px-4 py-10 text-center text-white/50">
                     Belum ada data untuk ditampilkan
                   </td>
                 </tr>
@@ -255,29 +280,49 @@ export function MemberManageContent() {
                   const idx = rows.indexOf(r)
                   return (
                     <tr key={idx} className="border-t border-white/5">
-                      <td className="px-4 py-2">{r.name}</td>
-                      <td className="px-4 py-2">{r.organization}</td>
-                      <td className="px-4 py-2">{r.phone}</td>
-                      <td className="px-4 py-2">{r.email}</td>
-                      <td className="px-4 py-2">{r.job}</td>
-                      <td className="px-4 py-2">{r.dob}</td>
-                      <td className="px-4 py-2">{r.address}</td>
-                      <td className="px-4 py-2">{r.city}</td>
-                      <td className="px-4 py-2">{r.notes}</td>
+                      <td className="px-4 py-2 text-white">{r.name}</td>
+                      <td className="px-4 py-2 text-white">{r.organization}</td>
+                      <td className="px-4 py-2 text-white">{r.phone}</td>
+                      <td className="px-4 py-2 text-white">{r.email}</td>
+                      <td className="px-4 py-2 text-white">{r.job}</td>
+                      <td className="px-4 py-2 text-white">{r.dob}</td>
+                      <td className="px-4 py-2 text-white">{r.address}</td>
+                      <td className="px-4 py-2 text-white">{r.city}</td>
+                      <td className="px-4 py-2 text-white">{r.password || "-"}</td>
+                      <td className="px-4 py-2 text-white">{r.notes}</td>
                       <td className="px-4 py-2">
                         <div className="flex gap-2 text-xs">
-                          <button aria-label="View" title="View" className="rounded-md border border-white/10 bg-white/5 px-2 py-1">
-                            <Eye className="h-4 w-4" />
-                          </button>
-                          <button
-                            aria-label="Edit"
-                            title="Edit"
-                            className="rounded-md border border-white/10 bg-white/5 px-2 py-1"
-                            onClick={() => { setEditingIndex(idx); setDraft(r); setShowModal(true) }}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </button>
-                        </div>
+                              <button
+                                aria-label="Edit"
+                                title="Edit"
+                                className="rounded-md border border-white/10 bg-white/5 px-2 py-1"
+                                onClick={() => { setEditingIndex(idx); setDraft(r); setShowModal(true) }}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </button>
+                              <button
+                                aria-label="Delete"
+                                title="Delete"
+                                className="rounded-md border border-red-500/30 bg-red-500/10 px-2 py-1 text-red-300"
+                                onClick={() => {
+                                  const doDelete = async () => {
+                                    if (r.id) {
+                                      const { error } = await supabase.from("members").delete().eq("id", r.id)
+                                      if (error) {
+                                        console.error(error)
+                                        return
+                                      }
+                                    }
+                                    const copy = rows.slice()
+                                    copy.splice(idx, 1)
+                                    setRows(copy)
+                                  }
+                                  doDelete()
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
                       </td>
                     </tr>
                   )
@@ -502,6 +547,135 @@ export function MemberManageContent() {
                   disabled={isUpdating}
                 >
                   {isUpdating ? "Memproses..." : "Kirim"}
+                </button>
+              </div>
+            </div>
+          </ModalContent>
+        </>
+      )}
+
+      {/* Add Member Modal */}
+      {showAddModal && draft && (
+        <>
+          <ModalOverlay onClick={() => setShowAddModal(false)} />
+          <ModalContent>
+            <div className="w-full max-w-2xl rounded-xl border border-white/10 bg-[#0d1223] p-4 text-sm">
+              <div className="mb-3 flex items-center justify-between">
+                <div className="font-semibold">Tambah Member Baru</div>
+                <button onClick={() => setShowAddModal(false)} className="rounded-md border border-white/10 bg-white/5 p-1" aria-label="Close">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <div className="mb-1 text-white/70">Name</div>
+                  <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.name ?? ""} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
+                </div>
+                <div>
+                  <div className="mb-1 text-white/70">Organization</div>
+                  <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.organization ?? ""} onChange={(e) => setDraft({ ...draft, organization: e.target.value })} />
+                </div>
+                <div>
+                  <div className="mb-1 text-white/70">Phone</div>
+                  <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.phone ?? ""} onChange={(e) => setDraft({ ...draft, phone: e.target.value })} />
+                </div>
+                <div>
+                  <div className="mb-1 text-white/70">Email</div>
+                  <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.email ?? ""} onChange={(e) => setDraft({ ...draft, email: e.target.value })} />
+                </div>
+                <div>
+                  <div className="mb-1 text-white/70">Job</div>
+                  <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.job ?? ""} onChange={(e) => setDraft({ ...draft, job: e.target.value })} />
+                </div>
+                <div>
+                  <div className="mb-1 text-white/70">Date of Birth</div>
+                  <input type="date" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.dob ?? ""} onChange={(e) => setDraft({ ...draft, dob: e.target.value })} />
+                </div>
+                <div>
+                  <div className="mb-1 text-white/70">Address</div>
+                  <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.address ?? ""} onChange={(e) => setDraft({ ...draft, address: e.target.value })} />
+                </div>
+                <div>
+                  <div className="mb-1 text-white/70">City</div>
+                  <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.city ?? ""} onChange={(e) => setDraft({ ...draft, city: e.target.value })} />
+                </div>
+                <div>
+                  <div className="mb-1 text-white/70">Password</div>
+                  <input type="password" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.password ?? ""} onChange={(e) => setDraft({ ...draft, password: e.target.value })} />
+                </div>
+                <div className="md:col-span-2">
+                  <div className="mb-1 text-white/70">Notes</div>
+                  <textarea className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" rows={3} value={draft.notes ?? ""} onChange={(e) => setDraft({ ...draft, notes: e.target.value })} />
+                </div>
+              </div>
+              {updateMessage && (
+                <div className={`mb-6 mt-6 rounded-md p-4 text-sm ${
+                  updateMessage.includes('berhasil') 
+                    ? 'bg-green-500/10 border border-green-500/20 text-green-400' 
+                    : 'bg-red-500/10 border border-red-500/20 text-red-400'
+                }`}>
+                  {updateMessage}
+                </div>
+              )}
+              <div className="mt-4 flex justify-end gap-2">
+                <button className="rounded-md border border-white/10 bg-white/5 px-3 py-2" onClick={() => setShowAddModal(false)}>Batal</button>
+                <button
+                  className="rounded-md border border-green-500/30 bg-green-500/10 px-3 py-2 text-green-300"
+                  onClick={() => {
+                    const doAdd = async () => {
+                      if (!draft) return
+                      
+                      setIsUpdating(true)
+                      setUpdateMessage("")
+                      
+                      try {
+                        const { data, error } = await supabase
+                          .from("members")
+                          .insert({
+                            name: draft.name ?? null,
+                            organization: draft.organization ?? null,
+                            phone: draft.phone ?? null,
+                            email: draft.email ?? null,
+                            job: draft.job ?? null,
+                            dob: draft.dob ?? null,
+                            address: draft.address ?? null,
+                            city: draft.city ?? null,
+                            notes: draft.notes ?? null,
+                            password: draft.password ?? null,
+                          })
+                          .select("id")
+                          .single()
+                        
+                        if (error) {
+                          console.error("Insert error:", error)
+                          setUpdateMessage("Gagal menambahkan data: " + error.message)
+                          return
+                        }
+                        
+                        // Add to local state
+                        const newRow = { ...draft, id: data?.id }
+                        setRows([...rows, newRow])
+                        
+                        setUpdateMessage("Member berhasil ditambahkan!")
+                        
+                        // Close modal after a short delay
+                        setTimeout(() => {
+                          setShowAddModal(false)
+                          setUpdateMessage("")
+                          setIsUpdating(false)
+                        }, 1500)
+                        
+                      } catch (error) {
+                        console.error("Unexpected error:", error)
+                        setUpdateMessage("Terjadi kesalahan yang tidak terduga")
+                      } finally {
+                        setIsUpdating(false)
+                      }
+                    }
+                    doAdd()
+                  }}
+                >
+                  {isUpdating ? "Memproses..." : "Tambah"}
                 </button>
               </div>
             </div>

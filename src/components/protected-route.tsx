@@ -50,3 +50,6 @@ export function ProtectedRoute({ children, allowedRoles = ['admin', 'team'] }: P
 
   return <>{children}</>
 }
+
+
+

@@ -29,9 +29,12 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const [draft, setDraft] = useState<CertificateRow | null>(null)
   const [showModal, setShowModal] = useState(false)
+  const [showAddModal, setShowAddModal] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [isUpdating, setIsUpdating] = useState(false)
   const [updateMessage, setUpdateMessage] = useState("")
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 10
 
   useEffect(() => {
     // Initial data fetch
@@ -105,6 +108,17 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
         .some((v) => String(v).toLowerCase().includes(q))
     )
   }, [rows, query])
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredRows.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const paginatedRows = filteredRows.slice(startIndex, endIndex)
+
+  // Reset to page 1 when query changes
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [query])
 
   function handleImportClick() {
     fileInputRef.current?.click()
@@ -199,7 +213,21 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
       </div>
 
       <div className="flex items-center gap-3">
-        <button className="rounded-md border border-blue-600/50 bg-blue-600/10 px-3 py-2 text-sm hover:bg-blue-600/20">
+        <button 
+          onClick={() => {
+            setDraft({
+              name: "",
+              number: "",
+              category: "",
+              recipientOrg: "",
+              issuer: "",
+              issuedAt: "",
+              expiresAt: ""
+            })
+            setShowAddModal(true)
+          }}
+          className="rounded-md border border-blue-600/50 bg-blue-600/10 px-3 py-2 text-sm hover:bg-blue-600/20"
+        >
           + Baru
         </button>
         <button onClick={handleImportClick} className="rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm hover:bg-white/10">
@@ -247,14 +275,14 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                     Memuat data...
                   </td>
                 </tr>
-              ) : filteredRows.length === 0 ? (
+              ) : paginatedRows.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="px-4 py-10 text-center text-white/50">
                     Belum ada data untuk ditampilkan
                   </td>
                 </tr>
               ) : (
-                filteredRows.map((r) => {
+                paginatedRows.map((r) => {
                   const idx = rows.indexOf(r)
                   return (
                     <tr key={idx} className="border-t border-white/5">
@@ -313,13 +341,42 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
         </div>
 
         <div className="flex items-center justify-between border-t border-white/10 px-4 py-3 text-sm">
-          <div className="text-white/50">Menampilkan {filteredRows.length} dari {rows.length}</div>
+          <div className="text-white/50">
+            Menampilkan {startIndex + 1}-{Math.min(endIndex, filteredRows.length)} dari {filteredRows.length} 
+            {filteredRows.length !== rows.length && ` (${rows.length} total)`}
+          </div>
           <div className="flex items-center gap-2">
-            <button className="rounded-md border border-white/10 bg-white/5 px-2 py-1 disabled:opacity-40" disabled>{"<<"}</button>
-            <button className="rounded-md border border-white/10 bg-white/5 px-2 py-1 disabled:opacity-40" disabled>{"<"}</button>
-            <span className="inline-flex min-w-8 items-center justify-center rounded-md border border-white/10 bg-white/5 px-3 py-1">1</span>
-            <button className="rounded-md border border-white/10 bg-white/5 px-2 py-1 disabled:opacity-40" disabled>{">"}</button>
-            <button className="rounded-md border border-white/10 bg-white/5 px-2 py-1 disabled:opacity-40" disabled>{">>"}</button>
+            <button 
+              className="rounded-md border border-white/10 bg-white/5 px-2 py-1 disabled:opacity-40 hover:bg-white/10" 
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(1)}
+            >
+              {"<<"}
+            </button>
+            <button 
+              className="rounded-md border border-white/10 bg-white/5 px-2 py-1 disabled:opacity-40 hover:bg-white/10" 
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(currentPage - 1)}
+            >
+              {"<"}
+            </button>
+            <span className="inline-flex min-w-8 items-center justify-center rounded-md border border-white/10 bg-white/5 px-3 py-1 text-white">
+              {currentPage}
+            </span>
+            <button 
+              className="rounded-md border border-white/10 bg-white/5 px-2 py-1 disabled:opacity-40 hover:bg-white/10" 
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(currentPage + 1)}
+            >
+              {">"}
+            </button>
+            <button 
+              className="rounded-md border border-white/10 bg-white/5 px-2 py-1 disabled:opacity-40 hover:bg-white/10" 
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(totalPages)}
+            >
+              {">>"}
+            </button>
           </div>
         </div>
       </section>
@@ -515,6 +572,120 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                   disabled={isUpdating}
                 >
                   {isUpdating ? "Memproses..." : "Kirim"}
+                </button>
+              </div>
+            </div>
+          </ModalContent>
+        </>
+      )}
+
+      {/* Add Certificate Modal */}
+      {showAddModal && draft && (
+        <>
+          <ModalOverlay onClick={() => setShowAddModal(false)} />
+          <ModalContent>
+            <div className="w-full max-w-2xl rounded-xl border border-white/10 bg-[#0d1223] p-4 text-sm">
+              <div className="mb-3 flex items-center justify-between">
+                <div className="font-semibold">Tambah Sertifikat Baru</div>
+                <button onClick={() => setShowAddModal(false)} className="rounded-md border border-white/10 bg-white/5 p-1" aria-label="Close">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <div className="mb-1 text-white/70">Nama</div>
+                  <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.name ?? ""} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
+                </div>
+                <div>
+                  <div className="mb-1 text-white/70">Nomor</div>
+                  <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.number ?? ""} onChange={(e) => setDraft({ ...draft, number: e.target.value })} />
+                </div>
+                <div>
+                  <div className="mb-1 text-white/70">Penerbit</div>
+                  <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.issuer ?? ""} onChange={(e) => setDraft({ ...draft, issuer: e.target.value })} />
+                </div>
+                <div>
+                  <div className="mb-1 text-white/70">Instansi Penerima</div>
+                  <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.recipientOrg ?? ""} onChange={(e) => setDraft({ ...draft, recipientOrg: e.target.value })} />
+                </div>
+                <div>
+                  <div className="mb-1 text-white/70">Tanggal Terbit</div>
+                  <input type="date" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.issuedAt ?? ""} onChange={(e) => setDraft({ ...draft, issuedAt: e.target.value })} />
+                </div>
+                <div>
+                  <div className="mb-1 text-white/70">Tanggal Kadaluarsa</div>
+                  <input type="date" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.expiresAt ?? ""} onChange={(e) => setDraft({ ...draft, expiresAt: e.target.value })} />
+                </div>
+                <div className="md:col-span-2">
+                  <div className="mb-1 text-white/70">Kategori</div>
+                  <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.category ?? ""} onChange={(e) => setDraft({ ...draft, category: e.target.value })} />
+                </div>
+              </div>
+              {updateMessage && (
+                <div className={`mb-6 mt-6 rounded-md p-4 text-sm ${
+                  updateMessage.includes('berhasil') 
+                    ? 'bg-green-500/10 border border-green-500/20 text-green-400' 
+                    : 'bg-red-500/10 border border-red-500/20 text-red-400'
+                }`}>
+                  {updateMessage}
+                </div>
+              )}
+              <div className="mt-4 flex justify-end gap-2">
+                <button className="rounded-md border border-white/10 bg-white/5 px-3 py-2" onClick={() => setShowAddModal(false)}>Batal</button>
+                <button
+                  className="rounded-md border border-green-500/30 bg-green-500/10 px-3 py-2 text-green-300"
+                  onClick={() => {
+                    const doAdd = async () => {
+                      if (!draft) return
+                      
+                      setIsUpdating(true)
+                      setUpdateMessage("")
+                      
+                      try {
+                        const { data, error } = await supabase
+                          .from("certificates")
+                          .insert({
+                            name: draft.name ?? null,
+                            number: draft.number ?? null,
+                            category: draft.category ?? null,
+                            recipient_org: draft.recipientOrg ?? null,
+                            issuer: draft.issuer ?? null,
+                            issued_at: draft.issuedAt ?? null,
+                            expires_at: draft.expiresAt ?? null,
+                          })
+                          .select("id")
+                          .single()
+                        
+                        if (error) {
+                          console.error("Insert error:", error)
+                          setUpdateMessage("Gagal menambahkan data: " + error.message)
+                          return
+                        }
+                        
+                        // Add to local state
+                        const newRow = { ...draft, id: data?.id }
+                        setRows([...rows, newRow])
+                        
+                        setUpdateMessage("Sertifikat berhasil ditambahkan!")
+                        
+                        // Close modal after a short delay
+                        setTimeout(() => {
+                          setShowAddModal(false)
+                          setUpdateMessage("")
+                          setIsUpdating(false)
+                        }, 1500)
+                        
+                      } catch (error) {
+                        console.error("Unexpected error:", error)
+                        setUpdateMessage("Terjadi kesalahan yang tidak terduga")
+                      } finally {
+                        setIsUpdating(false)
+                      }
+                    }
+                    doAdd()
+                  }}
+                >
+                  {isUpdating ? "Memproses..." : "Tambah"}
                 </button>
               </div>
             </div>
