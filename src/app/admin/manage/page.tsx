@@ -19,13 +19,13 @@ export default function ManagePage() {
             onClick={() => setTab("cert")}
             className={`${tab === "cert" ? "bg-blue-600 text-white" : "text-white/80 hover:text-white"} rounded-md px-3 py-1.5 text-sm`}
           >
-            Manajemen Sertifikat
+            Manajemen Member
           </button>
           <button
             onClick={() => setTab("member")}
             className={`${tab === "member" ? "bg-blue-600 text-white" : "text-white/80 hover:text-white"} rounded-md px-3 py-1.5 text-sm`}
           >
-            Manajemen Member
+            Manajemen Tim
           </button>
           </div>
         </div>

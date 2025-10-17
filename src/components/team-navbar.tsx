@@ -11,13 +11,21 @@ export function TeamNavbar() {
   return (
     <header className="flex items-center justify-between px-6 py-4 border-b border-white/10">
       <div className="flex items-center gap-8">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="h-7 w-7 rounded-md bg-blue-600" />
-          <span className="font-semibold">UBIG Team</span>
-        </Link>
+      <Link href="/">
+      <div className="mx-auto m-1 inline-flex items-center gap-2">
+        <div className="h-7 w-7 size-7 rounded-md bg-blue-600 text-white grid place-items-center font-bold">
+          S
+        </div>
+        <span className="text-lg   font-semibold tracking-wide">
+          <span className="text-white">Sertiku</span>
+          <span className="text-blue-400">.co.id</span>
+        </span>
+      </div>
+      </Link>
         <nav className="hidden md:flex items-center gap-6 text-sm text-white/70">
           <Link className="hover:text-white" href="/team">Home</Link>
           <Link className="hover:text-white" href="/team/manage">Manage</Link>
+          <Link className="hover:text-white" href="/team/faq">FAQ</Link>
         </nav>
       </div>
       <div className="flex items-center gap-4 text-sm">

@@ -197,7 +197,7 @@ export function MemberManageContent() {
   return (
     <main className="mx-auto max-w-7xl px-4 md:px-6 py-6 space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-extrabold tracking-tight text-white">Manajemen Member</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight text-white">Manajemen Tim</h1>
       </div>
 
       <div className="flex items-center gap-3">
@@ -298,12 +298,12 @@ export function MemberManageContent() {
                                 className="rounded-md border border-white/10 bg-white/5 px-2 py-1"
                                 onClick={() => { setEditingIndex(idx); setDraft(r); setShowModal(true) }}
                               >
-                                <Pencil className="h-4 w-4" />
+                                <Pencil className="h-4 w-4 text-white" />
                               </button>
                               <button
                                 aria-label="Delete"
                                 title="Delete"
-                                className="rounded-md border border-red-500/30 bg-red-500/10 px-2 py-1 text-red-300"
+                                className="rounded-md border border-red-500/30 bg-red-500/10 px-2 py-1"
                                 onClick={() => {
                                   const doDelete = async () => {
                                     if (r.id) {
@@ -320,7 +320,7 @@ export function MemberManageContent() {
                                   doDelete()
                                 }}
                               >
-                                <Trash2 className="h-4 w-4" />
+                                <Trash2 className="h-4 w-4 text-white" />
                               </button>
                             </div>
                       </td>
@@ -357,39 +357,43 @@ export function MemberManageContent() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <div className="mb-2 text-white/70">Name</div>
-                  <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.name ?? ""} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
+                  <input placeholder="Nama lengkap" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2 placeholder:text-white/40" value={draft.name ?? ""} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
                 </div>
                 <div>
                   <div className="mb-2 text-white/70">Organization</div>
-                  <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.organization ?? ""} onChange={(e) => setDraft({ ...draft, organization: e.target.value })} />
+                  <input placeholder="Nama organisasi" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2 placeholder:text-white/40" value={draft.organization ?? ""} onChange={(e) => setDraft({ ...draft, organization: e.target.value })} />
                 </div>
                 <div>
                   <div className="mb-2 text-white/70">Phone</div>
-                  <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.phone ?? ""} onChange={(e) => setDraft({ ...draft, phone: e.target.value })} />
+                  <input placeholder="08xxxxxxxxxx" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2 placeholder:text-white/40" value={draft.phone ?? ""} onChange={(e) => setDraft({ ...draft, phone: e.target.value })} />
                 </div>
                 <div>
                   <div className="mb-2 text-white/70">Email</div>
-                  <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.email ?? ""} onChange={(e) => setDraft({ ...draft, email: e.target.value })} />
+                  <input placeholder="email@contoh.com" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2 placeholder:text:white/40" value={draft.email ?? ""} onChange={(e) => setDraft({ ...draft, email: e.target.value })} />
                 </div>
                 <div>
                   <div className="mb-2 text-white/70">Job</div>
-                  <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.job ?? ""} onChange={(e) => setDraft({ ...draft, job: e.target.value })} />
+                  <input placeholder="Pekerjaan" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2 placeholder:text-white/40" value={draft.job ?? ""} onChange={(e) => setDraft({ ...draft, job: e.target.value })} />
                 </div>
                 <div>
                   <div className="mb-2 text-white/70">Date of Birth</div>
-                  <input type="date" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.dob ?? ""} onChange={(e) => setDraft({ ...draft, dob: e.target.value })} />
+                  <input type="date" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2 placeholder:text-white/40" value={draft.dob ?? ""} onChange={(e) => setDraft({ ...draft, dob: e.target.value })} />
                 </div>
                 <div>
                   <div className="mb-2 text-white/70">Address</div>
-                  <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.address ?? ""} onChange={(e) => setDraft({ ...draft, address: e.target.value })} />
+                  <input placeholder="Alamat lengkap" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2 placeholder:text-white/40" value={draft.address ?? ""} onChange={(e) => setDraft({ ...draft, address: e.target.value })} />
                 </div>
                 <div>
                   <div className="mb-2 text-white/70">City</div>
-                  <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.city ?? ""} onChange={(e) => setDraft({ ...draft, city: e.target.value })} />
+                  <input placeholder="Kota" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2 placeholder:text-white/40" value={draft.city ?? ""} onChange={(e) => setDraft({ ...draft, city: e.target.value })} />
+                </div>
+                <div className="md:col-span-2">
+                  <div className="mb-2 text-white/70">Password</div>
+                  <input type="password" placeholder="Password akun (opsional)" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2 placeholder:text-white/40" value={draft.password ?? ""} onChange={(e) => setDraft({ ...draft, password: e.target.value })} />
                 </div>
                 <div className="md:col-span-2">
                   <div className="mb-2 text-white/70">Notes</div>
-                  <textarea className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" rows={3} value={draft.notes ?? ""} onChange={(e) => setDraft({ ...draft, notes: e.target.value })} />
+                  <textarea placeholder="Catatan tambahan" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2 placeholder:text-white/40" rows={3} value={draft.notes ?? ""} onChange={(e) => setDraft({ ...draft, notes: e.target.value })} />
                 </div>
               </div>
               {updateMessage && (
@@ -467,6 +471,7 @@ export function MemberManageContent() {
                             address: row.address ?? null,
                             city: row.city ?? null,
                             notes: row.notes ?? null,
+                            password: row.password ?? null,
                           })
                           .eq("id", row.id)
                         
@@ -509,6 +514,7 @@ export function MemberManageContent() {
                             address: row.address ?? null,
                             city: row.city ?? null,
                             notes: row.notes ?? null,
+                            password: row.password ?? null,
                           })
                           .select("id")
                           .single()
@@ -685,5 +691,397 @@ export function MemberManageContent() {
     </main>
   )
 }
+
+
+
+                    // Reset draft ke data asli tanpa menyimpan perubahan
+
+                    if (editingIndex !== null) {
+
+                      setDraft(rows[editingIndex])
+
+                    }
+
+                    setShowModal(false)
+
+                    setUpdateMessage("")
+
+                    setIsUpdating(false)
+
+                    setEditingIndex(null)
+
+                    setDraft(null)
+
+                  }}
+
+                  disabled={isUpdating}
+
+                >
+
+                  Batal
+
+                </button>
+
+                <button
+
+                  className="rounded-md border border-green-500/30 bg-green-500/10 px-3 py-2 text-green-300 disabled:opacity-50 disabled:cursor-not-allowed"
+
+                  onClick={async () => {
+
+                    if (editingIndex == null || !draft) return
+
+                    
+
+                    setIsUpdating(true)
+
+                    setUpdateMessage("")
+
+                    
+
+                    try {
+
+                      const row = draft
+
+                      if (row.id) {
+
+                        // Check if email already exists for another record
+                        if (row.email) {
+                          const { data: existingRecord, error: checkError } = await supabase
+                            .from("members")
+                            .select("id, email")
+                            .eq("email", row.email)
+                            .neq("id", row.id)
+                            .single()
+                          
+                          if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = no rows returned
+                            console.error("Check error:", checkError)
+                            setUpdateMessage("Gagal memeriksa email")
+                            return
+                          }
+                          
+                          if (existingRecord) {
+                            setUpdateMessage("Email sudah digunakan oleh member lain")
+                            return
+                          }
+                        }
+                        
+                        // Update existing record
+
+                        const { error } = await supabase
+
+                          .from("members")
+
+                          .update({
+
+                            name: row.name ?? null,
+
+                            organization: row.organization ?? null,
+
+                            phone: row.phone ?? null,
+
+                            email: row.email ?? null,
+
+                            job: row.job ?? null,
+
+                            dob: row.dob ?? null,
+
+                            address: row.address ?? null,
+
+                            city: row.city ?? null,
+
+                            notes: row.notes ?? null,
+
+                            password: row.password ?? null,
+                          })
+
+                          .eq("id", row.id)
+
+                        
+
+                        if (error) {
+
+                          console.error("Update error:", error)
+
+                          setUpdateMessage("Gagal memperbarui data: " + error.message)
+
+                          return
+
+                        }
+
+                      } else {
+
+                        // Check if email already exists for new record
+                        if (row.email) {
+                          const { data: existingRecord, error: checkError } = await supabase
+                            .from("members")
+                            .select("id, email")
+                            .eq("email", row.email)
+                            .single()
+                          
+                          if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = no rows returned
+                            console.error("Check error:", checkError)
+                            setUpdateMessage("Gagal memeriksa email")
+                            return
+                          }
+                          
+                          if (existingRecord) {
+                            setUpdateMessage("Email sudah digunakan")
+                            return
+                          }
+                        }
+                        
+                        // Insert new record
+
+                        const { data, error } = await supabase
+
+                          .from("members")
+
+                          .insert({
+
+                            name: row.name ?? null,
+
+                            organization: row.organization ?? null,
+
+                            phone: row.phone ?? null,
+
+                            email: row.email ?? null,
+
+                            job: row.job ?? null,
+
+                            dob: row.dob ?? null,
+
+                            address: row.address ?? null,
+
+                            city: row.city ?? null,
+
+                            notes: row.notes ?? null,
+
+                            password: row.password ?? null,
+                          })
+
+                          .select("id")
+
+                          .single()
+
+                        
+
+                        if (error) {
+
+                          console.error("Insert error:", error)
+
+                          setUpdateMessage("Gagal menambahkan data: " + error.message)
+
+                          return
+
+                        }
+
+                        row.id = data?.id
+
+                      }
+
+                      
+
+                      // Update local state immediately
+
+                      const copy = rows.slice()
+
+                      copy[editingIndex] = row
+
+                      setRows(copy)
+
+                      
+
+                      setUpdateMessage("Data berhasil diperbarui!")
+
+                      
+
+                      // Close modal after a short delay to show success message
+
+                      setTimeout(() => {
+
+                        setEditingIndex(null)
+
+                        setDraft(null)
+
+                        setShowModal(false)
+
+                        setUpdateMessage("")
+
+                        setIsUpdating(false)
+
+                      }, 1500)
+
+                      
+
+                    } catch (error) {
+
+                      console.error("Unexpected error:", error)
+
+                      setUpdateMessage("Terjadi kesalahan yang tidak terduga")
+
+                    } finally {
+
+                      setIsUpdating(false)
+
+                    }
+
+                  }}
+
+                  disabled={isUpdating}
+
+                >
+
+                  {isUpdating ? "Memproses..." : "Kirim"}
+
+                </button>
+
+              </div>
+
+            </div>
+
+          </ModalContent>
+
+        </>
+
+      )}
+
+
+      {/* Add Member Modal */}
+      {showAddModal && draft && (
+        <>
+          <ModalOverlay onClick={() => setShowAddModal(false)} />
+          <ModalContent>
+            <div className="w-full max-w-2xl rounded-xl border border-white/10 bg-[#0d1223] p-4 text-sm">
+              <div className="mb-3 flex items-center justify-between">
+                <div className="font-semibold">Tambah Member Baru</div>
+                <button onClick={() => setShowAddModal(false)} className="rounded-md border border-white/10 bg-white/5 p-1" aria-label="Close">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <div className="mb-1 text-white/70">Name</div>
+                  <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.name ?? ""} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
+                </div>
+                <div>
+                  <div className="mb-1 text-white/70">Organization</div>
+                  <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.organization ?? ""} onChange={(e) => setDraft({ ...draft, organization: e.target.value })} />
+                </div>
+                <div>
+                  <div className="mb-1 text-white/70">Phone</div>
+                  <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.phone ?? ""} onChange={(e) => setDraft({ ...draft, phone: e.target.value })} />
+                </div>
+                <div>
+                  <div className="mb-1 text-white/70">Email</div>
+                  <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.email ?? ""} onChange={(e) => setDraft({ ...draft, email: e.target.value })} />
+                </div>
+                <div>
+                  <div className="mb-1 text-white/70">Job</div>
+                  <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.job ?? ""} onChange={(e) => setDraft({ ...draft, job: e.target.value })} />
+                </div>
+                <div>
+                  <div className="mb-1 text-white/70">Date of Birth</div>
+                  <input type="date" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.dob ?? ""} onChange={(e) => setDraft({ ...draft, dob: e.target.value })} />
+                </div>
+                <div>
+                  <div className="mb-1 text-white/70">Address</div>
+                  <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.address ?? ""} onChange={(e) => setDraft({ ...draft, address: e.target.value })} />
+                </div>
+                <div>
+                  <div className="mb-1 text-white/70">City</div>
+                  <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.city ?? ""} onChange={(e) => setDraft({ ...draft, city: e.target.value })} />
+                </div>
+                <div>
+                  <div className="mb-1 text-white/70">Password</div>
+                  <input type="password" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.password ?? ""} onChange={(e) => setDraft({ ...draft, password: e.target.value })} />
+                </div>
+                <div className="md:col-span-2">
+                  <div className="mb-1 text-white/70">Notes</div>
+                  <textarea className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" rows={3} value={draft.notes ?? ""} onChange={(e) => setDraft({ ...draft, notes: e.target.value })} />
+                </div>
+              </div>
+              {updateMessage && (
+                <div className={`mb-6 mt-6 rounded-md p-4 text-sm ${
+                  updateMessage.includes('berhasil') 
+                    ? 'bg-green-500/10 border border-green-500/20 text-green-400' 
+                    : 'bg-red-500/10 border border-red-500/20 text-red-400'
+                }`}>
+                  {updateMessage}
+                </div>
+              )}
+              <div className="mt-4 flex justify-end gap-2">
+                <button className="rounded-md border border-white/10 bg-white/5 px-3 py-2" onClick={() => setShowAddModal(false)}>Batal</button>
+                <button
+                  className="rounded-md border border-green-500/30 bg-green-500/10 px-3 py-2 text-green-300"
+                  onClick={() => {
+                    const doAdd = async () => {
+                      if (!draft) return
+                      
+                      setIsUpdating(true)
+                      setUpdateMessage("")
+                      
+                      try {
+                        const { data, error } = await supabase
+                          .from("members")
+                          .insert({
+                            name: draft.name ?? null,
+                            organization: draft.organization ?? null,
+                            phone: draft.phone ?? null,
+                            email: draft.email ?? null,
+                            job: draft.job ?? null,
+                            dob: draft.dob ?? null,
+                            address: draft.address ?? null,
+                            city: draft.city ?? null,
+                            notes: draft.notes ?? null,
+                            password: draft.password ?? null,
+                          })
+                          .select("id")
+                          .single()
+                        
+                        if (error) {
+                          console.error("Insert error:", error)
+                          setUpdateMessage("Gagal menambahkan data: " + error.message)
+                          return
+                        }
+                        
+                        // Add to local state
+                        const newRow = { ...draft, id: data?.id }
+                        setRows([...rows, newRow])
+                        
+                        setUpdateMessage("Member berhasil ditambahkan!")
+                        
+                        // Close modal after a short delay
+                        setTimeout(() => {
+                          setShowAddModal(false)
+                          setUpdateMessage("")
+                          setIsUpdating(false)
+                        }, 1500)
+                        
+                      } catch (error) {
+                        console.error("Unexpected error:", error)
+                        setUpdateMessage("Terjadi kesalahan yang tidak terduga")
+                      } finally {
+                        setIsUpdating(false)
+                      }
+                    }
+                    doAdd()
+                  }}
+                >
+                  {isUpdating ? "Memproses..." : "Tambah"}
+                </button>
+              </div>
+            </div>
+          </ModalContent>
+        </>
+      )}
+    </main>
+
+  )
+
+}
+
+
+
+
 
 

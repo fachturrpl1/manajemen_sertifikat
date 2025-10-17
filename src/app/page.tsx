@@ -27,7 +27,7 @@ export default function AuPage() {
       <section className="relative mx-auto grid max-w-6xl grid-cols-1 items-center gap-10 px-6 py-16 md:grid-cols-2 md:py-24">
         <div>
           <h1 className="text-4xl font-extrabold leading-tight tracking-tight md:text-5xl">
-            Pembuat & Manajemen Sertifikat Online
+            Pembuat & Manajemen Member Online
           </h1>
           <p className="mt-4 max-w-2xl text-white/80">
             Rancang, terbitkan, dan kelola sertifikat untuk MoU, Magang, Pelatihan,
