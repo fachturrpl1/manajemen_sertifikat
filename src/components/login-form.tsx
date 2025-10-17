@@ -43,13 +43,16 @@ export function LoginForm({
         .from('users')
         .select('*')
         .eq('email', email)
-        .eq('password', password) // Dalam implementasi nyata, gunakan hash password
+        .eq('password', password)
         .single()
 
       if (userError || !user) {
+        console.error("Login error:", userError)
         setError("Email atau password salah")
         return
       }
+
+      console.log("Login successful:", user.email)
 
       // Simpan data user menggunakan hook
       login({
