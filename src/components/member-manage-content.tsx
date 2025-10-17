@@ -27,6 +27,8 @@ export function MemberManageContent() {
   const [draft, setDraft] = useState<MemberRow | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [isUpdating, setIsUpdating] = useState(false)
+  const [updateMessage, setUpdateMessage] = useState("")
 
   useEffect(() => {
     // Initial data fetch
@@ -40,17 +42,17 @@ export function MemberManageContent() {
         setIsLoading(false)
         return
       }
-      const mapped: MemberRow[] = (data ?? []).map((r: any) => ({
-        id: r.id,
-        name: r.name,
-        organization: r.organization,
-        phone: r.phone,
-        email: r.email,
-        job: r.job,
-        dob: r.dob ?? undefined,
-        address: r.address,
-        city: r.city,
-        notes: r.notes,
+      const mapped: MemberRow[] = (data ?? []).map((r: Record<string, unknown>) => ({
+        id: r.id as string | undefined,
+        name: r.name as string | undefined,
+        organization: r.organization as string | undefined,
+        phone: r.phone as string | undefined,
+        email: r.email as string | undefined,
+        job: r.job as string | undefined,
+        dob: r.dob as string | undefined,
+        address: r.address as string | undefined,
+        city: r.city as string | undefined,
+        notes: r.notes as string | undefined,
       }))
       setRows(mapped)
       setIsLoading(false)
@@ -166,17 +168,17 @@ export function MemberManageContent() {
         const { data } = await supabase
           .from("members")
           .select("id,name,organization,phone,email,job,dob,address,city,notes")
-        const mappedDb: MemberRow[] = (data ?? []).map((r: any) => ({
-          id: r.id,
-          name: r.name,
-          organization: r.organization,
-          phone: r.phone,
-          email: r.email,
-          job: r.job,
-          dob: r.dob ?? undefined,
-          address: r.address,
-          city: r.city,
-          notes: r.notes,
+        const mappedDb: MemberRow[] = (data ?? []).map((r: Record<string, unknown>) => ({
+          id: r.id as string | undefined,
+          name: r.name as string | undefined,
+          organization: r.organization as string | undefined,
+          phone: r.phone as string | undefined,
+          email: r.email as string | undefined,
+          job: r.job as string | undefined,
+          dob: r.dob as string | undefined,
+          address: r.address as string | undefined,
+          city: r.city as string | undefined,
+          notes: r.notes as string | undefined,
         }))
         setRows(mappedDb)
       })()
@@ -249,141 +251,32 @@ export function MemberManageContent() {
                   </td>
                 </tr>
               ) : (
-                filteredRows.map((r, idxInFiltered) => {
+                filteredRows.map((r) => {
                   const idx = rows.indexOf(r)
-                  const isEditing = editingIndex === idx
-                  const current = isEditing && draft ? draft : r
                   return (
                     <tr key={idx} className="border-t border-white/5">
-                      <td className="px-4 py-2">
-                        {isEditing ? (
-                          <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-2 py-1 text-sm"
-                            value={current.name ?? ""}
-                            onChange={(e) => setDraft({ ...current, name: e.target.value })}
-                          />
-                        ) : (
-                          current.name
-                        )}
-                      </td>
-                      <td className="px-4 py-2">
-                        {isEditing ? (
-                          <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-2 py-1 text-sm"
-                            value={current.organization ?? ""}
-                            onChange={(e) => setDraft({ ...current, organization: e.target.value })}
-                          />
-                        ) : (
-                          current.organization
-                        )}
-                      </td>
-                      <td className="px-4 py-2">
-                        {isEditing ? (
-                          <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-2 py-1 text-sm"
-                            value={current.phone ?? ""}
-                            onChange={(e) => setDraft({ ...current, phone: e.target.value })}
-                          />
-                        ) : (
-                          current.phone
-                        )}
-                      </td>
-                      <td className="px-4 py-2">
-                        {isEditing ? (
-                          <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-2 py-1 text-sm"
-                            value={current.email ?? ""}
-                            onChange={(e) => setDraft({ ...current, email: e.target.value })}
-                          />
-                        ) : (
-                          current.email
-                        )}
-                      </td>
-                      <td className="px-4 py-2">
-                        {isEditing ? (
-                          <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-2 py-1 text-sm"
-                            value={current.job ?? ""}
-                            onChange={(e) => setDraft({ ...current, job: e.target.value })}
-                          />
-                        ) : (
-                          current.job
-                        )}
-                      </td>
-                      <td className="px-4 py-2">
-                        {isEditing ? (
-                          <input type="date" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-2 py-1 text-sm"
-                            value={current.dob ?? ""}
-                            onChange={(e) => setDraft({ ...current, dob: e.target.value })}
-                          />
-                        ) : (
-                          current.dob
-                        )}
-                      </td>
-                      <td className="px-4 py-2">
-                        {isEditing ? (
-                          <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-2 py-1 text-sm"
-                            value={current.address ?? ""}
-                            onChange={(e) => setDraft({ ...current, address: e.target.value })}
-                          />
-                        ) : (
-                          current.address
-                        )}
-                      </td>
-                      <td className="px-4 py-2">
-                        {isEditing ? (
-                          <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-2 py-1 text-sm"
-                            value={current.city ?? ""}
-                            onChange={(e) => setDraft({ ...current, city: e.target.value })}
-                          />
-                        ) : (
-                          current.city
-                        )}
-                      </td>
-                      <td className="px-4 py-2">
-                        {isEditing ? (
-                          <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-2 py-1 text-sm"
-                            value={current.notes ?? ""}
-                            onChange={(e) => setDraft({ ...current, notes: e.target.value })}
-                          />
-                        ) : (
-                          current.notes
-                        )}
-                      </td>
+                      <td className="px-4 py-2">{r.name}</td>
+                      <td className="px-4 py-2">{r.organization}</td>
+                      <td className="px-4 py-2">{r.phone}</td>
+                      <td className="px-4 py-2">{r.email}</td>
+                      <td className="px-4 py-2">{r.job}</td>
+                      <td className="px-4 py-2">{r.dob}</td>
+                      <td className="px-4 py-2">{r.address}</td>
+                      <td className="px-4 py-2">{r.city}</td>
+                      <td className="px-4 py-2">{r.notes}</td>
                       <td className="px-4 py-2">
                         <div className="flex gap-2 text-xs">
-                          {!isEditing ? (
-                            <>
-                              <button aria-label="View" title="View" className="rounded-md border border-white/10 bg-white/5 px-2 py-1">
-                                <Eye className="h-4 w-4" />
-                              </button>
-                              <button
-                                aria-label="Edit"
-                                title="Edit"
-                                className="rounded-md border border-white/10 bg-white/5 px-2 py-1"
-                                onClick={() => { setEditingIndex(idx); setDraft(r); setShowModal(true) }}
-                              >
-                                <Pencil className="h-4 w-4" />
-                              </button>
-                            </>
-                          ) : (
-                            <>
-                              <button
-                                className="rounded-md border border-green-500/30 bg-green-500/10 px-2 py-1 text-green-300"
-                                onClick={() => {
-                                  if (!draft) return
-                                  const copy = rows.slice()
-                                  copy[idx] = draft
-                                  setRows(copy)
-                                  setEditingIndex(null)
-                                  setDraft(null)
-                                }}
-                              >
-                                Save
-                              </button>
-                              <button
-                                className="rounded-md border border-white/10 bg-white/5 px-2 py-1"
-                                onClick={() => { setEditingIndex(null); setDraft(null) }}
-                              >
-                                Cancel
-                              </button>
-                            </>
-                          )}
+                          <button aria-label="View" title="View" className="rounded-md border border-white/10 bg-white/5 px-2 py-1">
+                            <Eye className="h-4 w-4" />
+                          </button>
+                          <button
+                            aria-label="Edit"
+                            title="Edit"
+                            className="rounded-md border border-white/10 bg-white/5 px-2 py-1"
+                            onClick={() => { setEditingIndex(idx); setDraft(r); setShowModal(true) }}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -416,53 +309,107 @@ export function MemberManageContent() {
                   <X className="h-4 w-4" />
                 </button>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <div className="mb-1 text-white/70">Name</div>
+                  <div className="mb-2 text-white/70">Name</div>
                   <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.name ?? ""} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
                 </div>
                 <div>
-                  <div className="mb-1 text-white/70">Organization</div>
+                  <div className="mb-2 text-white/70">Organization</div>
                   <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.organization ?? ""} onChange={(e) => setDraft({ ...draft, organization: e.target.value })} />
                 </div>
                 <div>
-                  <div className="mb-1 text-white/70">Phone</div>
+                  <div className="mb-2 text-white/70">Phone</div>
                   <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.phone ?? ""} onChange={(e) => setDraft({ ...draft, phone: e.target.value })} />
                 </div>
                 <div>
-                  <div className="mb-1 text-white/70">Email</div>
+                  <div className="mb-2 text-white/70">Email</div>
                   <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.email ?? ""} onChange={(e) => setDraft({ ...draft, email: e.target.value })} />
                 </div>
                 <div>
-                  <div className="mb-1 text-white/70">Job</div>
+                  <div className="mb-2 text-white/70">Job</div>
                   <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.job ?? ""} onChange={(e) => setDraft({ ...draft, job: e.target.value })} />
                 </div>
                 <div>
-                  <div className="mb-1 text-white/70">Date of Birth</div>
+                  <div className="mb-2 text-white/70">Date of Birth</div>
                   <input type="date" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.dob ?? ""} onChange={(e) => setDraft({ ...draft, dob: e.target.value })} />
                 </div>
                 <div>
-                  <div className="mb-1 text-white/70">Address</div>
+                  <div className="mb-2 text-white/70">Address</div>
                   <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.address ?? ""} onChange={(e) => setDraft({ ...draft, address: e.target.value })} />
                 </div>
                 <div>
-                  <div className="mb-1 text-white/70">City</div>
+                  <div className="mb-2 text-white/70">City</div>
                   <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.city ?? ""} onChange={(e) => setDraft({ ...draft, city: e.target.value })} />
                 </div>
                 <div className="md:col-span-2">
-                  <div className="mb-1 text-white/70">Notes</div>
+                  <div className="mb-2 text-white/70">Notes</div>
                   <textarea className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" rows={3} value={draft.notes ?? ""} onChange={(e) => setDraft({ ...draft, notes: e.target.value })} />
                 </div>
               </div>
-              <div className="mt-4 flex justify-end gap-2">
-                <button className="rounded-md border border-white/10 bg-white/5 px-3 py-2" onClick={() => setShowModal(false)}>Batal</button>
+              {updateMessage && (
+                <div className={`mb-4 mt-4 rounded-md p-3 text-sm ${
+                  updateMessage.includes('berhasil') 
+                    ? 'bg-green-500/10 border border-green-500/20 text-green-400' 
+                    : 'bg-red-500/10 border border-red-500/20 text-red-400'
+                }`}>
+                  {updateMessage}
+                </div>
+              )}
+              <div className="mt-6 flex justify-end gap-3">
+                <button 
+                  type="button"
+                  className="rounded-md border border-white/10 bg-white/5 px-3 py-2" 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    // Reset draft ke data asli tanpa menyimpan perubahan
+                    if (editingIndex !== null) {
+                      setDraft(rows[editingIndex])
+                    }
+                    setShowModal(false)
+                    setUpdateMessage("")
+                    setIsUpdating(false)
+                    setEditingIndex(null)
+                    setDraft(null)
+                  }}
+                  disabled={isUpdating}
+                >
+                  Batal
+                </button>
                 <button
-                  className="rounded-md border border-green-500/30 bg-green-500/10 px-3 py-2 text-green-300"
-                  onClick={() => {
-                    const doUpdate = async () => {
-                      if (editingIndex == null || !draft) return
+                  className="rounded-md border border-green-500/30 bg-green-500/10 px-3 py-2 text-green-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={async () => {
+                    if (editingIndex == null || !draft) return
+                    
+                    setIsUpdating(true)
+                    setUpdateMessage("")
+                    
+                    try {
                       const row = draft
                       if (row.id) {
+                        // Check if email already exists for another record
+                        if (row.email) {
+                          const { data: existingRecord, error: checkError } = await supabase
+                            .from("members")
+                            .select("id, email")
+                            .eq("email", row.email)
+                            .neq("id", row.id)
+                            .single()
+                          
+                          if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = no rows returned
+                            console.error("Check error:", checkError)
+                            setUpdateMessage("Gagal memeriksa email")
+                            return
+                          }
+                          
+                          if (existingRecord) {
+                            setUpdateMessage("Email sudah digunakan oleh member lain")
+                            return
+                          }
+                        }
+                        
+                        // Update existing record
                         const { error } = await supabase
                           .from("members")
                           .update({
@@ -477,8 +424,34 @@ export function MemberManageContent() {
                             notes: row.notes ?? null,
                           })
                           .eq("id", row.id)
-                        if (error) { console.error(error); return }
+                        
+                        if (error) {
+                          console.error("Update error:", error)
+                          setUpdateMessage("Gagal memperbarui data: " + error.message)
+                          return
+                        }
                       } else {
+                        // Check if email already exists for new record
+                        if (row.email) {
+                          const { data: existingRecord, error: checkError } = await supabase
+                            .from("members")
+                            .select("id, email")
+                            .eq("email", row.email)
+                            .single()
+                          
+                          if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = no rows returned
+                            console.error("Check error:", checkError)
+                            setUpdateMessage("Gagal memeriksa email")
+                            return
+                          }
+                          
+                          if (existingRecord) {
+                            setUpdateMessage("Email sudah digunakan")
+                            return
+                          }
+                        }
+                        
+                        // Insert new record
                         const { data, error } = await supabase
                           .from("members")
                           .insert({
@@ -494,20 +467,41 @@ export function MemberManageContent() {
                           })
                           .select("id")
                           .single()
-                        if (error) { console.error(error); return }
+                        
+                        if (error) {
+                          console.error("Insert error:", error)
+                          setUpdateMessage("Gagal menambahkan data: " + error.message)
+                          return
+                        }
                         row.id = data?.id
                       }
+                      
+                      // Update local state immediately
                       const copy = rows.slice()
                       copy[editingIndex] = row
                       setRows(copy)
-                      setEditingIndex(null)
-                      setDraft(null)
-                      setShowModal(false)
+                      
+                      setUpdateMessage("Data berhasil diperbarui!")
+                      
+                      // Close modal after a short delay to show success message
+                      setTimeout(() => {
+                        setEditingIndex(null)
+                        setDraft(null)
+                        setShowModal(false)
+                        setUpdateMessage("")
+                        setIsUpdating(false)
+                      }, 1500)
+                      
+                    } catch (error) {
+                      console.error("Unexpected error:", error)
+                      setUpdateMessage("Terjadi kesalahan yang tidak terduga")
+                    } finally {
+                      setIsUpdating(false)
                     }
-                    doUpdate()
                   }}
+                  disabled={isUpdating}
                 >
-                  Kirim
+                  {isUpdating ? "Memproses..." : "Kirim"}
                 </button>
               </div>
             </div>
