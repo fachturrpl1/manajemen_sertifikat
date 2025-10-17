@@ -8,10 +8,13 @@ export default function LoginPage() {
     <div className="relative min-h-svh bg-gradient-to-b from-[#0b1220] to-[#0f1c35]">
       <div className="absolute left-6 top-6 z-20">
         <Link href="/" className="flex items-center gap-2 font-medium">
-          <div className="bg-blue-600 text-primary-foreground flex size-6 items-center justify-center rounded-md">
-            <GalleryVerticalEnd className="size-4" />
+          <div className="bg-blue-600 font-bold text-primary-white flex size-7 items-center justify-center rounded-md">
+            S
           </div>
-          UBIG
+          <span className="text-lg font-semibold tracking-wide">
+            <span className="text-white">Sertiku</span>
+            <span className="text-blue-400">.co.id</span>
+          </span>
         </Link>
       </div>
       <div className="flex min-h-svh items-center justify-center p-6 md:p-10">

@@ -1,10 +1,12 @@
 import { TeamNavbar } from "@/components/team-navbar"
+import { ProtectedRoute } from "@/components/protected-route"
 
 export default function TeamPage() {
   return (
-    <div className="min-h-svh bg-gradient-to-b from-[#0b1220] to-[#0f1c35] text-white">
-      <TeamNavbar />
-      <main className="mx-auto max-w-7xl px-4 md:px-6 py-6 grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-6">
+    <ProtectedRoute allowedRoles={['team']}>
+      <div className="min-h-svh bg-gradient-to-b from-[#0b1220] to-[#0f1c35] text-white">
+        <TeamNavbar />
+        <main className="mx-auto max-w-7xl px-4 md:px-6 py-6 grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-6">
         <section className="rounded-xl border border-white/10 bg-[#0d172b] p-6 shadow-xl shadow-blue-500/10">
           <h2 className="text-3xl font-bold text-blue-400 mb-4">How to Use the Certificate Generator</h2>
           <ol className="space-y-3 text-white/80 list-decimal pl-5">
@@ -95,8 +97,9 @@ export default function TeamPage() {
             <button className="rounded-md border border-white/10 bg-white/5 hover:bg-white/10 px-4 py-2 text-sm">Clear</button>
           </div>
         </aside>
-      </main>
-    </div>
+        </main>
+      </div>
+    </ProtectedRoute>
   )
 }
 

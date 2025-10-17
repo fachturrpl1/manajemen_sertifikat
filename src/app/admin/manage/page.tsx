@@ -1,6 +1,7 @@
 "use client"
 
 import { AdminNavbar } from "@/components/admin-navbar"
+import { ProtectedRoute } from "@/components/protected-route"
 import { useState } from "react"
 import { ManageContent } from "@/components/manage-content"
 import { MemberManageContent } from "@/components/member-manage-content"
@@ -8,10 +9,11 @@ import { MemberManageContent } from "@/components/member-manage-content"
 export default function ManagePage() {
   const [tab, setTab] = useState<"cert" | "member">("cert")
   return (
-    <div className="min-h-svh bg-gradient-to-b from-[#0b1220] to-[#0f1c35] text-white">
-      <AdminNavbar />
-      <div className="mx-auto max-w-7xl px-4 md:px-6 pt-6">
-        <div className="mb-4 flex justify-center">
+    <ProtectedRoute allowedRoles={['admin']}>
+      <div className="min-h-svh bg-gradient-to-b from-[#0b1220] to-[#0f1c35] text-white">
+        <AdminNavbar />
+        <div className="mx-auto max-w-7xl px-4 pt-6">
+        <div className="flex justify-center">
           <div className="inline-flex rounded-lg border border-white/10 bg-white/5 p-1">
           <button
             onClick={() => setTab("cert")}
@@ -27,8 +29,9 @@ export default function ManagePage() {
           </button>
           </div>
         </div>
+        </div>
+        {tab === "cert" ? <ManageContent role="admin" /> : <MemberManageContent />}
       </div>
-      {tab === "cert" ? <ManageContent role="admin" /> : <MemberManageContent />}
-    </div>
+    </ProtectedRoute>
   )
 }

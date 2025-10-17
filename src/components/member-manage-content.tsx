@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
-import * as XLSX from "xlsx"
+// import * as XLSX from "xlsx"
 import { Eye, Pencil, X } from "lucide-react"
 import { ModalOverlay, ModalContent } from "@/components/ui/separator"
 import { supabase } from "@/lib/supabase"

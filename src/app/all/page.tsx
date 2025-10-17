@@ -26,13 +26,17 @@ export default function PublicVerifyPage() {
 
       <div className="relative z-10 w-full max-w-2xl px-6 text-center">
         {/* Logo */}
+        <Link href="/">        
         <div className="mx-auto mb-6 inline-flex items-center gap-2">
-          <div className="h-10 w-10 rounded-md bg-blue-600 text-white grid place-items-center font-bold">U</div>
+          <div className="h-10 w-10 size-7 rounded-md bg-blue-600 text-white grid place-items-center font-bold">
+            S
+          </div>
           <span className="text-3xl font-semibold tracking-wide">
-            <span className="text-white">BIG</span>
-            <span className="text-blue-400">.CO.ID</span>
+            <span className="text-white">Sertiku</span>
+            <span className="text-blue-400">.co.id</span>
           </span>
         </div>
+        </Link>
 
         <h1 className="mb-4 text-4xl md:text-5xl font-extrabold text-blue-400">
           Verifikasi Sertifikat

@@ -1,14 +1,23 @@
+import Link from "next/link"
+
 export default function AuPage() {
   return (
     <div className="relative min-h-svh bg-gradient-to-b from-[#0b1220] to-[#0f1c35] text-white">
       <div className="absolute left-6 top-6 z-20">
         <a href="#" className="flex items-center gap-2 font-medium">
-          <div className="bg-blue-600 text-primary-foreground flex size-7 items-center justify-center rounded-md">
-            U
+          <div className="bg-blue-600 text-primary-white flex size-7 items-center justify-center rounded-md">
+            S
           </div>
-          <span className="text-lg font-semibold tracking-wide">UBIG</span>
+          <span className="text-lg font-semibold tracking-wide">
+            <span className="text-white">Sertiku</span>
+            <span className="text-blue-400">.co.id</span>
+          </span>
         </a>
       </div>
+      <div className="absolute right-6 top-6 z-20">
+        <Link href="/login" className="text-sm text-blue-400 hover:text-white">Login</Link>
+      </div>
+    
       {/* subtle pattern */}
       <div
         aria-hidden
@@ -32,12 +41,6 @@ export default function AuPage() {
               className="inline-flex items-center justify-center rounded-md bg-blue-600 px-5 py-3 text-sm font-medium text-white hover:bg-blue-500"
             >
               Coba Verifikasi Publik
-            </a>
-            <a
-              href="/login"
-              className="inline-flex items-center justify-center rounded-md border border-white/10 bg-white/5 px-5 py-3 text-sm font-medium text-white hover:bg-white/10"
-            >
-              Masuk sebagai Admin/Team
             </a>
           </div>
 
