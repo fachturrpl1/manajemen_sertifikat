@@ -26,14 +26,18 @@ export function MemberManageContent() {
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const [draft, setDraft] = useState<MemberRow | null>(null)
   const [showModal, setShowModal] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    ;(async () => {
+    // Initial data fetch
+    const fetchData = async () => {
+      setIsLoading(true)
       const { data, error } = await supabase
         .from("members")
         .select("id,name,organization,phone,email,job,dob,address,city,notes")
       if (error) {
         console.error("Supabase members fetch error:", error)
+        setIsLoading(false)
         return
       }
       const mapped: MemberRow[] = (data ?? []).map((r: any) => ({
@@ -49,7 +53,46 @@ export function MemberManageContent() {
         notes: r.notes,
       }))
       setRows(mapped)
-    })()
+      setIsLoading(false)
+    }
+
+    fetchData()
+
+    // Set up real-time subscription
+    const channel = supabase
+      .channel('members-changes')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'members' },
+        async () => {
+          // Refetch data when any change occurs
+          const { data, error } = await supabase
+            .from("members")
+            .select("id,name,organization,phone,email,job,dob,address,city,notes")
+          if (error) {
+            console.error("Supabase members fetch error:", error)
+            return
+          }
+          const mapped: MemberRow[] = (data ?? []).map((r: any) => ({
+            id: r.id,
+            name: r.name,
+            organization: r.organization,
+            phone: r.phone,
+            email: r.email,
+            job: r.job,
+            dob: r.dob ?? undefined,
+            address: r.address,
+            city: r.city,
+            notes: r.notes,
+          }))
+          setRows(mapped)
+        }
+      )
+      .subscribe()
+
+    // Cleanup subscription on unmount
+    return () => {
+      supabase.removeChannel(channel)
+    }
   }, [])
 
   const filteredRows = useMemo(() => {
@@ -193,7 +236,13 @@ export function MemberManageContent() {
               </tr>
             </thead>
             <tbody>
-              {filteredRows.length === 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={10} className="px-4 py-10 text-center text-white/50">
+                    Memuat data...
+                  </td>
+                </tr>
+              ) : filteredRows.length === 0 ? (
                 <tr>
                   <td colSpan={10} className="px-4 py-10 text-center text-white/50">
                     Belum ada data untuk ditampilkan

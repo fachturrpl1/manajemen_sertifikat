@@ -29,14 +29,18 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const [draft, setDraft] = useState<CertificateRow | null>(null)
   const [showModal, setShowModal] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    ;(async () => {
+    // Initial data fetch
+    const fetchData = async () => {
+      setIsLoading(true)
       const { data, error } = await supabase
         .from("certificates")
         .select("id,name,number,category,recipient_org,issuer,issued_at,expires_at")
       if (error) {
         console.error("Supabase certificates fetch error:", error)
+        setIsLoading(false)
         return
       }
       const mapped: CertificateRow[] = (data ?? []).map((r: any) => ({
@@ -50,7 +54,44 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
         expiresAt: r.expires_at ?? undefined,
       }))
       setRows(mapped)
-    })()
+      setIsLoading(false)
+    }
+
+    fetchData()
+
+    // Set up real-time subscription
+    const channel = supabase
+      .channel('certificates-changes')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'certificates' },
+        async () => {
+          // Refetch data when any change occurs
+          const { data, error } = await supabase
+            .from("certificates")
+            .select("id,name,number,category,recipient_org,issuer,issued_at,expires_at")
+          if (error) {
+            console.error("Supabase certificates fetch error:", error)
+            return
+          }
+          const mapped: CertificateRow[] = (data ?? []).map((r: any) => ({
+            id: r.id,
+            name: r.name,
+            number: r.number,
+            category: r.category,
+            recipientOrg: r.recipient_org,
+            issuer: r.issuer,
+            issuedAt: r.issued_at ?? undefined,
+            expiresAt: r.expires_at ?? undefined,
+          }))
+          setRows(mapped)
+        }
+      )
+      .subscribe()
+
+    // Cleanup subscription on unmount
+    return () => {
+      supabase.removeChannel(channel)
+    }
   }, [])
 
   const filteredRows = useMemo(() => {
@@ -198,7 +239,13 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
               </tr>
             </thead>
             <tbody>
-              {filteredRows.length === 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={8} className="px-4 py-10 text-center text-white/50">
+                    Memuat data...
+                  </td>
+                </tr>
+              ) : filteredRows.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="px-4 py-10 text-center text-white/50">
                     Belum ada data untuk ditampilkan
