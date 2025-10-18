@@ -9,7 +9,7 @@ import { Globe } from "lucide-react"
 export default function PublicVerifyPage() {
   const [no, setNo] = useState("")
   const router = useRouter()
-  const { locale, setLocale, t } = useI18n()
+  const { t, locale, setLocale } = useI18n()
 
   function submit() {
     if (!no.trim()) return

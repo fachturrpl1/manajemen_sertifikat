@@ -20,8 +20,7 @@ export default function AuPage() {
         </a>
       </div>
       <div className="absolute right-6 top-6 z-20 flex items-center gap-4">
-        <Link href="/login" className="text-sm text-blue-400 hover:text-white">{t('login')}</Link>
-        
+        {/* Language Toggle Button */}
         <button
           onClick={() => setLocale(locale === 'en' ? 'id' : 'en')}
           className="flex items-center gap-2 rounded-md border border-white/10 bg-white/5 px-3 py-1.5 text-sm hover:bg-white/10 transition-colors"
@@ -30,6 +29,8 @@ export default function AuPage() {
           <Globe className="h-4 w-4" />
           <span className="font-medium">{locale === 'en' ? 'EN' : 'ID'}</span>
         </button>
+        
+        <Link href="/login" className="text-sm text-blue-400 hover:text-white">{t('login')}</Link>
       </div>
     
       {/* subtle pattern */}
@@ -39,13 +40,13 @@ export default function AuPage() {
       />
 
       <section className="relative mx-auto grid max-w-6xl grid-cols-1 items-center gap-10 px-6 py-16 md:grid-cols-2 md:py-24">
-        <div>
-          <h1 className="text-4xl font-extrabold leading-tight tracking-tight md:text-5xl">
-            {t('creatorAndManagement')}
-          </h1>
-          <p className="mt-4 max-w-2xl text-white/80">
-            {t('designDescription')}
-          </p>
+          <div>
+            <h1 className="text-4xl font-extrabold leading-tight tracking-tight md:text-5xl">
+              {t('creatorAndManagement')}
+            </h1>
+            <p className="mt-4 max-w-2xl text-white/80">
+              {t('designDescription')}
+            </p>
 
           <div className="mt-8 flex items-center gap-3">
             <a

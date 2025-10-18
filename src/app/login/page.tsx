@@ -8,8 +8,7 @@ import { Globe } from "lucide-react"
 import { LoginForm } from "@/components/login-form"
 
 export default function LoginPage() {
-  const { locale, setLocale } = useI18n()
-  
+  const { t, locale, setLocale } = useI18n()
   return (
     <div className="relative min-h-svh bg-gradient-to-b from-[#0b1220] to-[#0f1c35]">
       <div className="absolute left-6 top-6 z-20">
@@ -23,7 +22,6 @@ export default function LoginPage() {
           </span>
         </Link>
       </div>
-      
       <div className="absolute right-6 top-6 z-20">
         {/* Language Toggle Button */}
         <button

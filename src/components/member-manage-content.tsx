@@ -389,7 +389,7 @@ export function MemberManageContent() {
                 </div>
                 <div className="md:col-span-2">
                   <div className="mb-2 text-white/70">Password</div>
-                  <input type="password" placeholder="Password akun (opsional)" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2 placeholder:text-white/40" value={draft.password ?? ""} onChange={(e) => setDraft({ ...draft, password: e.target.value })} />
+                  <input type="text" placeholder="Password akun (opsional)" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2 placeholder:text-white/40" value={draft.password ?? ""} onChange={(e) => setDraft({ ...draft, password: e.target.value })} />
                 </div>
                 <div className="md:col-span-2">
                   <div className="mb-2 text-white/70">Notes</div>
@@ -607,7 +607,7 @@ export function MemberManageContent() {
                 </div>
                 <div>
                   <div className="mb-1 text-white/70">Password</div>
-                  <input type="password" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.password ?? ""} onChange={(e) => setDraft({ ...draft, password: e.target.value })} />
+                  <input type="text" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.password ?? ""} onChange={(e) => setDraft({ ...draft, password: e.target.value })} />
                 </div>
                 <div className="md:col-span-2">
                   <div className="mb-1 text-white/70">Notes</div>

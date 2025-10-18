@@ -65,13 +65,14 @@ const en: Dictionary = {
   category: "Category",
   tryPublicVerification: "Try Public Verification",
   publicVerification: "Public Verification",
+  // Landing page content
+  creatorAndManagement: "Creator & Online Member Management",
+  designDescription: "Design, issue, and manage certificates for MoUs, Internships, Training, and Industrial Visits. Choose templates, dynamically set name/QR positions, download PDFs, and send via email—all in one place.",
+  // Verification page
   certificateVerification: "Certificate Verification",
   enterCertificateNumber: "Enter Your Certificate Number",
   typeCertificateNumber: "Type Certificate Number",
   verify: "Verify",
-  // Landing page content
-  creatorAndManagement: "Creator & Online Member Management",
-  designDescription: "Design, issue, and manage certificates for MoUs, Internships, Training, and Industrial Visits. Choose templates, dynamically set name/QR positions, download PDFs, and send via email—all in one place.",
   // Login form
   loginToAccount: "Login to your account",
   enterEmailToLogin: "Enter your email below to login to your account",
@@ -142,13 +143,14 @@ const id: Dictionary = {
   category: "Kategori",
   tryPublicVerification: "Coba Verifikasi Publik",
   publicVerification: "Verifikasi Publik",
+  // Landing page content
+  creatorAndManagement: "Pembuat & Manajemen Member Online",
+  designDescription: "Rancang, terbitkan, dan kelola sertifikat untuk MoU, Magang, Pelatihan, dan Kunjungan Industri. Pilih template, atur posisi nama/QR secara dinamis, unduh PDF, dan kirim lewat email—semuanya dalam satu tempat.",
+  // Verification page
   certificateVerification: "Verifikasi Sertifikat",
   enterCertificateNumber: "Masukkan Nomor Sertifikat Anda",
   typeCertificateNumber: "Ketikkan Nomor Sertifikat",
   verify: "Verifikasi",
-  // Landing page content
-  creatorAndManagement: "Pembuat & Manajemen Member Online",
-  designDescription: "Rancang, terbitkan, dan kelola sertifikat untuk MoU, Magang, Pelatihan, dan Kunjungan Industri. Pilih template, atur posisi nama/QR secara dinamis, unduh PDF, dan kirim lewat email—semuanya dalam satu tempat.",
   // Login form
   loginToAccount: "Masuk ke akun Anda",
   enterEmailToLogin: "Masukkan email Anda di bawah untuk masuk ke akun",
