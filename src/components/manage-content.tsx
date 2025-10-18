@@ -87,24 +87,24 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
         { event: '*', schema: 'public', table: 'certificates' },
         async () => {
           // Refetch data when any change occurs
-          const { data, error } = await supabase
-            .from("certificates")
-            .select("id,name,number,category,recipient_org,issuer,issued_at,expires_at")
-          if (error) {
-            console.error("Supabase certificates fetch error:", error)
-            return
-          }
-          const mapped: CertificateRow[] = (data ?? []).map((r: any) => ({
-            id: r.id,
-            name: r.name,
-            number: r.number,
-            category: r.category,
-            recipientOrg: r.recipient_org,
-            issuer: r.issuer,
-            issuedAt: r.issued_at ?? undefined,
-            expiresAt: r.expires_at ?? undefined,
-          }))
-          setRows(mapped)
+      const { data, error } = await supabase
+        .from("certificates")
+        .select("id,name,number,category,recipient_org,issuer,issued_at,expires_at")
+      if (error) {
+        console.error("Supabase certificates fetch error:", error)
+        return
+      }
+      const mapped: CertificateRow[] = (data ?? []).map((r: any) => ({
+        id: r.id,
+        name: r.name,
+        number: r.number,
+        category: r.category,
+        recipientOrg: r.recipient_org,
+        issuer: r.issuer,
+        issuedAt: r.issued_at ?? undefined,
+        expiresAt: r.expires_at ?? undefined,
+      }))
+      setRows(mapped)
         }
       )
       .subscribe()
@@ -225,7 +225,7 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
   return (
     <main className="mx-auto max-w-7xl px-4 md:px-6 py-6 space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-extrabold tracking-tight">Manajemen Member</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight">Member</h1>
       </div>
 
       <div className="flex items-center gap-3">
@@ -502,7 +502,7 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                 </div>
               )}
               <div className="mt-6 flex justify-end gap-3">
-                <button 
+                <button
                   type="button"
                   className="rounded-md border border-white/10 bg-white/5 px-3 py-2" 
                   onClick={(e) => {

@@ -19,6 +19,7 @@ export default function PublicVerifyPage() {
   return (
     <div className="min-h-svh relative flex items-center justify-center bg-[#0b1220] text-white">
       <div className="absolute right-6 top-6 z-20 flex items-center gap-4">
+        <Link href="/login" className="text-sm text-blue-400 hover:text-white">{t('login')}</Link>
         {/* Language Toggle Button */}
         <button
           onClick={() => setLocale(locale === 'en' ? 'id' : 'en')}
@@ -28,8 +29,6 @@ export default function PublicVerifyPage() {
           <Globe className="h-4 w-4" />
           <span className="font-medium">{locale === 'en' ? 'EN' : 'ID'}</span>
         </button>
-        
-        <Link href="/login" className="text-sm text-blue-400 hover:text-white">{t('login')}</Link>
       </div>
       {/* grid background overlay */}
       <div

@@ -197,7 +197,7 @@ export function MemberManageContent() {
   return (
     <main className="mx-auto max-w-7xl px-4 md:px-6 py-6 space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-extrabold tracking-tight text-white">Manajemen Tim</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight text-white">Tim</h1>
       </div>
 
       <div className="flex items-center gap-3">

@@ -2,15 +2,18 @@
 
 import { AdminNavbar } from "@/components/admin-navbar"
 import { ProtectedRoute } from "@/components/protected-route"
-import { useEffect, useMemo, useState, useRef } from "react"
+import { useEffect, useMemo, useState, useRef, useCallback } from "react"
 import { useSearchParams } from "next/navigation"
 import { supabase } from "@/lib/supabase"
-import html2canvas from "html2canvas"
+import { useI18n } from "@/lib/i18n"
+import { getTemplateConfig, TemplateConfig } from "@/lib/template-configs"
 import jsPDF from "jspdf"
+import { CertificatePreviewModal } from "@/components/certificate-preview-modal"
 
 export default function AdminPage() {
   const params = useSearchParams()
   const certificateId = params.get("id") || undefined
+  const { t } = useI18n()
   const [category, setCategory] = useState("")
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState("")
@@ -20,6 +23,40 @@ export default function AdminPage() {
   const [savingAll, setSavingAll] = useState(false)
   const [selectedTemplate, setSelectedTemplate] = useState<string>("")
   const [previewSrc, setPreviewSrc] = useState<string>("")
+  const [currentTemplateConfig, setCurrentTemplateConfig] = useState<TemplateConfig | null>(null)
+  const [applyingTemplate, setApplyingTemplate] = useState(false)
+  
+  // Undo/Redo state management
+  const [history, setHistory] = useState<Array<{
+    title: string
+    description: string
+    issuedAt: string
+    titleX: number
+    titleY: number
+    titleSize: number
+    titleColor: string
+    titleAlign: "left" | "center" | "right"
+    titleFont: string
+    descX: number
+    descY: number
+    descSize: number
+    descColor: string
+    descAlign: "left" | "center" | "right"
+    descFont: string
+    dateX: number
+    dateY: number
+    dateSize: number
+    dateColor: string
+    dateAlign: "left" | "center" | "right"
+    dateFont: string
+  }>>([])
+  const [historyIndex, setHistoryIndex] = useState(-1)
+  const [canUndo, setCanUndo] = useState(false)
+  const [canRedo, setCanRedo] = useState(false)
+  
+  // Popup preview state
+  const [showPreviewModal, setShowPreviewModal] = useState(false)
+  
   // Text/editor settings
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
@@ -50,6 +87,216 @@ export default function AdminPage() {
   const [descFont, setDescFont] = useState("Inter, ui-sans-serif, system-ui")
   const [dateFont, setDateFont] = useState("Inter, ui-sans-serif, system-ui")
 
+  // Fungsi untuk menyimpan state ke history
+  const saveToHistory = () => {
+    const currentState = {
+      title,
+      description,
+      issuedAt,
+      titleX,
+      titleY,
+      titleSize,
+      titleColor,
+      titleAlign,
+      titleFont,
+      descX,
+      descY,
+      descSize,
+      descColor,
+      descAlign,
+      descFont,
+      dateX,
+      dateY,
+      dateSize,
+      dateColor,
+      dateAlign,
+      dateFont
+    }
+
+    // Hapus semua state setelah index saat ini (jika ada)
+    const newHistory = history.slice(0, historyIndex + 1)
+    newHistory.push(currentState)
+    
+    // Batasi history maksimal 50 state
+    if (newHistory.length > 50) {
+      newHistory.shift()
+    } else {
+      setHistoryIndex(prev => prev + 1)
+    }
+    
+    setHistory(newHistory)
+    setCanUndo(newHistory.length > 1)
+    setCanRedo(false)
+  }
+
+  // Fungsi untuk undo
+  const undo = useCallback(() => {
+    if (historyIndex > 0) {
+      const newIndex = historyIndex - 1
+      const state = history[newIndex]
+      
+      setTitle(state.title)
+      setDescription(state.description)
+      setIssuedAt(state.issuedAt)
+      setTitleX(state.titleX)
+      setTitleY(state.titleY)
+      setTitleSize(state.titleSize)
+      setTitleColor(state.titleColor)
+      setTitleAlign(state.titleAlign)
+      setTitleFont(state.titleFont)
+      setDescX(state.descX)
+      setDescY(state.descY)
+      setDescSize(state.descSize)
+      setDescColor(state.descColor)
+      setDescAlign(state.descAlign)
+      setDescFont(state.descFont)
+      setDateX(state.dateX)
+      setDateY(state.dateY)
+      setDateSize(state.dateSize)
+      setDateColor(state.dateColor)
+      setDateAlign(state.dateAlign)
+      setDateFont(state.dateFont)
+      
+      setHistoryIndex(newIndex)
+      setCanUndo(newIndex > 0)
+      setCanRedo(true)
+    }
+  }, [historyIndex, history])
+
+  // Fungsi untuk redo
+  const redo = useCallback(() => {
+    if (historyIndex < history.length - 1) {
+      const newIndex = historyIndex + 1
+      const state = history[newIndex]
+      
+      setTitle(state.title)
+      setDescription(state.description)
+      setIssuedAt(state.issuedAt)
+      setTitleX(state.titleX)
+      setTitleY(state.titleY)
+      setTitleSize(state.titleSize)
+      setTitleColor(state.titleColor)
+      setTitleAlign(state.titleAlign)
+      setTitleFont(state.titleFont)
+      setDescX(state.descX)
+      setDescY(state.descY)
+      setDescSize(state.descSize)
+      setDescColor(state.descColor)
+      setDescAlign(state.descAlign)
+      setDescFont(state.descFont)
+      setDateX(state.dateX)
+      setDateY(state.dateY)
+      setDateSize(state.dateSize)
+      setDateColor(state.dateColor)
+      setDateAlign(state.dateAlign)
+      setDateFont(state.dateFont)
+      
+      setHistoryIndex(newIndex)
+      setCanUndo(true)
+      setCanRedo(newIndex < history.length - 1)
+    }
+  }, [historyIndex, history])
+
+  // Fungsi untuk apply template configuration
+  async function applyTemplateConfig(templatePath: string) {
+    if (!templatePath) {
+      console.error("Template path is required")
+      setMessage(t('failedToSave') + t('templatePathRequired'))
+      return
+    }
+
+    setApplyingTemplate(true)
+    setMessage("")
+    
+    try {
+      const config = getTemplateConfig(templatePath)
+      if (!config) {
+        console.warn("No template config found for:", templatePath)
+        setMessage(t('failedToSave') + t('templateConfigNotFound'))
+        return
+      }
+
+      const { defaultPositions } = config
+      
+      // Validate template configuration
+      if (!defaultPositions || !defaultPositions.title || !defaultPositions.description || !defaultPositions.date) {
+        console.error("Invalid template configuration:", config)
+        setMessage(t('failedToSave') + t('invalidTemplateConfig'))
+        return
+      }
+    
+      // Update all position and styling states
+      setTitleX(defaultPositions.title.x)
+      setTitleY(defaultPositions.title.y)
+      setTitleSize(defaultPositions.title.size)
+      setTitleColor(defaultPositions.title.color)
+      setTitleAlign(defaultPositions.title.align)
+      setTitleFont(defaultPositions.title.font)
+
+      setDescX(defaultPositions.description.x)
+      setDescY(defaultPositions.description.y)
+      setDescSize(defaultPositions.description.size)
+      setDescColor(defaultPositions.description.color)
+      setDescAlign(defaultPositions.description.align)
+      setDescFont(defaultPositions.description.font)
+
+      setDateX(defaultPositions.date.x)
+      setDateY(defaultPositions.date.y)
+      setDateSize(defaultPositions.date.size)
+      setDateColor(defaultPositions.date.color)
+      setDateAlign(defaultPositions.date.align)
+      setDateFont(defaultPositions.date.font)
+
+      // Set current template config
+      setCurrentTemplateConfig(config)
+
+      // Save all changes to database
+      if (certificateId) {
+        const updateData = {
+          title_x: defaultPositions.title.x,
+          title_y: defaultPositions.title.y,
+          title_size: defaultPositions.title.size,
+          title_color: defaultPositions.title.color,
+          title_align: defaultPositions.title.align,
+          title_font: defaultPositions.title.font,
+          desc_x: defaultPositions.description.x,
+          desc_y: defaultPositions.description.y,
+          desc_size: defaultPositions.description.size,
+          desc_color: defaultPositions.description.color,
+          desc_align: defaultPositions.description.align,
+          desc_font: defaultPositions.description.font,
+          date_x: defaultPositions.date.x,
+          date_y: defaultPositions.date.y,
+          date_size: defaultPositions.date.size,
+          date_color: defaultPositions.date.color,
+          date_align: defaultPositions.date.align,
+          date_font: defaultPositions.date.font,
+          template_path: templatePath
+        }
+
+        const { error } = await supabase
+          .from("certificates")
+          .update(updateData)
+          .eq("id", certificateId)
+        
+        if (error) {
+          console.error("Error saving template config:", error)
+          setMessage(t('failedToSave') + error.message)
+          throw new Error(`Database error: ${error.message}`)
+        } else {
+          console.log("Template config applied and saved successfully")
+          setMessage(t('changesSaved'))
+          setTimeout(() => setMessage(''), 1500)
+        }
+      }
+    } catch (error) {
+      console.error("Error applying template config:", error)
+      setMessage(t('failedToSave') + (error instanceof Error ? error.message : 'Unknown error'))
+    } finally {
+      setApplyingTemplate(false)
+    }
+  }
+
   // Helper: queue save with debounce to Supabase
   function queueSave(update: Record<string, unknown>) {
     if (!certificateId) return
@@ -62,7 +309,7 @@ export default function AdminPage() {
       try {
         // Filter out undefined values
         const cleanUpdate = Object.fromEntries(
-          Object.entries(update).filter(([_, value]) => value !== undefined)
+          Object.entries(update).filter(([, value]) => value !== undefined)
         )
         
         console.log("Cleaned update payload:", cleanUpdate)
@@ -91,31 +338,60 @@ export default function AdminPage() {
   // Opsi kategori (samakan dengan kategori pada sistem)
   const categoryOptions = useMemo(
     () => [
-      { value: "kunjungan industri", label: "Kunjungan Industri" },
-      { value: "magang", label: "Magang" },
-      { value: "mou", label: "MoU" },
-      { value: "pelatihan", label: "Pelatihan" },
+      { value: "kunjungan industri", label: t('industrialVisit') },
+      { value: "magang", label: t('internship') },
+      { value: "mou", label: t('mou') },
+      { value: "pelatihan", label: t('training') },
     ],
-    []
+    [t]
   )
+
+  // Keyboard shortcuts untuk undo/redo
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault()
+        if (canUndo) undo()
+      } else if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+        e.preventDefault()
+        if (canRedo) redo()
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [canUndo, canRedo, undo, redo])
 
   // Ambil data sertifikat lengkap untuk record yang dipilih
   useEffect(() => {
     if (!certificateId) return
-    ;(async () => {
-      // First, let's try a simple query to see what fields are available
+    
+    const loadCertificateData = async () => {
+      try {
+        setMessage(t('loadingCertificateData'))
+        
       const { data, error } = await supabase
         .from("certificates")
         .select("*")
         .eq("id", certificateId)
         .single()
-      if (!error && data) {
-        const row = data as any
+          
+        if (error) {
+          console.error("Error loading certificate data:", error)
+          setMessage(t('failedToSave') + `Failed to load certificate: ${error.message}`)
+          return
+        }
+        
+        if (!data) {
+          setMessage(t('failedToSave') + t('certificateNotFound'))
+          return
+        }
+        const row = data as Record<string, unknown>
         console.log("Loading certificate data for edit:", row) // Debug log
-        setCategory(row.category || "")
+        setCategory((row.category as string) || "")
         
         // Set title/name - prioritize 'name' field, fallback to 'title' field
-        const certificateTitle = row.name || row.title || ""
+        const certificateTitle = (row.name as string) || (row.title as string) || ""
         console.log("Setting title to:", certificateTitle) // Debug log
         setTitle(certificateTitle)
         
@@ -128,67 +404,128 @@ export default function AdminPage() {
         }
         
         // Set other fields
-        setDescription(row.description || "")
-        setIssuedAt(row.issued_at || "")
+        setDescription((row.description as string) || "")
+        setIssuedAt((row.issued_at as string) || "")
         
         // Set positioning and styling with fallback values
-        setTitleX(row.title_x ?? 370)
-        setTitleY(row.title_y ?? 180)
-        setTitleSize(row.title_size ?? 32)
-        setTitleColor(row.title_color ?? "#000000")
-        setTitleAlign(row.title_align ?? "center")
-        setTitleFont(row.title_font ?? "Inter, ui-sans-serif, system-ui")
+        setTitleX((row.title_x as number) ?? 370)
+        setTitleY((row.title_y as number) ?? 180)
+        setTitleSize((row.title_size as number) ?? 32)
+        setTitleColor((row.title_color as string) ?? "#000000")
+        setTitleAlign((row.title_align as "left" | "center" | "right") ?? "center")
+        setTitleFont((row.title_font as string) ?? "Inter, ui-sans-serif, system-ui")
         
-        setDescX(row.desc_x ?? 360)
-        setDescY(row.desc_y ?? 235)
-        setDescSize(row.desc_size ?? 15)
-        setDescColor(row.desc_color ?? "#000000")
-        setDescAlign(row.desc_align ?? "center")
-        setDescFont(row.desc_font ?? "Inter, ui-sans-serif, system-ui")
+        setDescX((row.desc_x as number) ?? 360)
+        setDescY((row.desc_y as number) ?? 235)
+        setDescSize((row.desc_size as number) ?? 15)
+        setDescColor((row.desc_color as string) ?? "#000000")
+        setDescAlign((row.desc_align as "left" | "center" | "right") ?? "center")
+        setDescFont((row.desc_font as string) ?? "Inter, ui-sans-serif, system-ui")
         
         // Use saved values if available, otherwise use defaults
-        setDateX(row.date_x ?? 50)
-        setDateY(row.date_y ?? 110)
-        setDateSize(row.date_size ?? 14)
-        setDateColor(row.date_color ?? "#000000")
-        setDateAlign(row.date_align ?? "center")
-        setDateFont(row.date_font ?? "Inter, ui-sans-serif, system-ui")
+        setDateX((row.date_x as number) ?? 50)
+        setDateY((row.date_y as number) ?? 110)
+        setDateSize((row.date_size as number) ?? 14)
+        setDateColor((row.date_color as string) ?? "#000000")
+        setDateAlign((row.date_align as "left" | "center" | "right") ?? "center")
+        setDateFont((row.date_font as string) ?? "Inter, ui-sans-serif, system-ui")
         
         // Set template
         if (row.template_path) {
-          setSelectedTemplate(row.template_path)
-          setPreviewSrc(`/${row.template_path}`)
+          const templatePath = row.template_path as string
+          setSelectedTemplate(templatePath)
+          setPreviewSrc(`/${templatePath}`)
+          // Load template config
+          const config = getTemplateConfig(templatePath)
+          setCurrentTemplateConfig(config)
         } else if (row.category) {
-          const first = getTemplates(row.category)[0]
+          const first = getTemplates(row.category as string)[0]
           if (first) {
             setSelectedTemplate(first)
             setPreviewSrc(`/${first}`)
+            // Load template config
+            const config = getTemplateConfig(first)
+            setCurrentTemplateConfig(config)
             await supabase.from("certificates").update({ template_path: first }).eq("id", certificateId)
           }
         }
-      } else {
-        console.error("Error loading certificate data:", error)
+      } catch (err) {
+        console.error("Unexpected error loading certificate data:", err)
+        setMessage(t('failedToSave') + (err instanceof Error ? err.message : 'Unknown error'))
+      } finally {
+        setMessage("")
       }
-    })()
-  }, [certificateId])
+    }
+    
+    loadCertificateData()
+  }, [certificateId, t])
+
+  // Inisialisasi history saat data dimuat
+  useEffect(() => {
+    if (title || description || issuedAt) {
+      const initialState = {
+        title,
+        description,
+        issuedAt,
+        titleX,
+        titleY,
+        titleSize,
+        titleColor,
+        titleAlign,
+        titleFont,
+        descX,
+        descY,
+        descSize,
+        descColor,
+        descAlign,
+        descFont,
+        dateX,
+        dateY,
+        dateSize,
+        dateColor,
+        dateAlign,
+        dateFont
+      }
+      
+      if (history.length === 0) {
+        setHistory([initialState])
+        setHistoryIndex(0)
+        setCanUndo(false)
+        setCanRedo(false)
+      }
+    }
+  }, [title, description, issuedAt, titleX, titleY, titleSize, titleColor, titleAlign, titleFont, descX, descY, descSize, descColor, descAlign, descFont, dateX, dateY, dateSize, dateColor, dateAlign, dateFont, history.length])
 
   async function saveCategory(newVal: string) {
     if (!certificateId) {
-      setMessage("Pilih data sertifikat terlebih dahulu")
+      setMessage(t('selectDataFirst'))
       return
     }
+
+    if (!newVal || newVal.trim() === '') {
+      setMessage(t('failedToSaveCategory') + t('categoryCannotBeEmpty'))
+      return
+    }
+
     try {
       setSaving(true)
       setMessage("")
-        const { error } = await supabase
-          .from("certificates")
-        .update({ category: newVal || null })
+      
+      const { error } = await supabase
+        .from("certificates")
+        .update({ category: newVal.trim() })
         .eq("id", certificateId)
+        
       if (error) {
-        setMessage("Gagal menyimpan kategori: " + error.message)
+        console.error("Error saving category:", error)
+        setMessage(t('failedToSaveCategory') + error.message)
         return
       }
-      setMessage("Kategori tersimpan")
+      
+      setMessage(t('categorySaved'))
+    } catch (err) {
+      console.error("Unexpected error saving category:", err)
+      setMessage(t('failedToSaveCategory') + (err instanceof Error ? err.message : 'Unknown error'))
     } finally {
       setSaving(false)
       setTimeout(() => setMessage(""), 1500)
@@ -198,13 +535,30 @@ export default function AdminPage() {
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
+    
     if (!certificateId) {
-      setMessage("Pilih data sertifikat terlebih dahulu")
+      setMessage(t('selectDataFirst'))
       return
     }
+
+    // Validate file type
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'application/pdf']
+    if (!allowedTypes.includes(file.type)) {
+      setMessage(t('failedToProcessFile') + t('fileTypeNotSupported'))
+      return
+    }
+
+    // Validate file size (max 10MB)
+    const maxSize = 10 * 1024 * 1024 // 10MB
+    if (file.size > maxSize) {
+      setMessage(t('failedToProcessFile') + t('fileSizeTooLarge'))
+      return
+    }
+
     try {
       setUploading(true)
       setMessage("")
+      
       // Baca file sebagai base64 untuk disimpan di tabel
       const toBase64 = (f: File) => new Promise<string>((resolve, reject) => {
         const reader = new FileReader()
@@ -214,11 +568,16 @@ export default function AdminPage() {
           const comma = res.indexOf(",")
           resolve(comma >= 0 ? res.slice(comma + 1) : res)
         }
-        reader.onerror = () => reject(reader.error)
+        reader.onerror = () => reject(new Error("Failed to read file"))
         reader.readAsDataURL(f)
       })
 
       const base64 = await toBase64(file)
+      
+      if (!base64) {
+        throw new Error("Failed to convert file to base64")
+      }
+
       const payload = {
         certificate_id: certificateId,
         filename: file.name,
@@ -226,21 +585,26 @@ export default function AdminPage() {
         size: file.size,
         data_base64: base64,
       }
+      
       const { error } = await supabase.from("certificate_files").insert(payload)
       if (error) {
-        setMessage("Gagal menyimpan file ke tabel: " + error.message)
+        console.error("Error saving file:", error)
+        setMessage(t('failedToSaveFile') + error.message)
         return
       }
+      
       // Tampilkan pratinjau langsung (untuk gambar). Untuk PDF dapat ditangani dengan <object>
       if (file.type.startsWith("image/")) {
         setPreviewSrc(`data:${file.type};base64,${base64}`)
       } else {
         setPreviewSrc("")
       }
-      setMessage("File berhasil disimpan ke tabel")
+      
+      setMessage(t('fileSavedToTable'))
     } catch (err: unknown) {
+      console.error("Error processing file upload:", err)
       const message = err instanceof Error ? err.message : String(err)
-      setMessage("Gagal memproses file: " + message)
+      setMessage(t('failedToProcessFile') + message)
     } finally {
       setUploading(false)
     }
@@ -250,7 +614,7 @@ export default function AdminPage() {
     <ProtectedRoute allowedRoles={['admin']}>
       <div className="min-h-svh bg-gradient-to-b from-[#0b1220] to-[#0f1c35] text-white">
         <AdminNavbar />
-        <main className="mx-auto max-w-7xl px-4 md:px-6 py-6 grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-6">
+         <main className="mx-auto max-w-7xl px-4 md:px-6 py-6 grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-6 items-start">
         <PreviewPanel
           category={category}
           previewSrc={previewSrc}
@@ -273,6 +637,7 @@ export default function AdminPage() {
             else { setDateX(nx); setDateY(ny) }
           }}
           onCommitPosition={(nx, ny) => {
+             saveToHistory()
             if (activeElement === "title") {
               queueSave({ title_x: nx, title_y: ny })
             } else if (activeElement === "description") {
@@ -284,7 +649,7 @@ export default function AdminPage() {
         />
         <aside className="rounded-xl border border-white/10 bg-[#0d172b] p-5 space-y-4">
           <div>
-            <label className="block text-sm text-white/70 mb-2">Kategori Sertifikat</label>
+            <label className="block text-sm text-white/70 mb-2">{t('certificateCategory')}</label>
             <select
               value={category}
               onChange={async (e) => {
@@ -292,10 +657,10 @@ export default function AdminPage() {
                 setCategory(val)
                 await saveCategory(val)
               }}
-              className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm text-white"
-              disabled={saving}
+              className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={saving || applyingTemplate}
             >
-              <option value="">Pilih kategori</option>
+              <option value="">{t('selectCategory')}</option>
               {categoryOptions.map((opt) => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
@@ -309,44 +674,44 @@ export default function AdminPage() {
             onChoose={async (path) => {
               setSelectedTemplate(path)
               setPreviewSrc(`/${path}`)
-              if (certificateId) {
-                await supabase.from("certificates").update({ template_path: path }).eq("id", certificateId)
-              }
+              // Apply template configuration automatically
+              await applyTemplateConfig(path)
             }}
           />
-          <div className="text-center text-white/70 mb-1">atau</div>
+          <div className="text-center text-white/70 mb-1">{t('or')}</div>
           <div>
-            <label className="block text-sm text-white/70 mb-2">Upload Certificate (PNG, JPG, PDF)</label>
+            <label className="block text-sm text-white/70 mb-2">{t('uploadCertificate')}</label>
             <input
               type="file"
               accept=".png,.jpg,.jpeg,.pdf"
               onChange={handleFileUpload}
-              className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm"
-              disabled={uploading}
+              className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={uploading || applyingTemplate}
             />
             {uploading && (
-              <div className="mt-2 text-xs text-white/70">Mengunggah...</div>
+              <div className="mt-2 text-xs text-white/70">{t('uploading')}</div>
             )}
           </div>
           {/* Text controls */}
           <div className="grid grid-cols-1 gap-3 pt-2">
             {/* Pilih elemen yang sedang diedit */}
             <div>
-              <label className="block text-sm text-white/70 mb-1">Edit Elemen</label>
+              <label className="block text-sm text-white/70 mb-1">{t('editElements')}</label>
               <div className="grid grid-cols-3 gap-2">
-                <button className={`rounded-md border border-white/10 px-3 py-2 text-sm ${activeElement==='title'?'bg-white/15':'bg-white/5'}`} onClick={()=>setActiveElement('title')}>Title</button>
-                <button className={`rounded-md border border-white/10 px-3 py-2 text-sm ${activeElement==='description'?'bg-white/15':'bg-white/5'}`} onClick={()=>setActiveElement('description')}>Deskripsi</button>
-                <button className={`rounded-md border border-white/10 px-3 py-2 text-sm ${activeElement==='date'?'bg-white/15':'bg-white/5'}`} onClick={()=>setActiveElement('date')}>Tanggal</button>
+                <button className={`rounded-md border border-white/10 px-3 py-2 text-sm ${activeElement==='title'?'bg-white/15':'bg-white/5'}`} onClick={()=>setActiveElement('title')}>{t('title')}</button>
+                <button className={`rounded-md border border-white/10 px-3 py-2 text-sm ${activeElement==='description'?'bg-white/15':'bg-white/5'}`} onClick={()=>setActiveElement('description')}>{t('description')}</button>
+                <button className={`rounded-md border border-white/10 px-3 py-2 text-sm ${activeElement==='date'?'bg-white/15':'bg-white/5'}`} onClick={()=>setActiveElement('date')}>{t('date')}</button>
               </div>
             </div>
             {activeElement === 'title' && (
             <div>
-              <label className="block text-sm text-white/70 mb-1">Title</label>
+              <label className="block text-sm text-white/70 mb-1">{t('title')}</label>
               <input
                 className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm"
                 value={title}
                 onChange={async (e) => {
                   const v = e.target.value; setTitle(v)
+                   saveToHistory()
                   if (certificateId) {
                     // Update both title and name fields to ensure consistency
                     await supabase.from("certificates").update({ 
@@ -355,64 +720,77 @@ export default function AdminPage() {
                     }).eq("id", certificateId)
                   }
                 }}
-                placeholder="Judul sertifikat"
+                placeholder={t('certificateTitle')}
               />
             </div>
             )}
             {activeElement === 'description' && (
             <div>
-              <label className="block text-sm text-white/70 mb-1">Description</label>
+              <label className="block text-sm text-white/70 mb-1">{t('description')}</label>
               <textarea
                 className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm"
                 rows={3}
                 value={description}
                 onChange={async (e) => {
                   const v = e.target.value; setDescription(v)
+                   saveToHistory()
                   if (certificateId) await supabase.from("certificates").update({ description: v }).eq("id", certificateId)
                 }}
-                placeholder="Deskripsi singkat"
+                placeholder={t('briefDescription')}
               />
             </div>
             )}
             {activeElement === 'date' && (
               <div>
-                <label className="block text-sm text-white/70 mb-1">Tanggal (terintegrasi)</label>
-                <input type="date" className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm" value={issuedAt || ""}
-                  onChange={async (e)=>{ const v=e.target.value; setIssuedAt(v); if (certificateId) await supabase.from("certificates").update({ issued_at: v || null }).eq("id", certificateId)}} />
+                <label className="block text-sm text-white/70 mb-1">{t('integratedDate')}</label>
+                <div className="w-full rounded-md border border-green-500/30 bg-green-500/10 px-3 py-2 text-sm text-white/90 flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                    {issuedAt ? new Date(issuedAt).toLocaleDateString('id-ID') : t('noDateAvailable')}
+                  </span>
+                  <span className="text-xs text-green-400/70 font-medium">{t('autoFromDatabase')}</span>
+                </div>
+                <div className="mt-2 text-xs text-white/60 bg-white/5 rounded px-2 py-1">
+                  <span className="text-green-400">✓</span> {t('dateFromDatabase')}: {issuedAt ? new Date(issuedAt).toLocaleDateString('id-ID', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  }) : t('noDateAvailable')}
+                </div>
               </div>
             )}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm text-white/70 mb-1">Posisi X</label>
+                <label className="block text-sm text-white/70 mb-1">{t('positionX')}</label>
                 <input type="number" className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm" value={activeElement==='title'?titleX:activeElement==='description'?descX:dateX}
-                  onChange={(e) => { const n = Math.max(0, Number(e.target.value)||0); if(activeElement==='title'){ setTitleX(n); queueSave({ title_x: n }) } else if(activeElement==='description'){ setDescX(n); queueSave({ desc_x: n }) } else { setDateX(n); queueSave({ date_x: n }) } }} />
+                  onChange={(e) => { const n = Math.max(0, Number(e.target.value)||0); if(activeElement==='title'){ setTitleX(n); saveToHistory(); queueSave({ title_x: n }) } else if(activeElement==='description'){ setDescX(n); saveToHistory(); queueSave({ desc_x: n }) } else { setDateX(n); saveToHistory(); queueSave({ date_x: n }) } }} />
             </div>
             <div>
-                <label className="block text-sm text-white/70 mb-1">Posisi Y</label>
+                <label className="block text-sm text-white/70 mb-1">{t('positionY')}</label>
                 <input type="number" className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm" value={activeElement==='title'?titleY:activeElement==='description'?descY:dateY}
-                  onChange={(e) => { const n = Math.max(0, Number(e.target.value)||0); if(activeElement==='title'){ setTitleY(n); queueSave({ title_y: n }) } else if(activeElement==='description'){ setDescY(n); queueSave({ desc_y: n }) } else { setDateY(n); queueSave({ date_y: n }) } }} />
+                  onChange={(e) => { const n = Math.max(0, Number(e.target.value)||0); if(activeElement==='title'){ setTitleY(n); saveToHistory(); queueSave({ title_y: n }) } else if(activeElement==='description'){ setDescY(n); saveToHistory(); queueSave({ desc_y: n }) } else { setDateY(n); saveToHistory(); queueSave({ date_y: n }) } }} />
               </div>
             </div>
             {/* Justify & Font per elemen */}
             {activeElement === 'title' && (
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm text-white/70 mb-1">Justify (Title)</label>
+                  <label className="block text-sm text-white/70 mb-1">{t('justifyTitle')}</label>
                   <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={titleAlign}
-                    onChange={(e)=>{ const v = e.target.value as "left"|"center"|"right"; setTitleAlign(v); queueSave({ title_align: v }) }}>
-                    <option value="left">Left</option>
-                    <option value="center">Center</option>
-                    <option value="right">Right</option>
+                     onChange={(e)=>{ const v = e.target.value as "left"|"center"|"right"; setTitleAlign(v); saveToHistory(); queueSave({ title_align: v }) }}>
+                    <option value="left">{t('left')}</option>
+                    <option value="center">{t('center')}</option>
+                    <option value="right">{t('right')}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm text-white/70 mb-1">Font (Title)</label>
+                  <label className="block text-sm text-white/70 mb-1">{t('fontTitle')}</label>
                   <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={titleFont}
-                    onChange={(e)=>{ const v=e.target.value; setTitleFont(v); queueSave({ title_font: v }) }}>
-                    <option value="Inter, ui-sans-serif, system-ui">Inter</option>
-                    <option value="Arial, Helvetica, sans-serif">Arial</option>
-                    <option value="Times New Roman, Times, serif">Times New Roman</option>
-                    <option value="Georgia, serif">Georgia</option>
+                     onChange={(e)=>{ const v=e.target.value; setTitleFont(v); saveToHistory(); queueSave({ title_font: v }) }}>
+                    <option value="Inter, ui-sans-serif, system-ui">{t('inter')}</option>
+                    <option value="Arial, Helvetica, sans-serif">{t('arial')}</option>
+                    <option value="Times New Roman, Times, serif">{t('timesNewRoman')}</option>
+                    <option value="Georgia, serif">{t('georgia')}</option>
                   </select>
                 </div>
               </div>
@@ -420,22 +798,22 @@ export default function AdminPage() {
             {activeElement === 'description' && (
             <div className="grid grid-cols-2 gap-3">
               <div>
-                  <label className="block text-sm text-white/70 mb-1">Justify (Deskripsi)</label>
+                  <label className="block text-sm text-white/70 mb-1">{t('justifyDescription')}</label>
                   <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={descAlign}
-                    onChange={(e)=>{ const v = e.target.value as "left"|"center"|"right"; setDescAlign(v); queueSave({ desc_align: v }) }}>
-                  <option value="left">Left</option>
-                  <option value="center">Center</option>
-                  <option value="right">Right</option>
+                     onChange={(e)=>{ const v = e.target.value as "left"|"center"|"right"; setDescAlign(v); saveToHistory(); queueSave({ desc_align: v }) }}>
+                  <option value="left">{t('left')}</option>
+                  <option value="center">{t('center')}</option>
+                  <option value="right">{t('right')}</option>
                 </select>
             </div>
             <div>
-                  <label className="block text-sm text-white/70 mb-1">Font (Deskripsi)</label>
+                  <label className="block text-sm text-white/70 mb-1">{t('fontDescription')}</label>
                   <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={descFont}
-                    onChange={(e)=>{ const v=e.target.value; setDescFont(v); queueSave({ desc_font: v }) }}>
-                    <option value="Inter, ui-sans-serif, system-ui">Inter</option>
-                    <option value="Arial, Helvetica, sans-serif">Arial</option>
-                    <option value="Times New Roman, Times, serif">Times New Roman</option>
-                    <option value="Georgia, serif">Georgia</option>
+                     onChange={(e)=>{ const v=e.target.value; setDescFont(v); saveToHistory(); queueSave({ desc_font: v }) }}>
+                    <option value="Inter, ui-sans-serif, system-ui">{t('inter')}</option>
+                    <option value="Arial, Helvetica, sans-serif">{t('arial')}</option>
+                    <option value="Times New Roman, Times, serif">{t('timesNewRoman')}</option>
+                    <option value="Georgia, serif">{t('georgia')}</option>
                   </select>
                 </div>
               </div>
@@ -443,40 +821,85 @@ export default function AdminPage() {
             {activeElement === 'date' && (
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm text-white/70 mb-1">Justify (Tanggal)</label>
+                  <label className="block text-sm text-white/70 mb-1">{t('justifyDate')}</label>
                   <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={dateAlign}
-                    onChange={(e)=>{ const v = e.target.value as "left"|"center"|"right"; setDateAlign(v); queueSave({ date_align: v }) }}>
-                    <option value="left">Left</option>
-                    <option value="center">Center</option>
-                    <option value="right">Right</option>
+                     onChange={(e)=>{ const v = e.target.value as "left"|"center"|"right"; setDateAlign(v); saveToHistory(); queueSave({ date_align: v }) }}>
+                    <option value="left">{t('left')}</option>
+                    <option value="center">{t('center')}</option>
+                    <option value="right">{t('right')}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm text-white/70 mb-1">Font (Tanggal)</label>
+                  <label className="block text-sm text-white/70 mb-1">{t('fontDate')}</label>
                   <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={dateFont}
-                    onChange={(e)=>{ const v=e.target.value; setDateFont(v); queueSave({ date_font: v }) }}>
-                    <option value="Inter, ui-sans-serif, system-ui">Inter</option>
-                    <option value="Arial, Helvetica, sans-serif">Arial</option>
-                    <option value="Times New Roman, Times, serif">Times New Roman</option>
-                    <option value="Georgia, serif">Georgia</option>
+                     onChange={(e)=>{ const v=e.target.value; setDateFont(v); saveToHistory(); queueSave({ date_font: v }) }}>
+                    <option value="Inter, ui-sans-serif, system-ui">{t('inter')}</option>
+                    <option value="Arial, Helvetica, sans-serif">{t('arial')}</option>
+                    <option value="Times New Roman, Times, serif">{t('timesNewRoman')}</option>
+                    <option value="Georgia, serif">{t('georgia')}</option>
                   </select>
                 </div>
               </div>
             )}
             <div className="grid grid-cols-2 gap-3">
             <div>
-                <label className="block text-sm text-white/70 mb-1">Font Size</label>
+                <label className="block text-sm text-white/70 mb-1">{t('fontSize')}</label>
                 <input type="number" className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm" value={activeElement==='title'?titleSize:activeElement==='description'?descSize:dateSize}
-                  onChange={(e)=>{ const n=Number(e.target.value)||12; if(activeElement==='title'){ setTitleSize(n); queueSave({ title_size: n }) } else if(activeElement==='description'){ setDescSize(n); queueSave({ desc_size: n }) } else { setDateSize(n); queueSave({ date_size: n }) } }} />
+                   onChange={(e)=>{ const n=Number(e.target.value)||12; if(activeElement==='title'){ setTitleSize(n); saveToHistory(); queueSave({ title_size: n }) } else if(activeElement==='description'){ setDescSize(n); saveToHistory(); queueSave({ desc_size: n }) } else { setDateSize(n); saveToHistory(); queueSave({ date_size: n }) } }} />
             </div>
             <div>
-                <label className="block text-sm text-white/70 mb-1">Warna</label>
+                <label className="block text-sm text-white/70 mb-1">{t('color')}</label>
                 <input type="color" className="h-10 w-full rounded-md border border-white/10 bg-white/5 p-1" value={activeElement==='title'?titleColor:activeElement==='description'?descColor:dateColor}
-                  onChange={(e)=>{ const v=e.target.value; if(activeElement==='title'){ setTitleColor(v); queueSave({ title_color: v }) } else if(activeElement==='description'){ setDescColor(v); queueSave({ desc_color: v }) } else { setDateColor(v); queueSave({ date_color: v }) } }} />
+                  onChange={(e)=>{ const v=e.target.value; if(activeElement==='title'){ setTitleColor(v); saveToHistory(); queueSave({ title_color: v }) } else if(activeElement==='description'){ setDescColor(v); saveToHistory(); queueSave({ desc_color: v }) } else { setDateColor(v); saveToHistory(); queueSave({ date_color: v }) } }} />
               </div>
             </div>
-            <div className="text-right text-xs text-white/50 h-4">{uiSaving ? "Menyimpan..." : "Tersimpan"}</div>
-            <div className="flex justify-end gap-2">
+             <div className="text-right text-xs text-white/50 h-4">
+               {applyingTemplate ? t('applyingTemplate') : uiSaving ? t('saving') : t('saved')}
+             </div>
+             
+             {/* Preview Modal Button */}
+             <div className="mb-4">
+               <button
+                 className="w-full rounded-md border border-blue-500/40 bg-blue-500/10 px-3 py-2 text-sm hover:bg-blue-500/20 disabled:opacity-50"
+                 onClick={() => setShowPreviewModal(true)}
+                 disabled={!previewSrc}
+               >
+                 👁️ {t('previewCertificate')}
+               </button>
+             </div>
+             
+             {/* Undo/Redo Controls */}
+             <div className="flex gap-2 mb-4">
+               <button
+                 className="rounded-md border border-gray-500/40 bg-gray-500/10 px-3 py-2 text-sm hover:bg-gray-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                 onClick={undo}
+                 disabled={!canUndo}
+                 title={t('undoTooltip')}
+               >
+                 ↶ {t('undo')}
+               </button>
+               <button
+                 className="rounded-md border border-gray-500/40 bg-gray-500/10 px-3 py-2 text-sm hover:bg-gray-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                 onClick={redo}
+                 disabled={!canRedo}
+                 title={t('redoTooltip')}
+               >
+                 ↷ {t('redo')}
+               </button>
+             </div>
+             
+             <div className="flex justify-between items-center gap-2">
+              {currentTemplateConfig && (
+                <button
+                  className="rounded-md border border-orange-500/40 bg-orange-500/10 px-3 py-2 text-sm hover:bg-orange-500/20 disabled:opacity-50"
+                  onClick={() => applyTemplateConfig(selectedTemplate)}
+                  disabled={applyingTemplate || !selectedTemplate}
+                  title="Reset to template default positions"
+                >
+                  {t('resetToTemplate')}
+                </button>
+              )}
+              <div className="flex gap-2">
               <button
                 className="rounded-md border border-blue-500/40 bg-blue-500/10 px-3 py-2 text-sm hover:bg-blue-500/20 disabled:opacity-50"
                 onClick={async () => {
@@ -522,21 +945,21 @@ export default function AdminPage() {
                       console.error("Error code:", error.code)
                       console.error("Error details:", error.details)
                       console.error("Error hint:", error.hint)
-                      setMessage('Gagal menyimpan: ' + (error.message || 'Unknown error'))
+                      setMessage(t('failedToSave') + (error.message || 'Unknown error'))
                     } else {
                       console.log("Save All successful!")
-                      setMessage('Perubahan disimpan')
+                      setMessage(t('changesSaved'))
                       setTimeout(() => setMessage(''), 1500)
                     }
                   } catch (err) {
                     console.error("Unexpected error during Save All:", err)
-                    setMessage('Gagal menyimpan: ' + (err instanceof Error ? err.message : 'Unknown error'))
+                    setMessage(t('failedToSave') + (err instanceof Error ? err.message : 'Unknown error'))
                   }
                   setSavingAll(false)
                 }}
                 disabled={!certificateId || savingAll || uiSaving}
               >
-                {savingAll ? 'Menyimpan...' : 'Save'}
+                {savingAll ? t('saving') : t('save')}
               </button>
               <button
                 className="rounded-md border border-purple-500/40 bg-purple-500/10 px-3 py-2 text-sm hover:bg-purple-500/20 disabled:opacity-50"
@@ -572,7 +995,7 @@ export default function AdminPage() {
                     ctx.drawImage(img, ox, oy, w, h)
                   }
                   // helper
-                  const toAlign = (a: string): CanvasTextAlign => (a as any) as CanvasTextAlign
+                  const toAlign = (a: string): CanvasTextAlign => a as CanvasTextAlign
                   const drawText = (text: string, x: number, y: number, size: number, color: string, align: string, font: string, bold=false) => {
                     ctx.fillStyle = color
                     ctx.textAlign = toAlign(align)
@@ -612,76 +1035,59 @@ export default function AdminPage() {
                     data_base64: base64,
                   }
                   const { error } = await supabase.from('certificate_files').insert(payload)
-                  if (error) setMessage('Gagal menyimpan PDF: ' + error.message)
-                  else { setMessage('PDF berhasil diunduh & disimpan'); setTimeout(()=>setMessage(''),1500) }
+                  if (error) setMessage(t('failedToSavePdf') + error.message)
+                  else { setMessage(t('pdfDownloadedAndSaved')); setTimeout(()=>setMessage(''),1500) }
                 }}
                 disabled={!certificateId}
               >
-                Export PDF (Canvas)
+                {t('exportPdf')}
               </button>
+              </div>
             </div>
           </div>
         </aside>
         </main>
+         
+         {/* Preview Modal */}
+         <CertificatePreviewModal
+           isOpen={showPreviewModal}
+           onClose={() => setShowPreviewModal(false)}
+           previewSrc={previewSrc}
+           title={title}
+           description={description}
+           issuedAt={issuedAt}
+           category={category}
+           certificateId={certificateId}
+           titleX={titleX}
+           titleY={titleY}
+           titleSize={titleSize}
+           titleColor={titleColor}
+           titleAlign={titleAlign}
+           titleFont={titleFont}
+           descX={descX}
+           descY={descY}
+           descSize={descSize}
+           descColor={descColor}
+           descAlign={descAlign}
+           descFont={descFont}
+           dateX={dateX}
+           dateY={dateY}
+           dateSize={dateSize}
+           dateColor={dateColor}
+           dateAlign={dateAlign}
+           dateFont={dateFont}
+         />
       </div>
     </ProtectedRoute>
   )
 }
 
 function PreviewPanel({ category, previewSrc, title, description, titlePos, descPos, datePos, titleAlign, descAlign, dateAlign, titleFont, descFont, dateFont, issuedAt, active, onDragPosition, onCommitPosition }: { category: string; previewSrc?: string; title?: string; description?: string; titlePos: { x: number; y: number; size: number; color: string }; descPos: { x: number; y: number; size: number; color: string }; datePos: { x: number; y: number; size: number; color: string }; titleAlign: "left"|"center"|"right"; descAlign: "left"|"center"|"right"; dateAlign: "left"|"center"|"right"; titleFont: string; descFont: string; dateFont: string; issuedAt?: string; active: "title"|"description"|"date"; onDragPosition?: (x: number, y: number) => void; onCommitPosition?: (x: number, y: number) => void }) {
+  const { t } = useI18n()
   const [dragging, setDragging] = useState(false)
   const containerRef = useRef<HTMLDivElement | null>(null)
-  const [containerSize, setContainerSize] = useState<{ width: number; height: number }>({ width: 0, height: 0 })
-  const [imageRatio, setImageRatio] = useState<number | null>(null)
 
-  useEffect(() => {
-    const el = containerRef.current
-    if (!el) return
-    const update = () => setContainerSize({ width: el.clientWidth, height: el.clientHeight })
-    update()
-    let ro: ResizeObserver | undefined
-    if (typeof ResizeObserver !== 'undefined') {
-      ro = new ResizeObserver(update)
-      ro.observe(el)
-    }
-    window.addEventListener('resize', update)
-    return () => {
-      if (ro) ro.disconnect()
-      window.removeEventListener('resize', update)
-    }
-  }, [])
 
-  // Hitung rasio gambar yang dipilih (jika bukan PDF)
-  useEffect(() => {
-    if (!previewSrc || previewSrc.endsWith('.pdf')) { setImageRatio(null); return }
-    const img = new Image()
-    img.onload = () => {
-      if (img.naturalWidth && img.naturalHeight) setImageRatio(img.naturalWidth / img.naturalHeight)
-    }
-    img.src = previewSrc
-  }, [previewSrc])
-
-  const margin = 20
-  // Hitung area konten (gambar) di dalam container untuk clamp yang akurat
-  const getContentRect = () => {
-    if (!imageRatio || containerSize.width === 0 || containerSize.height === 0) {
-      return { left: 0, top: 0, width: containerSize.width, height: containerSize.height }
-    }
-    const containerRatio = containerSize.width / containerSize.height
-    if (containerRatio > imageRatio) {
-      // dibatasi tinggi
-      const height = containerSize.height
-      const width = Math.round(height * imageRatio)
-      const left = Math.round((containerSize.width - width) / 2)
-      return { left, top: 0, width, height }
-    } else {
-      // dibatasi lebar
-      const width = containerSize.width
-      const height = Math.round(width / imageRatio)
-      const top = Math.round((containerSize.height - height) / 2)
-      return { left: 0, top, width, height }
-    }
-  }
 
   const clampX = (x: number) => {
     // Return original position without clamping to match edit mode
@@ -691,19 +1097,35 @@ function PreviewPanel({ category, previewSrc, title, description, titlePos, desc
     // Return original position without clamping to match edit mode
     return y
   }
-  // Untuk saat ini, muat preview berbasis kategori dari /public/certificate
-  // Anda bisa mengganti dengan komponen templating sebenarnya
   return (
     <section className="rounded-xl border border-white/10 bg-[#0d172b] p-6 shadow-xl shadow-blue-500/10 min-h-[420px]">
-      <h2 className="text-3xl font-bold text-blue-400 mb-4">Pratinjau Sertifikat</h2>
-      <div className="text-white/80 text-sm">{category ? `Kategori dipilih: ${category}` : "Belum ada kategori yang dipilih"}</div>
-      <div
-        className={`mt-4 h-[420px] rounded-lg border border-white/10 bg-white/5 relative overflow-hidden ${dragging ? "cursor-grabbing" : "cursor-grab"}`}
+       <h2 className="text-3xl font-bold text-blue-400 mb-4 text-center">{t('certificatePreview')}</h2>
+       <div className="text-white/80 text-sm mb-2 text-center">{category ? `${t('categorySelected')}: ${category}` : t('noCategorySelected')}</div>
+       {issuedAt && (
+         <div className="text-green-400/80 text-xs mb-2 flex items-center justify-center gap-2">
+           <span className="w-1.5 h-1.5 bg-green-400 rounded-full"></span>
+           {t('integratedDate')}: {new Date(issuedAt).toLocaleDateString('id-ID', {
+             year: 'numeric',
+             month: 'long',
+             day: 'numeric'
+           })}
+         </div>
+       )}
+      <div className="flex justify-center items-center">
+        <div
+          className={`mt-4 rounded-lg border border-white/10 bg-white/5 relative overflow-hidden ${dragging ? "cursor-grabbing" : "cursor-grab"}`}
         ref={containerRef}
         style={{
           position: 'relative',
           contain: 'layout style paint',
-          willChange: 'transform'
+            willChange: 'transform',
+            width: '100%',
+            maxWidth: '600px',
+            height: '420px',
+            minHeight: '420px',
+            maxHeight: '420px',
+            aspectRatio: '4/3',
+            margin: '0 auto'
         }}
         data-preview-container="1"
         onMouseDown={(e) => {
@@ -720,7 +1142,7 @@ function PreviewPanel({ category, previewSrc, title, description, titlePos, desc
             const ny = Math.round(ev.clientY - rect.top) + oy
             onDragPosition?.(clampX(nx), clampY(ny))
           }
-          const onUp = (ev: MouseEvent) => {
+          const onUp = () => {
             setDragging(false)
             window.removeEventListener('mousemove', onMove)
             window.removeEventListener('mouseup', onUp)
@@ -732,7 +1154,7 @@ function PreviewPanel({ category, previewSrc, title, description, titlePos, desc
           window.addEventListener('mousemove', onMove)
           window.addEventListener('mouseup', onUp)
         }}
-        title="Klik tahan dan seret teks untuk memindahkan posisi"
+        title={t('clickAndDrag')}
       >
         {previewSrc ? (
           previewSrc.endsWith(".pdf") ? (
@@ -796,12 +1218,19 @@ function PreviewPanel({ category, previewSrc, title, description, titlePos, desc
               zIndex: 10
             }}
           >
-            <div className="mt-1 opacity-80">{issuedAt}</div>
+             <div className="mt-1 opacity-80">
+               {new Date(issuedAt).toLocaleDateString('id-ID', {
+                 year: 'numeric',
+                 month: 'long',
+                 day: 'numeric'
+               })}
+             </div>
           </div>
         )}
         {!previewSrc && (
-          <div className="absolute inset-0 grid place-items-center text-white/60">Pilih template atau unggah file untuk pratinjau</div>
+           <div className="absolute inset-0 grid place-items-center text-white/60">{t('selectTemplateOrUpload')}</div>
         )}
+        </div>
       </div>
     </section>
   )
@@ -829,17 +1258,18 @@ function getTemplates(category: string) {
 }
 
 function TemplateChooser({ category, onChoose }: { category: string; onChoose?: (path: string, url: string) => void }) {
+  const { t } = useI18n()
   // Render daftar template singkat; untuk saat ini placeholder.
   // Production: baca daftar template dari struktur /public/certificate/<kategori>/ atau tabel template.
   // Hardcode contoh mapping; tambahkan sesuai folder di public/certificate
   const list = getTemplates(category)
   return (
     <div>
-      <label className="block text-sm text-white/70 mb-2">Pilih Template</label>
+      <label className="block text-sm text-white/70 mb-2">{t('chooseTemplate')}</label>
       {(!category || list.length === 0) ? (
-        <div className="text-white/60 text-sm">Pilih kategori untuk melihat template</div>
+        <div className="text-white/60 text-sm">{t('selectCategoryToSeeTemplates')}</div>
       ) : (
-        <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3">
           {list.map((path) => {
             const url = `/${path}`
             return (
@@ -850,10 +1280,10 @@ function TemplateChooser({ category, onChoose }: { category: string; onChoose?: 
                 title={path}
               >
                 <img src={url} alt={path} className="aspect-video object-cover rounded" />
-              </button>
+          </button>
             )
           })}
-        </div>
+      </div>
       )}
     </div>
   )

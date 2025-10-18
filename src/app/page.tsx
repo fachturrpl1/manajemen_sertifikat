@@ -20,7 +20,8 @@ export default function AuPage() {
         </a>
       </div>
       <div className="absolute right-6 top-6 z-20 flex items-center gap-4">
-        {/* Language Toggle Button */}
+        <Link href="/login" className="text-sm text-blue-400 hover:text-white">{t('login')}</Link>
+         {/* Language Toggle Button */}
         <button
           onClick={() => setLocale(locale === 'en' ? 'id' : 'en')}
           className="flex items-center gap-2 rounded-md border border-white/10 bg-white/5 px-3 py-1.5 text-sm hover:bg-white/10 transition-colors"
@@ -29,8 +30,6 @@ export default function AuPage() {
           <Globe className="h-4 w-4" />
           <span className="font-medium">{locale === 'en' ? 'EN' : 'ID'}</span>
         </button>
-        
-        <Link href="/login" className="text-sm text-blue-400 hover:text-white">{t('login')}</Link>
       </div>
     
       {/* subtle pattern */}

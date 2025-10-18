@@ -35,7 +35,7 @@ export function AdminNavbar() {
       </div>
       <div className="flex items-center gap-4 text-sm">
         <span className="text-white/70">{t('welcome')}, {user?.email}</span>
-        
+        <button onClick={() => setShowLogoutConfirm(true)} className="text-sm text-blue-400 hover:text-white">{t('logout')}</button>
         {/* Language Toggle Button */}
         <button
           onClick={() => setLocale(locale === 'en' ? 'id' : 'en')}
@@ -45,8 +45,6 @@ export function AdminNavbar() {
           <Globe className="h-4 w-4" />
           <span className="font-medium">{locale === 'en' ? 'EN' : 'ID'}</span>
         </button>
-        
-        <button onClick={() => setShowLogoutConfirm(true)} className="text-sm text-blue-400 hover:text-white">{t('logout')}</button>
       </div>
       {showLogoutConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
