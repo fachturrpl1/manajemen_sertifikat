@@ -352,9 +352,7 @@ export default function CheckCertificatePage({ params }: Props) {
                     ignoreElements: (element) => {
                       // Skip elements with unsupported CSS properties
                       const style = window.getComputedStyle(element)
-                      return style.color?.includes('oklch') || 
-                             style.backgroundColor?.includes('oklch') ||
-                             style.borderColor?.includes('oklch')
+                      return false // All colors are now compatible
                     }
                   })
                 } catch (html2canvasError) {
@@ -508,9 +506,7 @@ export default function CheckCertificatePage({ params }: Props) {
                     ignoreElements: (element) => {
                       // Skip elements with unsupported CSS properties
                       const style = window.getComputedStyle(element)
-                      return style.color?.includes('oklch') || 
-                             style.backgroundColor?.includes('oklch') ||
-                             style.borderColor?.includes('oklch')
+                      return false // All colors are now compatible
                     }
                   })
                 } catch (html2canvasError) {
@@ -704,9 +700,7 @@ Terima kasih.`
                     ignoreElements: (element) => {
                       // Skip elements with unsupported CSS properties
                       const style = window.getComputedStyle(element)
-                      return style.color?.includes('oklch') || 
-                             style.backgroundColor?.includes('oklch') ||
-                             style.borderColor?.includes('oklch')
+                      return false // All colors are now compatible
                     }
                   })
                 } catch (html2canvasError) {

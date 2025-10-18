@@ -2,6 +2,7 @@
 
 import { useI18n } from "@/lib/i18n"
 import jsPDF from "jspdf"
+import { supabase } from "@/lib/supabase"
 
 interface CertificatePreviewModalProps {
   isOpen: boolean
@@ -65,57 +66,46 @@ export function CertificatePreviewModal({
 
   const handleExportPDF = async () => {
     if (!certificateId) return
-    const container = document.querySelector('[data-preview-container="modal"]') as HTMLElement | null
-    if (!container) return
-    const rect = container.getBoundingClientRect()
-    const scale = 2
-    const cw = Math.max(1, Math.round(rect.width)) * scale
-    const ch = Math.max(1, Math.round(rect.height)) * scale
-    const canvas = document.createElement('canvas')
-    const ctx = canvas.getContext('2d')!
-    canvas.width = cw
-    canvas.height = ch
     
-    // background putih
-    ctx.fillStyle = '#ffffff'
-    ctx.fillRect(0,0,cw,ch)
-    
-    // gambar template
-    if (previewSrc) {
-      const img = await new Promise<HTMLImageElement>((res, rej) => {
-        const i = new Image()
-        i.crossOrigin = 'anonymous'
-        i.onload = () => res(i)
-        i.onerror = rej
-        i.src = `/${previewSrc}`
+    try {
+      // Ambil preview image dari database
+      const { data: certificateData, error } = await supabase
+        .from('certificates')
+        .select('preview_image')
+        .eq('id', certificateId)
+        .single()
+      
+      if (error) {
+        console.error('Error fetching preview image:', error)
+        alert('Gagal mengambil data sertifikat dari database')
+        return
+      }
+      
+      if (!certificateData?.preview_image) {
+        alert('Preview image tidak tersedia. Silakan simpan sertifikat terlebih dahulu.')
+        return
+      }
+      
+      // Convert preview image langsung ke PDF
+      const pdf = new jsPDF({ 
+        orientation: 'landscape', 
+        unit: 'mm', 
+        format: 'a4' 
       })
-      const ratio = Math.min(cw / img.width, ch / img.height)
-      const w = img.width * ratio
-      const h = img.height * ratio
-      const ox = (cw - w) / 2
-      const oy = (ch - h) / 2
-      ctx.drawImage(img, ox, oy, w, h)
+      
+      const pdfWidth = 297 // A4 width in mm
+      const pdfHeight = 210 // A4 height in mm
+      
+      // Add image ke PDF dengan ukuran yang tepat
+      pdf.addImage(certificateData.preview_image, 'PNG', 0, 0, pdfWidth, pdfHeight)
+      pdf.save(`certificate-${title || 'untitled'}-${Date.now()}.pdf`)
+      
+      console.log('PDF exported successfully using preview image from database')
+      
+    } catch (error) {
+      console.error('Export error:', error)
+      alert('Gagal mengexport PDF. Silakan coba lagi.')
     }
-    
-    // helper
-    const toAlign = (a: string): CanvasTextAlign => a as CanvasTextAlign
-    const drawText = (text: string, x: number, y: number, size: number, color: string, align: string, font: string) => {
-      ctx.font = `${size * scale}px ${font}`
-      ctx.fillStyle = color
-      ctx.textAlign = toAlign(align)
-      ctx.fillText(text, x * scale, y * scale)
-    }
-    
-    // teks overlay
-    if (title) drawText(title, titleX, titleY, titleSize, titleColor, titleAlign, titleFont)
-    if (description) drawText(description, descX, descY, descSize, descColor, descAlign, descFont)
-    if (issuedAt) drawText(new Date(issuedAt).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }), dateX, dateY, dateSize, dateColor, dateAlign, dateFont)
-    
-    // export
-    const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' })
-    const imgData = canvas.toDataURL('image/png')
-    pdf.addImage(imgData, 'PNG', 0, 0, 297, 210)
-    pdf.save(`certificate-${title || 'untitled'}-${Date.now()}.pdf`)
   }
 
   if (!isOpen) return null

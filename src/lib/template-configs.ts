@@ -24,15 +24,15 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
     name: "Industrial Visit Template 1",
     defaultPositions: {
       title: { 
-        x: 260, 
-        y: 190, 
+        x: 205,
+        y: 185, 
         size: 32, 
         color: "#000000", 
         align: "center", 
         font: "Times New Roman, Times, serif" 
       },
       description: { 
-        x: 260, 
+        x: 200,
         y: 240, 
         size: 12, 
         color: "#000000", 
@@ -40,7 +40,7 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
         font: "Inter, ui-sans-serif, system-ui" 
       },
       date: { 
-        x: 330, 
+        x: 260, 
         y: 310, 
         size: 11, 
         color: "#000000", 

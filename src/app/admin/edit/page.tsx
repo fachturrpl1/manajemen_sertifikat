@@ -7,7 +7,6 @@ import { useSearchParams } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import { useI18n } from "@/lib/i18n"
 import { getTemplateConfig, TemplateConfig } from "@/lib/template-configs"
-import { CertificatePreviewModal } from "@/components/certificate-preview-modal"
 
 export default function AdminPage() {
   const params = useSearchParams()
@@ -53,8 +52,6 @@ export default function AdminPage() {
   const [canUndo, setCanUndo] = useState(false)
   const [canRedo, setCanRedo] = useState(false)
   
-  // Popup preview state
-  const [showPreviewModal, setShowPreviewModal] = useState(false)
   
   // Text/editor settings
   const [title, setTitle] = useState("")
@@ -296,6 +293,34 @@ export default function AdminPage() {
     }
   }
 
+  // Helper: generate preview image dari container
+  async function generatePreviewImage(): Promise<string | null> {
+    try {
+      const container = document.querySelector('[data-preview-container="1"]') as HTMLElement | null
+      if (!container) return null
+      
+      // Import html2canvas dynamically
+      const html2canvas = (await import('html2canvas')).default
+      
+      // Capture container dengan semua styling yang sama
+      const canvas = await html2canvas(container, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        logging: false,
+        width: container.offsetWidth,
+        height: container.offsetHeight
+      })
+      
+      // Convert ke base64
+      return canvas.toDataURL('image/png', 1.0)
+    } catch (error) {
+      console.error('Error generating preview image:', error)
+      return null
+    }
+  }
+
   // Helper: queue save with debounce to Supabase
   function queueSave(update: Record<string, unknown>) {
     if (!certificateId) return
@@ -310,6 +335,21 @@ export default function AdminPage() {
         const cleanUpdate = Object.fromEntries(
           Object.entries(update).filter(([, value]) => value !== undefined)
         )
+        
+        // Generate preview image jika ada perubahan yang mempengaruhi tampilan
+        const needsPreviewUpdate = Object.keys(cleanUpdate).some(key => 
+          ['title', 'description', 'title_x', 'title_y', 'title_size', 'title_color', 'title_align', 'title_font',
+           'desc_x', 'desc_y', 'desc_size', 'desc_color', 'desc_align', 'desc_font',
+           'date_x', 'date_y', 'date_size', 'date_color', 'date_align', 'date_font', 'template_path'].includes(key)
+        )
+        
+        if (needsPreviewUpdate) {
+          const previewImage = await generatePreviewImage()
+          if (previewImage) {
+            cleanUpdate.preview_image = previewImage
+            console.log("Generated preview image for save")
+          }
+        }
         
         console.log("Cleaned update payload:", cleanUpdate)
         
@@ -510,8 +550,8 @@ export default function AdminPage() {
       setSaving(true)
       setMessage("")
       
-      const { error } = await supabase
-        .from("certificates")
+        const { error } = await supabase
+          .from("certificates")
         .update({ category: newVal.trim() })
         .eq("id", certificateId)
         
@@ -813,9 +853,9 @@ export default function AdminPage() {
                     <option value="Arial, Helvetica, sans-serif">{t('arial')}</option>
                     <option value="Times New Roman, Times, serif">{t('timesNewRoman')}</option>
                     <option value="Georgia, serif">{t('georgia')}</option>
-                  </select>
-                </div>
+                </select>
               </div>
+            </div>
             )}
             {activeElement === 'date' && (
               <div className="grid grid-cols-2 gap-3">
@@ -854,17 +894,6 @@ export default function AdminPage() {
             </div>
              <div className="text-right text-xs text-white/50 h-4">
                {applyingTemplate ? t('applyingTemplate') : uiSaving ? t('saving') : t('saved')}
-             </div>
-             
-             {/* Preview Modal Button */}
-             <div className="mb-4">
-               <button
-                 className="w-full rounded-md border border-blue-500/40 bg-blue-500/10 px-3 py-2 text-sm hover:bg-blue-500/20 disabled:opacity-50"
-                 onClick={() => setShowPreviewModal(true)}
-                 disabled={!previewSrc}
-               >
-                 👁️ {t('previewCertificate')}
-               </button>
              </div>
              
              {/* Undo/Redo Controls */}
@@ -906,7 +935,7 @@ export default function AdminPage() {
                   if (saveTimer.current) { clearTimeout(saveTimer.current); saveTimer.current = null }
                   setSavingAll(true)
                   // Coba dengan field dasar + styling yang mungkin sudah ada
-                  const payload = {
+                  const payload: Record<string, any> = {
                     title: title || null,
                     name: title || null,
                     description: description || null,
@@ -937,6 +966,14 @@ export default function AdminPage() {
                   
                   try {
                     console.log("Attempting to update database...")
+                    
+                    // Generate preview image untuk Save All
+                    const previewImage = await generatePreviewImage()
+                    if (previewImage) {
+                      (payload as any).preview_image = previewImage
+                      console.log("Generated preview image for Save All")
+                    }
+                    
                     const { error } = await supabase.from('certificates').update(payload).eq('id', certificateId)
                     if (error) {
                       console.error("Save All error:", error)
@@ -966,35 +1003,6 @@ export default function AdminPage() {
         </aside>
         </main>
          
-         {/* Preview Modal */}
-         <CertificatePreviewModal
-           isOpen={showPreviewModal}
-           onClose={() => setShowPreviewModal(false)}
-           previewSrc={previewSrc}
-           title={title}
-           description={description}
-           issuedAt={issuedAt}
-           category={category}
-           certificateId={certificateId}
-           titleX={titleX}
-           titleY={titleY}
-           titleSize={titleSize}
-           titleColor={titleColor}
-           titleAlign={titleAlign}
-           titleFont={titleFont}
-           descX={descX}
-           descY={descY}
-           descSize={descSize}
-           descColor={descColor}
-           descAlign={descAlign}
-           descFont={descFont}
-           dateX={dateX}
-           dateY={dateY}
-           dateSize={dateSize}
-           dateColor={dateColor}
-           dateAlign={dateAlign}
-           dateFont={dateFont}
-         />
       </div>
     </ProtectedRoute>
   )
@@ -1187,7 +1195,7 @@ function TemplateChooser({ category, onChoose }: { category: string; onChoose?: 
       {(!category || list.length === 0) ? (
         <div className="text-white/60 text-sm">{t('selectCategoryToSeeTemplates')}</div>
       ) : (
-      <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3">
           {list.map((path) => {
             const url = `/${path}`
             return (
@@ -1198,10 +1206,10 @@ function TemplateChooser({ category, onChoose }: { category: string; onChoose?: 
                 title={path}
               >
                 <img src={url} alt={path} className="aspect-video object-cover rounded" />
-          </button>
+              </button>
             )
           })}
-      </div>
+        </div>
       )}
     </div>
   )
