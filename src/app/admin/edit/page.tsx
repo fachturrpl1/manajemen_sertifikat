@@ -30,21 +30,22 @@ export default function AdminPage() {
   const [titleX, setTitleX] = useState<number>(370)
   const [titleY, setTitleY] = useState<number>(180)
   const [titleSize, setTitleSize] = useState<number>(32)
-  const [titleColor, setTitleColor] = useState<string>("#000")
+  const [titleColor, setTitleColor] = useState<string>("#000000")
 
   const [descX, setDescX] = useState<number>(360)
   const [descY, setDescY] = useState<number>(235)
   const [descSize, setDescSize] = useState<number>(15)
-  const [descColor, setDescColor] = useState<string>("#000")
+  const [descColor, setDescColor] = useState<string>("#000000")
 
   const [dateX, setDateX] = useState<number>(50)
   const [dateY, setDateY] = useState<number>(110)
   const [dateSize, setDateSize] = useState<number>(14)
-  const [dateColor, setDateColor] = useState<string>("#000")
+  const [dateColor, setDateColor] = useState<string>("#000000")
 
   // Align & font per elemen
   const [titleAlign, setTitleAlign] = useState<"left" | "center" | "right">("center")
   const [descAlign, setDescAlign] = useState<"left" | "center" | "right">("center")
+  const [dateAlign, setDateAlign] = useState<"left" | "center" | "right">("center")
   const [titleFont, setTitleFont] = useState("Inter, ui-sans-serif, system-ui")
   const [descFont, setDescFont] = useState("Inter, ui-sans-serif, system-ui")
   const [dateFont, setDateFont] = useState("Inter, ui-sans-serif, system-ui")
@@ -55,7 +56,34 @@ export default function AdminPage() {
     setUiSaving(true)
     if (saveTimer.current) clearTimeout(saveTimer.current)
     saveTimer.current = setTimeout(async () => {
-      await supabase.from("certificates").update(update).eq("id", certificateId)
+      console.log("Saving to database:", update) // Debug log
+      console.log("Certificate ID:", certificateId) // Debug log
+      
+      try {
+        // Filter out undefined values
+        const cleanUpdate = Object.fromEntries(
+          Object.entries(update).filter(([_, value]) => value !== undefined)
+        )
+        
+        console.log("Cleaned update payload:", cleanUpdate)
+        
+        const { error } = await supabase.from("certificates").update(cleanUpdate).eq("id", certificateId)
+        if (error) {
+          console.error("Error saving to database:", error)
+          console.error("Error details:", {
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            code: error.code
+          })
+          console.error("Update payload:", cleanUpdate)
+        } else {
+          console.log("Successfully saved to database:", cleanUpdate)
+        }
+      } catch (err) {
+        console.error("Unexpected error during save:", err)
+      }
+      
       setUiSaving(false)
     }, 500)
   }
@@ -71,18 +99,62 @@ export default function AdminPage() {
     []
   )
 
-  // Ambil kategori & template saat ini untuk record yang dipilih (minimize fields to avoid select errors)
+  // Ambil data sertifikat lengkap untuk record yang dipilih
   useEffect(() => {
     if (!certificateId) return
     ;(async () => {
+      // First, let's try a simple query to see what fields are available
       const { data, error } = await supabase
         .from("certificates")
-        .select("category, template_path")
+        .select("*")
         .eq("id", certificateId)
         .single()
       if (!error && data) {
-        const row = data as { category: string | null; template_path?: string | null }
+        const row = data as any
+        console.log("Loading certificate data for edit:", row) // Debug log
         setCategory(row.category || "")
+        
+        // Set title/name - prioritize 'name' field, fallback to 'title' field
+        const certificateTitle = row.name || row.title || ""
+        console.log("Setting title to:", certificateTitle) // Debug log
+        setTitle(certificateTitle)
+        
+        // Update both title and name fields to ensure consistency
+        if (certificateTitle && certificateId) {
+          await supabase.from("certificates").update({ 
+            title: certificateTitle,
+            name: certificateTitle 
+          }).eq("id", certificateId)
+        }
+        
+        // Set other fields
+        setDescription(row.description || "")
+        setIssuedAt(row.issued_at || "")
+        
+        // Set positioning and styling with fallback values
+        setTitleX(row.title_x ?? 370)
+        setTitleY(row.title_y ?? 180)
+        setTitleSize(row.title_size ?? 32)
+        setTitleColor(row.title_color ?? "#000000")
+        setTitleAlign(row.title_align ?? "center")
+        setTitleFont(row.title_font ?? "Inter, ui-sans-serif, system-ui")
+        
+        setDescX(row.desc_x ?? 360)
+        setDescY(row.desc_y ?? 235)
+        setDescSize(row.desc_size ?? 15)
+        setDescColor(row.desc_color ?? "#000000")
+        setDescAlign(row.desc_align ?? "center")
+        setDescFont(row.desc_font ?? "Inter, ui-sans-serif, system-ui")
+        
+        // Use saved values if available, otherwise use defaults
+        setDateX(row.date_x ?? 50)
+        setDateY(row.date_y ?? 110)
+        setDateSize(row.date_size ?? 14)
+        setDateColor(row.date_color ?? "#000000")
+        setDateAlign(row.date_align ?? "center")
+        setDateFont(row.date_font ?? "Inter, ui-sans-serif, system-ui")
+        
+        // Set template
         if (row.template_path) {
           setSelectedTemplate(row.template_path)
           setPreviewSrc(`/${row.template_path}`)
@@ -94,6 +166,8 @@ export default function AdminPage() {
             await supabase.from("certificates").update({ template_path: first }).eq("id", certificateId)
           }
         }
+      } else {
+        console.error("Error loading certificate data:", error)
       }
     })()
   }, [certificateId])
@@ -187,6 +261,7 @@ export default function AdminPage() {
           datePos={{ x: dateX, y: dateY, size: dateSize, color: dateColor }}
           titleAlign={titleAlign}
           descAlign={descAlign}
+          dateAlign={dateAlign}
           titleFont={titleFont}
           descFont={descFont}
           dateFont={dateFont}
@@ -202,6 +277,8 @@ export default function AdminPage() {
               queueSave({ title_x: nx, title_y: ny })
             } else if (activeElement === "description") {
               queueSave({ desc_x: nx, desc_y: ny })
+            } else if (activeElement === "date") {
+              queueSave({ date_x: nx, date_y: ny })
             }
           }}
         />
@@ -270,7 +347,13 @@ export default function AdminPage() {
                 value={title}
                 onChange={async (e) => {
                   const v = e.target.value; setTitle(v)
-                  if (certificateId) await supabase.from("certificates").update({ title: v }).eq("id", certificateId)
+                  if (certificateId) {
+                    // Update both title and name fields to ensure consistency
+                    await supabase.from("certificates").update({ 
+                      title: v,
+                      name: v 
+                    }).eq("id", certificateId)
+                  }
                 }}
                 placeholder="Judul sertifikat"
               />
@@ -302,12 +385,12 @@ export default function AdminPage() {
               <div>
                 <label className="block text-sm text-white/70 mb-1">Posisi X</label>
                 <input type="number" className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm" value={activeElement==='title'?titleX:activeElement==='description'?descX:dateX}
-                  onChange={(e) => { const n = Math.max(0, Number(e.target.value)||0); if(activeElement==='title'){ setTitleX(n); queueSave({ title_x: n }) } else if(activeElement==='description'){ setDescX(n); queueSave({ desc_x: n }) } else { setDateX(n) } }} />
+                  onChange={(e) => { const n = Math.max(0, Number(e.target.value)||0); if(activeElement==='title'){ setTitleX(n); queueSave({ title_x: n }) } else if(activeElement==='description'){ setDescX(n); queueSave({ desc_x: n }) } else { setDateX(n); queueSave({ date_x: n }) } }} />
             </div>
             <div>
                 <label className="block text-sm text-white/70 mb-1">Posisi Y</label>
                 <input type="number" className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm" value={activeElement==='title'?titleY:activeElement==='description'?descY:dateY}
-                  onChange={(e) => { const n = Math.max(0, Number(e.target.value)||0); if(activeElement==='title'){ setTitleY(n); queueSave({ title_y: n }) } else if(activeElement==='description'){ setDescY(n); queueSave({ desc_y: n }) } else { setDateY(n) } }} />
+                  onChange={(e) => { const n = Math.max(0, Number(e.target.value)||0); if(activeElement==='title'){ setTitleY(n); queueSave({ title_y: n }) } else if(activeElement==='description'){ setDescY(n); queueSave({ desc_y: n }) } else { setDateY(n); queueSave({ date_y: n }) } }} />
               </div>
             </div>
             {/* Justify & Font per elemen */}
@@ -360,27 +443,36 @@ export default function AdminPage() {
             {activeElement === 'date' && (
               <div className="grid grid-cols-2 gap-3">
                 <div>
+                  <label className="block text-sm text-white/70 mb-1">Justify (Tanggal)</label>
+                  <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={dateAlign}
+                    onChange={(e)=>{ const v = e.target.value as "left"|"center"|"right"; setDateAlign(v); queueSave({ date_align: v }) }}>
+                    <option value="left">Left</option>
+                    <option value="center">Center</option>
+                    <option value="right">Right</option>
+                  </select>
+                </div>
+                <div>
                   <label className="block text-sm text-white/70 mb-1">Font (Tanggal)</label>
                   <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={dateFont}
                     onChange={(e)=>{ const v=e.target.value; setDateFont(v); queueSave({ date_font: v }) }}>
-                  <option value="Inter, ui-sans-serif, system-ui">Inter</option>
-                  <option value="Arial, Helvetica, sans-serif">Arial</option>
-                  <option value="Times New Roman, Times, serif">Times New Roman</option>
-                  <option value="Georgia, serif">Georgia</option>
-                </select>
+                    <option value="Inter, ui-sans-serif, system-ui">Inter</option>
+                    <option value="Arial, Helvetica, sans-serif">Arial</option>
+                    <option value="Times New Roman, Times, serif">Times New Roman</option>
+                    <option value="Georgia, serif">Georgia</option>
+                  </select>
+                </div>
               </div>
-            </div>
             )}
             <div className="grid grid-cols-2 gap-3">
             <div>
                 <label className="block text-sm text-white/70 mb-1">Font Size</label>
                 <input type="number" className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm" value={activeElement==='title'?titleSize:activeElement==='description'?descSize:dateSize}
-                  onChange={(e)=>{ const n=Number(e.target.value)||12; if(activeElement==='title'){ setTitleSize(n); queueSave({ title_size: n }) } else if(activeElement==='description'){ setDescSize(n); queueSave({ desc_size: n }) } else { setDateSize(n) } }} />
+                  onChange={(e)=>{ const n=Number(e.target.value)||12; if(activeElement==='title'){ setTitleSize(n); queueSave({ title_size: n }) } else if(activeElement==='description'){ setDescSize(n); queueSave({ desc_size: n }) } else { setDateSize(n); queueSave({ date_size: n }) } }} />
             </div>
             <div>
                 <label className="block text-sm text-white/70 mb-1">Warna</label>
                 <input type="color" className="h-10 w-full rounded-md border border-white/10 bg-white/5 p-1" value={activeElement==='title'?titleColor:activeElement==='description'?descColor:dateColor}
-                  onChange={(e)=>{ const v=e.target.value; if(activeElement==='title'){ setTitleColor(v); queueSave({ title_color: v }) } else if(activeElement==='description'){ setDescColor(v); queueSave({ desc_color: v }) } else { setDateColor(v) } }} />
+                  onChange={(e)=>{ const v=e.target.value; if(activeElement==='title'){ setTitleColor(v); queueSave({ title_color: v }) } else if(activeElement==='description'){ setDescColor(v); queueSave({ desc_color: v }) } else { setDateColor(v); queueSave({ date_color: v }) } }} />
               </div>
             </div>
             <div className="text-right text-xs text-white/50 h-4">{uiSaving ? "Menyimpan..." : "Tersimpan"}</div>
@@ -391,34 +483,54 @@ export default function AdminPage() {
                   if (!certificateId) return
                   if (saveTimer.current) { clearTimeout(saveTimer.current); saveTimer.current = null }
                   setSavingAll(true)
+                  // Coba dengan field dasar + styling yang mungkin sudah ada
                   const payload = {
                     title: title || null,
+                    name: title || null,
                     description: description || null,
                     issued_at: issuedAt || null,
+                    // Field styling yang tersedia di database
                     title_align: titleAlign,
-                    desc_align: descAlign,
                     title_font: titleFont,
-                    desc_font: descFont,
-                    date_font: dateFont,
                     title_x: titleX,
                     title_y: titleY,
                     title_size: titleSize,
                     title_color: titleColor,
+                    desc_align: descAlign,
+                    desc_font: descFont,
                     desc_x: descX,
                     desc_y: descY,
                     desc_size: descSize,
                     desc_color: descColor,
+                    date_align: dateAlign,
+                    date_font: dateFont,
                     date_x: dateX,
                     date_y: dateY,
                     date_size: dateSize,
-                    date_color: dateColor,
+                    date_color: dateColor
                   }
-                  const { error } = await supabase.from('certificates').update(payload).eq('id', certificateId)
-                  if (error) {
-                    setMessage('Gagal menyimpan: ' + error.message)
-                  } else {
-                    setMessage('Perubahan disimpan')
-                    setTimeout(() => setMessage(''), 1500)
+                  
+                  console.log("Full payload with styling:", payload)
+                  console.log("Certificate ID:", certificateId)
+                  
+                  try {
+                    console.log("Attempting to update database...")
+                    const { error } = await supabase.from('certificates').update(payload).eq('id', certificateId)
+                    if (error) {
+                      console.error("Save All error:", error)
+                      console.error("Error message:", error.message)
+                      console.error("Error code:", error.code)
+                      console.error("Error details:", error.details)
+                      console.error("Error hint:", error.hint)
+                      setMessage('Gagal menyimpan: ' + (error.message || 'Unknown error'))
+                    } else {
+                      console.log("Save All successful!")
+                      setMessage('Perubahan disimpan')
+                      setTimeout(() => setMessage(''), 1500)
+                    }
+                  } catch (err) {
+                    console.error("Unexpected error during Save All:", err)
+                    setMessage('Gagal menyimpan: ' + (err instanceof Error ? err.message : 'Unknown error'))
                   }
                   setSavingAll(false)
                 }}
@@ -472,7 +584,7 @@ export default function AdminPage() {
                   drawText(title || '', titleX, titleY, titleSize, titleColor, titleAlign, titleFont, true)
                   drawText(description || '', descX, descY, descSize, descColor, descAlign, descFont, false)
                   if (issuedAt) {
-                    drawText(issuedAt, dateX, dateY, dateSize, dateColor, titleAlign, dateFont, false)
+                    drawText(issuedAt, dateX, dateY, dateSize, dateColor, dateAlign, dateFont, false)
                   }
                   // ke PDF
                   const imgData = canvas.toDataURL('image/png', 1.0)
@@ -516,7 +628,7 @@ export default function AdminPage() {
   )
 }
 
-function PreviewPanel({ category, previewSrc, title, description, titlePos, descPos, datePos, titleAlign, descAlign, titleFont, descFont, dateFont, issuedAt, active, onDragPosition, onCommitPosition }: { category: string; previewSrc?: string; title?: string; description?: string; titlePos: { x: number; y: number; size: number; color: string }; descPos: { x: number; y: number; size: number; color: string }; datePos: { x: number; y: number; size: number; color: string }; titleAlign: "left"|"center"|"right"; descAlign: "left"|"center"|"right"; titleFont: string; descFont: string; dateFont: string; issuedAt?: string; active: "title"|"description"|"date"; onDragPosition?: (x: number, y: number) => void; onCommitPosition?: (x: number, y: number) => void }) {
+function PreviewPanel({ category, previewSrc, title, description, titlePos, descPos, datePos, titleAlign, descAlign, dateAlign, titleFont, descFont, dateFont, issuedAt, active, onDragPosition, onCommitPosition }: { category: string; previewSrc?: string; title?: string; description?: string; titlePos: { x: number; y: number; size: number; color: string }; descPos: { x: number; y: number; size: number; color: string }; datePos: { x: number; y: number; size: number; color: string }; titleAlign: "left"|"center"|"right"; descAlign: "left"|"center"|"right"; dateAlign: "left"|"center"|"right"; titleFont: string; descFont: string; dateFont: string; issuedAt?: string; active: "title"|"description"|"date"; onDragPosition?: (x: number, y: number) => void; onCommitPosition?: (x: number, y: number) => void }) {
   const [dragging, setDragging] = useState(false)
   const containerRef = useRef<HTMLDivElement | null>(null)
   const [containerSize, setContainerSize] = useState<{ width: number; height: number }>({ width: 0, height: 0 })
@@ -572,16 +684,12 @@ function PreviewPanel({ category, previewSrc, title, description, titlePos, desc
   }
 
   const clampX = (x: number) => {
-    const rect = getContentRect()
-    const min = rect.left + margin
-    const max = rect.left + Math.max(0, rect.width - margin)
-    return Math.max(min, Math.min(x, max))
+    // Return original position without clamping to match edit mode
+    return x
   }
   const clampY = (y: number) => {
-    const rect = getContentRect()
-    const min = rect.top + margin
-    const max = rect.top + Math.max(0, rect.height - margin)
-    return Math.max(min, Math.min(y, max))
+    // Return original position without clamping to match edit mode
+    return y
   }
   // Untuk saat ini, muat preview berbasis kategori dari /public/certificate
   // Anda bisa mengganti dengan komponen templating sebenarnya
@@ -639,17 +747,14 @@ function PreviewPanel({ category, previewSrc, title, description, titlePos, desc
           style={{ 
             left: `${clampX(titlePos.x)}px`, 
             top: `${clampY(titlePos.y)}px`, 
-            width: "calc(100% - 40px)", 
-            transform: titleAlign === "center" ? "translateX(-50%)" : titleAlign === "right" ? "translateX(-100%)" : undefined, 
-            textAlign: titleAlign as "left"|"center"|"right", 
+            width: "auto", 
+            maxWidth: "calc(100% - 40px)",
+            textAlign: titleAlign, 
             fontFamily: titleFont, 
             fontSize: `${titlePos.size}px`, 
             color: titlePos.color,
             position: 'absolute',
-            zIndex: 10,
-            willChange: 'transform',
-            backfaceVisibility: 'hidden',
-            WebkitBackfaceVisibility: 'hidden'
+            zIndex: 10
           }}
           data-overlay="text"
         >
@@ -661,18 +766,15 @@ function PreviewPanel({ category, previewSrc, title, description, titlePos, desc
           style={{ 
             left: `${clampX(descPos.x)}px`, 
             top: `${clampY(descPos.y)}px`, 
-            width: "calc(100% - 40px)", 
-            transform: descAlign === "center" ? "translateX(-50%)" : descAlign === "right" ? "translateX(-100%)" : undefined, 
-            textAlign: descAlign as "left"|"center"|"right", 
+            width: "auto", 
+            maxWidth: "calc(100% - 40px)",
+            textAlign: descAlign, 
             fontFamily: descFont, 
             fontSize: `${descPos.size}px`, 
             color: descPos.color,
             whiteSpace: 'pre-line',
             position: 'absolute',
-            zIndex: 10,
-            willChange: 'transform',
-            backfaceVisibility: 'hidden',
-            WebkitBackfaceVisibility: 'hidden'
+            zIndex: 10
           }}
         >
           <div className="opacity-90">{description}</div>
@@ -684,17 +786,14 @@ function PreviewPanel({ category, previewSrc, title, description, titlePos, desc
             style={{ 
               left: `${clampX(datePos.x)}px`, 
               top: `${clampY(datePos.y)}px`, 
-              width: "calc(100% - 40px)", 
-              transform: titleAlign === "center" ? "translateX(-50%)" : titleAlign === "right" ? "translateX(-100%)" : undefined, 
-              textAlign: titleAlign as "left"|"center"|"right", 
+              width: "auto", 
+              maxWidth: "calc(100% - 40px)",
+              textAlign: dateAlign, 
               fontFamily: dateFont, 
               fontSize: `${datePos.size}px`, 
               color: datePos.color,
               position: 'absolute',
-              zIndex: 10,
-              willChange: 'transform',
-              backfaceVisibility: 'hidden',
-              WebkitBackfaceVisibility: 'hidden'
+              zIndex: 10
             }}
           >
             <div className="mt-1 opacity-80">{issuedAt}</div>

@@ -31,81 +31,113 @@ export function LoginForm({
     event.preventDefault()
     setIsLoading(true)
     setError("")
-    
+
     const form = event.currentTarget
     const emailInput = form.querySelector<HTMLInputElement>("#email")
     const passwordInput = form.querySelector<HTMLInputElement>("#password")
-    
+
     const email = emailInput?.value || ""
     const password = passwordInput?.value || ""
 
     try {
-      // Query ke tabel users di Supabase
-      const { data: user, error: userError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('email', email)
-        .eq('password', password)
+      // 🔍 Cek tabel users (ADMIN)
+      const { data: userAdmin, error: adminError } = await supabase
+        .from("users")
+        .select("*")
+        .eq("email", email)
+        .eq("password", password)
         .single()
 
-      if (userError || !user) {
-        console.error("Login error:", userError)
-        setError(t('emailOrPasswordWrong'))
+      if (userAdmin && !adminError) {
+        console.log("✅ Admin login:", userAdmin.email)
+
+        login({
+          id: userAdmin.id,
+          email: userAdmin.email,
+          role: userAdmin.role,
+        })
+
+        router.push("/admin")
         return
       }
 
-      console.log("Login successful:", user.email)
+      // 🔍 Cek tabel members (TEAM)
+      const { data: userTeam, error: teamError } = await supabase
+        .from("members")
+        .select("*")
+        .eq("email", email)
+        .eq("password", password)
+        .single()
 
-      // Simpan data user menggunakan hook
-      login({
-        id: user.id,
-        email: user.email,
-        role: user.role
-      })
+      if (userTeam && !teamError) {
+        console.log("✅ Team login:", userTeam.email)
 
-      // Redirect berdasarkan role
-      if (user.role === 'admin') {
-        router.push("/admin")
-      } else if (user.role === 'team') {
-        router.push("/team")
-      } else {
-        router.push("/all")
+        login({
+          id: userTeam.id,
+          email: userTeam.email,
+          role: userTeam.role || "team",
+        })
+
+        // Kalau role-nya team → ke /team
+        // Kalau role lain (misal guest) → ke /all
+        if (userTeam.role === "team") {
+          router.push("/team")
+        } else {
+          router.push("/all")
+        }
+        return
       }
+
+      // ❌ Kalau dua-duanya gagal
+      setError(t("emailOrPasswordWrong"))
     } catch (error) {
-      console.error('Login error:', error)
-      setError(t('loginError'))
+      console.error("Login error:", error)
+      setError(t("loginError"))
     } finally {
       setIsLoading(false)
     }
   }
+
   return (
-    <form className={cn("flex flex-col gap-6", className)} onSubmit={handleSubmit} {...props}>
+    <form
+      className={cn("flex flex-col gap-6", className)}
+      onSubmit={handleSubmit}
+      {...props}
+    >
       <FieldGroup>
         <div className="flex flex-col items-center gap-1 text-center">
-          <h1 className="text-2xl font-bold">{t('loginToAccount')}</h1>
+          <h1 className="text-2xl font-bold">{t("loginToAccount")}</h1>
           <p className="text-muted-foreground text-sm text-balance">
-            {t('enterEmailToLogin')}
+            {t("enterEmailToLogin")}
           </p>
         </div>
+
         {error && (
           <div className="rounded-md bg-red-500/10 border border-red-500/20 p-3 text-red-400 text-sm">
             {error}
           </div>
         )}
+
         <Field>
           <FieldLabel htmlFor="email">Email</FieldLabel>
-          <Input id="email" type="email" placeholder={t('emailPlaceholder')} required />
+          <Input
+            id="email"
+            type="email"
+            placeholder={t("emailPlaceholder")}
+            required
+          />
         </Field>
+
         <Field>
           <div className="flex items-center">
             <FieldLabel htmlFor="password">Password</FieldLabel>
           </div>
           <div className="relative">
-            <Input 
-              id="password" 
-              type={showPassword ? "text" : "password"} 
-              placeholder={t('passwordPlaceholder')} 
-              required 
+            <Input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              placeholder={t("passwordPlaceholder")}
+              required
             />
             <button
               type="button"
@@ -120,14 +152,16 @@ export function LoginForm({
             </button>
           </div>
         </Field>
+
         <Field>
           <Button type="submit" disabled={isLoading}>
-            {isLoading ? t('loggingIn') : t('login')}
+            {isLoading ? t("loggingIn") : t("login")}
           </Button>
         </Field>
+
         <Link href="/all">
           <Field className="gap-1 py-0 text-blue-500">
-            <Button type="submit">{t('continueAsGuest')}</Button>
+            <Button type="button">{t("continueAsGuest")}</Button>
           </Field>
         </Link>
       </FieldGroup>

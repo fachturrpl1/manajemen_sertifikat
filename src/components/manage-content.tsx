@@ -6,6 +6,7 @@ import { Eye, Pencil, Trash2, X } from "lucide-react"
 import { ModalOverlay, ModalContent } from "@/components/ui/separator"
 import { supabase } from "@/lib/supabase"
 import { useEffect } from "react"
+import jsPDF from "jspdf"
 
 type CertificateRow = {
   id?: string
@@ -39,6 +40,17 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
 
+  // Helper function untuk menghitung posisi yang sama dengan halaman edit
+  const calculatePosition = (x: number, y: number, containerWidth: number, containerHeight: number) => {
+    const margin = 20
+    const maxX = Math.max(0, containerWidth - margin)
+    const maxY = Math.max(0, containerHeight - margin)
+    return {
+      x: Math.max(margin, Math.min(x, maxX)),
+      y: Math.max(margin, Math.min(y, maxY))
+    }
+  }
+
   useEffect(() => {
     // Initial data fetch
     const fetchData = async () => {
@@ -61,6 +73,7 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
         issuedAt: r.issued_at as string | undefined,
         expiresAt: r.expires_at as string | undefined,
       }))
+      console.log("Mapped certificate rows:", mapped) // Debug log
       setRows(mapped)
       setIsLoading(false)
     }
@@ -305,19 +318,49 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                                 onClick={async () => {
                                   setViewingCertificate(r)
                                   setShowViewModal(true)
+                                  
+                                  // Set certificate data dari row yang ada terlebih dahulu
+                                  setCertificateData({
+                                    id: r.id,
+                                    name: r.name,
+                                    title: r.name,
+                                    number: r.number,
+                                    category: r.category,
+                                    recipient_org: r.recipientOrg,
+                                    issuer: r.issuer,
+                                    issued_at: r.issuedAt,
+                                    expires_at: r.expiresAt
+                                  })
+                                  
                                   // Ambil data sertifikat yang sudah diedit
                                   if (r.id) {
-                                    const { data, error } = await supabase
-                                      .from("certificates")
-                                      .select("*")
-                                      .eq("id", r.id)
-                                      .single()
-                                    if (error) {
-                                      console.error("Error fetching certificate:", error)
-                                      setCertificateData(null)
-                                    } else {
-                                      setCertificateData(data)
+                                    console.log("Fetching certificate with ID:", r.id) // Debug log
+                                    try {
+                                      const { data, error } = await supabase
+                                        .from("certificates")
+                                        .select("*")
+                                        .eq("id", r.id)
+                                        .single()
+                                      
+                                      if (error) {
+                                        console.error("Error fetching certificate:", error)
+                                        console.error("Error details:", {
+                                          message: error.message,
+                                          details: error.details,
+                                          hint: error.hint,
+                                          code: error.code
+                                        })
+                                        // Tetap gunakan data dari row yang ada
+                                      } else {
+                                        console.log("Certificate data loaded for preview:", data) // Debug log
+                                        setCertificateData(data)
+                                      }
+                                    } catch (err) {
+                                      console.error("Unexpected error:", err)
+                                      // Tetap gunakan data dari row yang ada
                                     }
+                                  } else {
+                                    console.error("No certificate ID found for row:", r)
                                   }
                                 }}
                               >
@@ -327,7 +370,10 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                                 aria-label="Edit"
                                 title="Edit"
                                 className="rounded-md border border-white/10 bg-white/5 px-2 py-1"
-                                onClick={() => { setEditingIndex(idx); setDraft(r); setShowModal(true) }}
+                                onClick={() => { 
+                                  // Redirect ke halaman edit sertifikat
+                                  window.location.href = `/admin/edit?id=${r.id}`
+                                }}
                               >
                                 <Pencil className="h-4 w-4 text-white" />
                               </button>
@@ -737,8 +783,8 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
               
               {certificateData ? (
                 <div className="space-y-4">
-                  {/* Cek apakah sertifikat sudah diedit */}
-                  {certificateData.title || certificateData.description || certificateData.template_path ? (
+                  {/* Cek apakah sertifikat sudah diedit atau ada data dasar */}
+                  {(certificateData.title || certificateData.name) || certificateData.description || certificateData.template_path || certificateData.issued_at ? (
                     <div className="space-y-4">
                       {/* Pratinjau Visual Sertifikat */}
                       <div className="rounded-lg border border-white/10 bg-white/5 p-4">
@@ -749,43 +795,50 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                           position: 'relative',
                           contain: 'layout style paint',
                           willChange: 'transform'
-                        }}>
+                        }} data-preview-container="modal">
                           {/* Template Background */}
                           {certificateData.template_path ? (
                             <img 
                               src={`/${certificateData.template_path}`} 
                               alt="Certificate Template" 
                               className="absolute inset-0 w-full h-full object-contain"
+                              data-preview-image
                             />
                           ) : (
-                            <div className="absolute inset-0 bg-gradient-to-b from-white to-gray-100 flex items-center justify-center">
-                              <div className="text-gray-400">Template tidak tersedia</div>
+                            <div className="absolute inset-0 bg-gradient-to-b from-blue-50 to-blue-100 flex items-center justify-center">
+                              <div className="text-center">
+                                <div className="text-gray-600 text-lg font-semibold mb-2">SERTIFIKAT</div>
+                                <div className="text-gray-500 text-sm">Template tidak tersedia</div>
+                              </div>
                             </div>
                           )}
                           
-                          {/* Overlay Text Container - Fixed positioning */}
+                          {/* Overlay Text Container - Menggunakan posisi yang sama dengan halaman edit */}
                           <div className="absolute inset-0" style={{ position: 'relative' }}>
                             {/* Title */}
-                            {certificateData.title && (
+                            {(certificateData.title || certificateData.name) && (
                               <div 
                                 className="absolute font-bold text-black"
                                 style={{
-                                  left: `${certificateData.title_x || 370}px`,
-                                  top: `${certificateData.title_y || 180}px`,
-                                  fontSize: `${certificateData.title_size || 32}px`,
-                                  color: certificateData.title_color || '#000000',
-                                  textAlign: certificateData.title_align || 'center',
-                                  fontFamily: certificateData.title_font || 'serif',
-                                  transform: certificateData.title_align === 'center' ? 'translateX(-50%)' : certificateData.title_align === 'right' ? 'translateX(-100%)' : undefined,
+                                  left: `${certificateData.title_x || 370}px`, 
+                                  top: `${certificateData.title_y || 180}px`, 
+                                  width: "calc(100% - 40px)", 
+                                  transform: certificateData.title_align === "center" ? "translateX(-50%)" : certificateData.title_align === "right" ? "translateX(-100%)" : undefined, 
+                                  textAlign: certificateData.title_align as "left"|"center"|"right" || "center", 
+                                  fontFamily: certificateData.title_font || "Inter, ui-sans-serif, system-ui", 
+                                  fontSize: `${certificateData.title_size || 32}px`, 
+                                  color: certificateData.title_color || "#000000",
                                   position: 'absolute',
                                   zIndex: 10,
-                                  pointerEvents: 'none',
                                   willChange: 'transform',
                                   backfaceVisibility: 'hidden',
-                                  WebkitBackfaceVisibility: 'hidden'
+                                  WebkitBackfaceVisibility: 'hidden',
+                                  pointerEvents: 'none',
+                                  whiteSpace: 'nowrap'
                                 }}
+                                data-overlay="text"
                               >
-                                {certificateData.title}
+                                {certificateData.title || certificateData.name}
                               </div>
                             )}
                             
@@ -794,20 +847,22 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                               <div 
                                 className="absolute text-black"
                                 style={{
-                                  left: `${certificateData.desc_x || 370}px`,
-                                  top: `${certificateData.desc_y || 220}px`,
-                                  fontSize: `${certificateData.desc_size || 18}px`,
-                                  color: certificateData.desc_color || '#000000',
-                                  textAlign: certificateData.desc_align || 'center',
-                                  fontFamily: certificateData.desc_font || 'serif',
+                                  left: `${certificateData.desc_x || 360}px`, 
+                                  top: `${certificateData.desc_y || 235}px`, 
+                                  width: "calc(100% - 40px)", 
+                                  transform: certificateData.desc_align === "center" ? "translateX(-50%)" : certificateData.desc_align === "right" ? "translateX(-100%)" : undefined, 
+                                  textAlign: certificateData.desc_align as "left"|"center"|"right" || "center", 
+                                  fontFamily: certificateData.desc_font || "Inter, ui-sans-serif, system-ui", 
+                                  fontSize: `${certificateData.desc_size || 15}px`, 
+                                  color: certificateData.desc_color || "#000000",
                                   whiteSpace: 'pre-line',
-                                  transform: certificateData.desc_align === 'center' ? 'translateX(-50%)' : certificateData.desc_align === 'right' ? 'translateX(-100%)' : undefined,
                                   position: 'absolute',
                                   zIndex: 10,
-                                  pointerEvents: 'none',
                                   willChange: 'transform',
                                   backfaceVisibility: 'hidden',
-                                  WebkitBackfaceVisibility: 'hidden'
+                                  WebkitBackfaceVisibility: 'hidden',
+                                  pointerEvents: 'none',
+                                  maxWidth: '300px'
                                 }}
                               >
                                 {certificateData.description}
@@ -819,19 +874,21 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                               <div 
                                 className="absolute text-black"
                                 style={{
-                                  left: `${certificateData.date_x || 370}px`,
-                                  top: `${certificateData.date_y || 260}px`,
-                                  fontSize: `${certificateData.date_size || 14}px`,
-                                  color: certificateData.date_color || '#000000',
-                                  textAlign: certificateData.title_align || 'center',
-                                  fontFamily: certificateData.date_font || 'serif',
-                                  transform: certificateData.title_align === 'center' ? 'translateX(-50%)' : certificateData.title_align === 'right' ? 'translateX(-100%)' : undefined,
+                                  left: `${certificateData.date_x || 50}px`, 
+                                  top: `${certificateData.date_y || 110}px`, 
+                                  width: "calc(100% - 40px)", 
+                                  transform: certificateData.title_align === "center" ? "translateX(-50%)" : certificateData.title_align === "right" ? "translateX(-100%)" : undefined, 
+                                  textAlign: certificateData.title_align as "left"|"center"|"right" || "center", 
+                                  fontFamily: certificateData.date_font || "Inter, ui-sans-serif, system-ui", 
+                                  fontSize: `${certificateData.date_size || 14}px`, 
+                                  color: certificateData.date_color || "#000000",
                                   position: 'absolute',
                                   zIndex: 10,
-                                  pointerEvents: 'none',
                                   willChange: 'transform',
                                   backfaceVisibility: 'hidden',
-                                  WebkitBackfaceVisibility: 'hidden'
+                                  WebkitBackfaceVisibility: 'hidden',
+                                  pointerEvents: 'none',
+                                  whiteSpace: 'nowrap'
                                 }}
                               >
                                 {certificateData.issued_at}
@@ -842,22 +899,198 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                       </div>
                       
                       {/* Detail Info */}
-                      <div className="rounded-lg border border-white/10 bg-white/5 p-4">
-                        <h3 className="mb-3 font-medium">Detail Sertifikat</h3>
+                      <div className="rounded-lg border border-white/10 bg-white/5 p-4 relative">
+                        <div className="flex justify-between items-start mb-3">
+                          <h3 className="font-medium">Detail Sertifikat</h3>
+                          <button
+                            onClick={async () => {
+                              try {
+                                // Get the preview container
+                                const previewContainer = document.querySelector('[data-preview-container="modal"]') as HTMLElement
+                                if (!previewContainer) {
+                                  alert('Preview container not found')
+                                  return
+                                }
+
+                                // Get the template image
+                                const templateImg = document.querySelector('[data-preview-image]') as HTMLImageElement
+                                if (!templateImg) {
+                                  alert('Template image not found')
+                                  return
+                                }
+
+                                // Wait for image to load
+                                await new Promise((resolve) => {
+                                  if (templateImg.complete) {
+                                    resolve(true)
+                                  } else {
+                                    templateImg.onload = () => resolve(true)
+                                  }
+                                })
+
+                                // Get container dimensions
+                                const containerRect = previewContainer.getBoundingClientRect()
+                                
+                                // Calculate image dimensions and position within container
+                                const imageRatio = templateImg.naturalWidth / templateImg.naturalHeight
+                                const containerRatio = containerRect.width / containerRect.height
+                                
+                                let imageWidth, imageHeight, imageX, imageY
+                                
+                                if (containerRatio > imageRatio) {
+                                  // Container is wider, image is constrained by height
+                                  imageHeight = containerRect.height
+                                  imageWidth = imageHeight * imageRatio
+                                  imageX = (containerRect.width - imageWidth) / 2
+                                  imageY = 0
+                                } else {
+                                  // Container is taller, image is constrained by width
+                                  imageWidth = containerRect.width
+                                  imageHeight = imageWidth / imageRatio
+                                  imageX = 0
+                                  imageY = (containerRect.height - imageHeight) / 2
+                                }
+
+                                // Create canvas with original image dimensions
+                                const canvas = document.createElement('canvas')
+                                const ctx = canvas.getContext('2d')
+                                if (!ctx) return
+
+                                canvas.width = templateImg.naturalWidth
+                                canvas.height = templateImg.naturalHeight
+
+                                // Draw the template image
+                                ctx.drawImage(templateImg, 0, 0, canvas.width, canvas.height)
+
+                                // Calculate scale factors for text positioning
+                                const scaleX = canvas.width / imageWidth
+                                const scaleY = canvas.height / imageHeight
+
+                                // Helper function to draw text
+                                const drawText = (text: string, x: number, y: number, size: number, color: string, align: string, font: string, bold = false) => {
+                                  if (!text) return
+                                  
+                                  ctx.fillStyle = color
+                                  ctx.font = `${bold ? 'bold ' : ''}${size * scaleX}px ${font}`
+                                  ctx.textAlign = align as CanvasTextAlign
+                                  ctx.textBaseline = 'top'
+                                  
+                                  // Convert preview coordinates to canvas coordinates
+                                  const canvasX = (x - imageX) * scaleX
+                                  const canvasY = (y - imageY) * scaleY
+                                  
+                                  ctx.fillText(text, canvasX, canvasY)
+                                }
+
+                                // Draw title
+                                if (certificateData.title || certificateData.name) {
+                                  drawText(
+                                    certificateData.title || certificateData.name,
+                                    certificateData.title_x || 370,
+                                    certificateData.title_y || 180,
+                                    certificateData.title_size || 32,
+                                    certificateData.title_color || "#000000",
+                                    certificateData.title_align || "center",
+                                    certificateData.title_font || "Inter, ui-sans-serif, system-ui",
+                                    true
+                                  )
+                                }
+
+                                // Draw description
+                                if (certificateData.description) {
+                                  drawText(
+                                    certificateData.description,
+                                    certificateData.desc_x || 360,
+                                    certificateData.desc_y || 235,
+                                    certificateData.desc_size || 15,
+                                    certificateData.desc_color || "#000000",
+                                    certificateData.desc_align || "center",
+                                    certificateData.desc_font || "Inter, ui-sans-serif, system-ui"
+                                  )
+                                }
+
+                                // Draw date
+                                if (certificateData.issued_at) {
+                                  drawText(
+                                    certificateData.issued_at,
+                                    certificateData.date_x || 50,
+                                    certificateData.date_y || 110,
+                                    certificateData.date_size || 14,
+                                    certificateData.date_color || "#000000",
+                                    certificateData.title_align || "center",
+                                    certificateData.date_font || "Inter, ui-sans-serif, system-ui"
+                                  )
+                                }
+
+                                // Convert canvas to blob
+                                const blob = await new Promise<Blob>((resolve) => {
+                                  canvas.toBlob((blob) => {
+                                    if (blob) resolve(blob)
+                                  }, 'image/jpeg', 0.8)
+                                })
+                                
+                                // Convert blob to base64
+                                const base64 = await new Promise<string>((resolve) => {
+                                  const reader = new FileReader()
+                                  reader.onload = () => {
+                                    const result = String(reader.result || "")
+                                    const comma = result.indexOf(",")
+                                    resolve(comma >= 0 ? result.slice(comma + 1) : result)
+                                  }
+                                  reader.readAsDataURL(blob)
+                                })
+                                
+                                // Upload to Supabase Storage
+                                const fileName = `certificate_${viewingCertificate.id}_${Date.now()}.jpg`
+                                const { data: uploadData, error: uploadError } = await supabase.storage
+                                  .from('sertifikat')
+                                  .upload(fileName, blob, {
+                                    contentType: 'image/jpeg',
+                                    upsert: false
+                                  })
+                                
+                                if (uploadError) {
+                                  throw new Error('Failed to upload to storage: ' + uploadError.message)
+                                }
+                                
+                                // Get public URL
+                                const { data: publicUrlData } = supabase.storage
+                                  .from('sertifikat')
+                                  .getPublicUrl(fileName)
+                                
+                                const publicUrl = publicUrlData.publicUrl
+                                
+                                // Copy the public URL to clipboard
+                                await navigator.clipboard.writeText(publicUrl)
+                                
+                                // Show success message
+                                alert('Gambar sertifikat berhasil disimpan dan link disalin ke clipboard!')
+                                
+                                // Optionally open in new tab
+                                window.open(publicUrl, '_blank')
+                                
+                              } catch (error) {
+                                console.error('Copy failed:', error)
+                                alert('Gagal menyalin gambar: ' + (error instanceof Error ? error.message : 'Unknown error'))
+                              }
+                            }}
+                            className="p-1 rounded-md hover:bg-white/10 transition-colors"
+                            title="Copy certificate image with text"
+                          >
+                            <svg className="w-4 h-4 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                          </button>
+                        </div>
                         <div className="space-y-2">
-                          {certificateData.title && (
+                          {(certificateData.title || certificateData.name) && (
                             <div>
-                              <span className="text-white/70">Title:</span> {certificateData.title}
+                              <span className="text-white/70">Title:</span> {certificateData.title || certificateData.name}
                             </div>
                           )}
                           {certificateData.description && (
                             <div>
                               <span className="text-white/70">Description:</span> {certificateData.description}
-                            </div>
-                          )}
-                          {certificateData.template_path && (
-                            <div>
-                              <span className="text-white/70">Template:</span> {certificateData.template_path}
                             </div>
                           )}
                           {certificateData.issued_at && (
@@ -866,13 +1099,158 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                             </div>
                           )}
                         </div>
-                        <div className="mt-4">
+                        <div className="mt-4 flex gap-2">
                           <a 
                             href={`/admin/edit?id=${viewingCertificate.id}`}
                             className="inline-block rounded-md bg-blue-600 hover:bg-blue-500 px-4 py-2 text-sm"
                           >
                             Edit Sertifikat
                           </a>
+                          <button
+                            onClick={async () => {
+                              try {
+                                // Get the preview container
+                                const previewContainer = document.querySelector('[data-preview-container="modal"]') as HTMLElement
+                                if (!previewContainer) {
+                                  alert('Preview container not found')
+                                  return
+                                }
+
+                                // Get the template image
+                                const templateImg = document.querySelector('[data-preview-image]') as HTMLImageElement
+                                if (!templateImg) {
+                                  alert('Template image not found')
+                                  return
+                                }
+
+                                // Wait for image to load
+                                await new Promise((resolve) => {
+                                  if (templateImg.complete) {
+                                    resolve(true)
+                                  } else {
+                                    templateImg.onload = () => resolve(true)
+                                  }
+                                })
+
+                                // Get container dimensions
+                                const containerRect = previewContainer.getBoundingClientRect()
+                                
+                                // Calculate image dimensions and position within container
+                                const imageRatio = templateImg.naturalWidth / templateImg.naturalHeight
+                                const containerRatio = containerRect.width / containerRect.height
+                                
+                                let imageWidth, imageHeight, imageX, imageY
+                                
+                                if (containerRatio > imageRatio) {
+                                  // Container is wider, image is constrained by height
+                                  imageHeight = containerRect.height
+                                  imageWidth = imageHeight * imageRatio
+                                  imageX = (containerRect.width - imageWidth) / 2
+                                  imageY = 0
+                                } else {
+                                  // Container is taller, image is constrained by width
+                                  imageWidth = containerRect.width
+                                  imageHeight = imageWidth / imageRatio
+                                  imageX = 0
+                                  imageY = (containerRect.height - imageHeight) / 2
+                                }
+
+                                // Create canvas with original image dimensions
+                                const canvas = document.createElement('canvas')
+                                const ctx = canvas.getContext('2d')
+                                if (!ctx) return
+
+                                canvas.width = templateImg.naturalWidth
+                                canvas.height = templateImg.naturalHeight
+
+                                // Draw the template image
+                                ctx.drawImage(templateImg, 0, 0, canvas.width, canvas.height)
+
+                                // Calculate scale factors for text positioning
+                                const scaleX = canvas.width / imageWidth
+                                const scaleY = canvas.height / imageHeight
+
+                                // Helper function to draw text
+                                const drawText = (text: string, x: number, y: number, size: number, color: string, align: string, font: string, bold = false) => {
+                                  if (!text) return
+                                  
+                                  ctx.fillStyle = color
+                                  ctx.font = `${bold ? 'bold ' : ''}${size * scaleX}px ${font}`
+                                  ctx.textAlign = align as CanvasTextAlign
+                                  ctx.textBaseline = 'top'
+                                  
+                                  // Convert preview coordinates to canvas coordinates
+                                  const canvasX = (x - imageX) * scaleX
+                                  const canvasY = (y - imageY) * scaleY
+                                  
+                                  ctx.fillText(text, canvasX, canvasY)
+                                }
+
+                                // Draw title
+                                if (certificateData.title || certificateData.name) {
+                                  drawText(
+                                    certificateData.title || certificateData.name,
+                                    certificateData.title_x || 370,
+                                    certificateData.title_y || 180,
+                                    certificateData.title_size || 32,
+                                    certificateData.title_color || "#000000",
+                                    certificateData.title_align || "center",
+                                    certificateData.title_font || "Inter, ui-sans-serif, system-ui",
+                                    true
+                                  )
+                                }
+
+                                // Draw description
+                                if (certificateData.description) {
+                                  drawText(
+                                    certificateData.description,
+                                    certificateData.desc_x || 360,
+                                    certificateData.desc_y || 235,
+                                    certificateData.desc_size || 15,
+                                    certificateData.desc_color || "#000000",
+                                    certificateData.desc_align || "center",
+                                    certificateData.desc_font || "Inter, ui-sans-serif, system-ui"
+                                  )
+                                }
+
+                                // Draw date
+                                if (certificateData.issued_at) {
+                                  drawText(
+                                    certificateData.issued_at,
+                                    certificateData.date_x || 50,
+                                    certificateData.date_y || 110,
+                                    certificateData.date_size || 14,
+                                    certificateData.date_color || "#000000",
+                                    certificateData.title_align || "center",
+                                    certificateData.date_font || "Inter, ui-sans-serif, system-ui"
+                                  )
+                                }
+
+                                // Convert canvas to PDF
+                                const imgData = canvas.toDataURL('image/png', 1.0)
+                                
+                                // Create PDF
+                                const pdf = new jsPDF({
+                                  orientation: canvas.width >= canvas.height ? 'landscape' : 'portrait',
+                                  unit: 'px',
+                                  format: [canvas.width, canvas.height]
+                                })
+
+                                // Add image to PDF
+                                pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height)
+
+                                // Download PDF
+                                pdf.save(`certificate_${viewingCertificate.id}.pdf`)
+
+                              } catch (error) {
+                                console.error('Export failed:', error)
+                                alert('Failed to export PDF: ' + (error instanceof Error ? error.message : 'Unknown error'))
+                              }
+                            }}
+                            className="inline-block rounded-md bg-green-600 hover:bg-green-500 px-4 py-2 text-sm"
+                          >
+                            Export PDF
+                          </button>
                         </div>
                       </div>
                     </div>

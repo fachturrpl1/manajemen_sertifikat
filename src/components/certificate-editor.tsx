@@ -28,21 +28,22 @@ export default function CertificateEditor() {
   const [titleX, setTitleX] = useState<number>(370)
   const [titleY, setTitleY] = useState<number>(180)
   const [titleSize, setTitleSize] = useState<number>(32)
-  const [titleColor, setTitleColor] = useState<string>("#000")
+  const [titleColor, setTitleColor] = useState<string>("#000000")
 
   const [descX, setDescX] = useState<number>(360)
   const [descY, setDescY] = useState<number>(235)
   const [descSize, setDescSize] = useState<number>(15)
-  const [descColor, setDescColor] = useState<string>("#000")
+  const [descColor, setDescColor] = useState<string>("#000000")
 
   const [dateX, setDateX] = useState<number>(50)
   const [dateY, setDateY] = useState<number>(110)
   const [dateSize, setDateSize] = useState<number>(14)
-  const [dateColor, setDateColor] = useState<string>("#000")
+  const [dateColor, setDateColor] = useState<string>("#000000")
 
   // Align & font per elemen
   const [titleAlign, setTitleAlign] = useState<"left" | "center" | "right">("center")
   const [descAlign, setDescAlign] = useState<"left" | "center" | "right">("center")
+  const [dateAlign, setDateAlign] = useState<"left" | "center" | "right">("center")
   const [titleFont, setTitleFont] = useState("Inter, ui-sans-serif, system-ui")
   const [descFont, setDescFont] = useState("Inter, ui-sans-serif, system-ui")
   const [dateFont, setDateFont] = useState("Inter, ui-sans-serif, system-ui")
@@ -68,18 +69,51 @@ export default function CertificateEditor() {
     []
   )
 
-  // Ambil kategori & template saat ini
+  // Ambil data sertifikat lengkap
   useEffect(() => {
     if (!certificateId) return
     ;(async () => {
       const { data, error } = await supabase
         .from("certificates")
-        .select("category, template_path")
+        .select("category, template_path, title, description, issued_at, name, title_x, title_y, title_size, title_color, title_align, title_font, desc_x, desc_y, desc_size, desc_color, desc_align, desc_font, date_x, date_y, date_size, date_color, date_font, date_align")
         .eq("id", certificateId)
         .single()
       if (!error && data) {
-        const row = data as { category: string | null; template_path?: string | null }
+        const row = data as any
         setCategory(row.category || "")
+        
+        // Set title/name - prioritize 'name' field, fallback to 'title' field
+        const certificateTitle = row.name || row.title || ""
+        setTitle(certificateTitle)
+        
+        // Set other fields
+        setDescription(row.description || "")
+        setIssuedAt(row.issued_at || "")
+        
+        // Set positioning and styling with fallback values
+        setTitleX(row.title_x ?? 370)
+        setTitleY(row.title_y ?? 180)
+        setTitleSize(row.title_size ?? 32)
+        setTitleColor(row.title_color ?? "#000000")
+        setTitleAlign(row.title_align ?? "center")
+        setTitleFont(row.title_font ?? "Inter, ui-sans-serif, system-ui")
+        
+        setDescX(row.desc_x ?? 360)
+        setDescY(row.desc_y ?? 235)
+        setDescSize(row.desc_size ?? 15)
+        setDescColor(row.desc_color ?? "#000000")
+        setDescAlign(row.desc_align ?? "center")
+        setDescFont(row.desc_font ?? "Inter, ui-sans-serif, system-ui")
+        
+        // Use saved values if available, otherwise use defaults
+        setDateX(row.date_x ?? 50)
+        setDateY(row.date_y ?? 110)
+        setDateSize(row.date_size ?? 14)
+        setDateColor(row.date_color ?? "#000000")
+        setDateAlign(row.date_align ?? "center")
+        setDateFont(row.date_font ?? "Inter, ui-sans-serif, system-ui")
+        
+        // Set template
         if (row.template_path) {
           setSelectedTemplate(row.template_path)
           setPreviewSrc(`/${row.template_path}`)
@@ -179,6 +213,7 @@ export default function CertificateEditor() {
         datePos={{ x: dateX, y: dateY, size: dateSize, color: dateColor }}
         titleAlign={titleAlign}
         descAlign={descAlign}
+        dateAlign={dateAlign}
         titleFont={titleFont}
         descFont={descFont}
         dateFont={dateFont}
@@ -262,7 +297,13 @@ export default function CertificateEditor() {
                 value={title}
                 onChange={async (e) => {
                   const v = e.target.value; setTitle(v)
-                  if (certificateId) await supabase.from("certificates").update({ title: v }).eq("id", certificateId)
+                  if (certificateId) {
+                    // Update both title and name fields to ensure consistency
+                    await supabase.from("certificates").update({ 
+                      title: v,
+                      name: v 
+                    }).eq("id", certificateId)
+                  }
                 }}
                 placeholder="Nama peserta"
               />
@@ -351,6 +392,15 @@ export default function CertificateEditor() {
           {activeElement === 'date' && (
             <div className="grid grid-cols-2 gap-3">
               <div>
+                <label className="block text-sm text-white/70 mb-1">Justify (Tanggal)</label>
+                <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={dateAlign}
+                  onChange={(e)=>{ const v = e.target.value as "left"|"center"|"right"; setDateAlign(v); queueSave({ date_align: v }) }}>
+                  <option value="left">Left</option>
+                  <option value="center">Center</option>
+                  <option value="right">Right</option>
+                </select>
+              </div>
+              <div>
                 <label className="block text-sm text-white/70 mb-1">Font (Tanggal)</label>
                 <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={dateFont}
                   onChange={(e)=>{ const v=e.target.value; setDateFont(v); queueSave({ date_font: v }) }}>
@@ -388,6 +438,7 @@ export default function CertificateEditor() {
                   issued_at: issuedAt || null,
                   title_align: titleAlign,
                   desc_align: descAlign,
+                  date_align: dateAlign,
                   title_font: titleFont,
                   desc_font: descFont,
                   date_font: dateFont,
@@ -475,7 +526,7 @@ export default function CertificateEditor() {
                   }
                   drawPdfText(title || '', titleX, titleY, titleSize, titleColor, titleAlign, titleFont, true)
                   drawPdfText(description || '', descX, descY, descSize, descColor, descAlign, descFont, false)
-                  if (issuedAt) drawPdfText(issuedAt, dateX, dateY, dateSize, dateColor, titleAlign, dateFont, false)
+                  if (issuedAt) drawPdfText(issuedAt, dateX, dateY, dateSize, dateColor, dateAlign, dateFont, false)
 
                   // Unduh lokal: buka di tab baru terlebih dahulu (lebih aman di beberapa browser)
                   const filename = `certificate_${certificateId}.pdf`
@@ -533,7 +584,7 @@ export default function CertificateEditor() {
   )
 }
 
-function PreviewPanel({ category, previewSrc, title, description, titlePos, descPos, datePos, titleAlign, descAlign, titleFont, descFont, dateFont, issuedAt, active, onDragPosition, onCommitPosition }: { category: string; previewSrc?: string; title?: string; description?: string; titlePos: { x: number; y: number; size: number; color: string }; descPos: { x: number; y: number; size: number; color: string }; datePos: { x: number; y: number; size: number; color: string }; titleAlign: "left"|"center"|"right"; descAlign: "left"|"center"|"right"; titleFont: string; descFont: string; dateFont: string; issuedAt?: string; active: "title"|"description"|"date"; onDragPosition?: (x: number, y: number) => void; onCommitPosition?: (x: number, y: number) => void }) {
+function PreviewPanel({ category, previewSrc, title, description, titlePos, descPos, datePos, titleAlign, descAlign, dateAlign, titleFont, descFont, dateFont, issuedAt, active, onDragPosition, onCommitPosition }: { category: string; previewSrc?: string; title?: string; description?: string; titlePos: { x: number; y: number; size: number; color: string }; descPos: { x: number; y: number; size: number; color: string }; datePos: { x: number; y: number; size: number; color: string }; titleAlign: "left"|"center"|"right"; descAlign: "left"|"center"|"right"; dateAlign: "left"|"center"|"right"; titleFont: string; descFont: string; dateFont: string; issuedAt?: string; active: "title"|"description"|"date"; onDragPosition?: (x: number, y: number) => void; onCommitPosition?: (x: number, y: number) => void }) {
   const [dragging, setDragging] = useState(false)
   const containerRef = useRef<HTMLDivElement | null>(null)
   const [containerSize, setContainerSize] = useState<{ width: number; height: number }>({ width: 0, height: 0 })
@@ -585,16 +636,12 @@ function PreviewPanel({ category, previewSrc, title, description, titlePos, desc
   }
 
   const clampX = (x: number) => {
-    const rect = getContentRect()
-    const min = rect.left + margin
-    const max = rect.left + Math.max(0, rect.width - margin)
-    return Math.max(min, Math.min(x, max))
+    // Return original position without clamping to match edit mode
+    return x
   }
   const clampY = (y: number) => {
-    const rect = getContentRect()
-    const min = rect.top + margin
-    const max = rect.top + Math.max(0, rect.height - margin)
-    return Math.max(min, Math.min(y, max))
+    // Return original position without clamping to match edit mode
+    return y
   }
   return (
     <section className="rounded-xl border border-white/10 bg-[#0d172b] p-6 shadow-xl shadow-blue-500/10 min-h-[420px]">
@@ -640,21 +687,48 @@ function PreviewPanel({ category, previewSrc, title, description, titlePos, desc
         ) : null}
         <div
           className="absolute"
-          style={{ left: `${clampX(titlePos.x)}px`, top: `${clampY(titlePos.y)}px`, width: "calc(100% - 40px)", transform: titleAlign === "center" ? "translateX(-50%)" : undefined, textAlign: titleAlign as "left"|"center"|"right", fontFamily: titleFont, fontSize: `${titlePos.size}px`, color: titlePos.color }}
+          style={{ 
+            left: `${clampX(titlePos.x)}px`, 
+            top: `${clampY(titlePos.y)}px`, 
+            width: "auto", 
+            maxWidth: "calc(100% - 40px)",
+            textAlign: titleAlign, 
+            fontFamily: titleFont, 
+            fontSize: `${titlePos.size}px`, 
+            color: titlePos.color 
+          }}
           data-overlay="text"
         >
           <div className="font-bold">{title}</div>
         </div>
         <div
           className="absolute"
-          style={{ left: `${clampX(descPos.x)}px`, top: `${clampY(descPos.y)}px`, width: "calc(100% - 40px)", transform: descAlign === "center" ? "translateX(-50%)" : undefined, textAlign: descAlign as "left"|"center"|"right", fontFamily: descFont, fontSize: `${descPos.size}px`, color: descPos.color }}
+          style={{ 
+            left: `${clampX(descPos.x)}px`, 
+            top: `${clampY(descPos.y)}px`, 
+            width: "auto", 
+            maxWidth: "calc(100% - 40px)",
+            textAlign: descAlign, 
+            fontFamily: descFont, 
+            fontSize: `${descPos.size}px`, 
+            color: descPos.color 
+          }}
         >
           <div className="opacity-90">{description}</div>
         </div>
         {issuedAt && (
           <div
             className="absolute"
-            style={{ left: `${clampX(datePos.x)}px`, top: `${clampY(datePos.y)}px`, width: "calc(100% - 40px)", transform: titleAlign === "center" ? "translateX(-50%)" : undefined, textAlign: titleAlign as "left"|"center"|"right", fontFamily: dateFont, fontSize: `${datePos.size}px`, color: datePos.color }}
+            style={{ 
+              left: `${clampX(datePos.x)}px`, 
+              top: `${clampY(datePos.y)}px`, 
+              width: "auto", 
+              maxWidth: "calc(100% - 40px)",
+              textAlign: dateAlign, 
+              fontFamily: dateFont, 
+              fontSize: `${datePos.size}px`, 
+              color: datePos.color 
+            }}
           >
             <div className="mt-1 opacity-80">{issuedAt}</div>
           </div>
