@@ -477,56 +477,111 @@ export default function CertificateEditor() {
                   if (!container) throw new Error('Preview container tidak ditemukan')
                   if (!previewSrc) throw new Error('Template belum dipilih/dimuat')
 
-                  // Muat gambar asli yang dipreview
-                  const img = await new Promise<HTMLImageElement>((res, rej) => {
-                    const i = new Image()
-                  if (!(previewSrc || '').startsWith('data:')) i.crossOrigin = 'anonymous'
-                    i.onload = () => res(i)
-                    i.onerror = () => rej(new Error('Gagal memuat gambar template'))
-                  i.src = previewSrc || ''
+                  // Try html2canvas first, fallback to manual rendering
+                  let canvas: HTMLCanvasElement
+                  try {
+                    canvas = await html2canvas(container, {
+                      backgroundColor: '#ffffff',
+                      scale: 1,
+                      useCORS: true,
+                      allowTaint: false,
+                      logging: false
+                    })
+                  } catch (html2canvasError) {
+                    console.warn('html2canvas failed, using manual rendering:', html2canvasError)
+                    
+                    // Fallback to manual canvas rendering
+                    const templateImg = document.querySelector('[data-preview-image]') as HTMLImageElement
+                    if (!templateImg) {
+                      throw new Error('Template image not found')
+                    }
+
+                    // Wait for image to load
+                    await new Promise((resolve) => {
+                      if (templateImg.complete) {
+                        resolve(true)
+                      } else {
+                        templateImg.onload = () => resolve(true)
+                      }
+                    })
+
+                    // Create canvas with original image dimensions
+                    canvas = document.createElement('canvas')
+                    const ctx = canvas.getContext('2d')
+                    if (!ctx) throw new Error('Canvas context not available')
+
+                    canvas.width = templateImg.naturalWidth
+                    canvas.height = templateImg.naturalHeight
+
+                    // Draw the template image
+                    ctx.drawImage(templateImg, 0, 0, canvas.width, canvas.height)
+
+                    // Helper function to draw text
+                    const drawText = (text: string, x: number, y: number, size: number, color: string, align: string, font: string, bold = false) => {
+                      if (!text) return
+                      
+                      ctx.fillStyle = color
+                      ctx.font = `${bold ? 'bold ' : ''}${size}px ${font}`
+                      ctx.textAlign = align as CanvasTextAlign
+                      ctx.textBaseline = 'top'
+                      
+                      // Use coordinates directly without scaling
+                      ctx.fillText(text, x, y)
+                    }
+
+                    // Draw title
+                    if (title) {
+                      drawText(
+                        title,
+                        titleX,
+                        titleY,
+                        titleSize,
+                        titleColor,
+                        titleAlign,
+                        titleFont,
+                        true
+                      )
+                    }
+
+                    // Draw description
+                    if (description) {
+                      drawText(
+                        description,
+                        descX,
+                        descY,
+                        descSize,
+                        descColor,
+                        descAlign,
+                        descFont
+                      )
+                    }
+
+                    // Draw date
+                    if (issuedAt) {
+                      drawText(
+                        issuedAt,
+                        dateX,
+                        dateY,
+                        dateSize,
+                        dateColor,
+                        dateAlign,
+                        dateFont
+                      )
+                    }
+                  }
+
+                  // Convert canvas to PDF
+                  const imgData = canvas.toDataURL('image/png', 1.0)
+                  
+                  // Create PDF with canvas dimensions
+                  const pdf = new jsPDF({
+                    orientation: canvas.width >= canvas.height ? 'landscape' : 'portrait',
+                    unit: 'px',
+                    format: [canvas.width, canvas.height]
                   })
 
-                  // Hitung content rect pada preview (sama seperti PreviewPanel)
-                  const rect = container.getBoundingClientRect()
-                  const imageRatio = img.width / img.height
-                  const containerRatio = rect.width / rect.height
-                  const contentRect = (() => {
-                    if (containerRatio > imageRatio) {
-                      const height = rect.height
-                      const width = Math.round(height * imageRatio)
-                      const left = Math.round((rect.width - width) / 2)
-                      return { left, top: 0, width, height }
-                    } else {
-                      const width = rect.width
-                      const height = Math.round(width / imageRatio)
-                      const top = Math.round((rect.height - height) / 2)
-                      return { left: 0, top, width, height }
-                    }
-                  })()
-
-                  // Pemetaan koordinat preview -> resolusi gambar asli
-                  const scaleX = img.width / Math.max(1, contentRect.width)
-                  const scaleY = img.height / Math.max(1, contentRect.height)
-                  const mapX = (x:number) => Math.round((x - contentRect.left) * scaleX)
-                  const mapY = (y:number) => Math.round((y - contentRect.top) * scaleY)
-                  const sizeScale = scaleX
-
-                  // Buat PDF dengan ukuran sesuai gambar asli (px)
-                  const pdf = new jsPDF({ orientation: img.width >= img.height ? 'landscape' : 'portrait', unit: 'px', format: [img.width, img.height] })
-                  // Gambar template sebagai background
-                  pdf.addImage(img, 'PNG', 0, 0, img.width, img.height)
-
-                  // Tulis teks pada posisi terpetakan
-                  const drawPdfText = (text: string, x: number, y: number, size: number, color: string, align: string, font: string, bold=false) => {
-                    pdf.setTextColor(normalizeHex(color))
-                    pdf.setFont('helvetica', bold ? 'bold' : 'normal')
-                    pdf.setFontSize(Math.round(size * sizeScale))
-                    const aligned: any = { left: 'left', center: 'center', right: 'right' }
-                    pdf.text(text, mapX(x), mapY(y), { align: aligned[align] || 'left', baseline: 'top' })
-                  }
-                  drawPdfText(title || '', titleX, titleY, titleSize, titleColor, titleAlign, titleFont, true)
-                  drawPdfText(description || '', descX, descY, descSize, descColor, descAlign, descFont, false)
-                  if (issuedAt) drawPdfText(issuedAt, dateX, dateY, dateSize, dateColor, dateAlign, dateFont, false)
+                  // Add the captured image to PDF
+                  pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height)
 
                   // Unduh lokal: buka di tab baru terlebih dahulu (lebih aman di beberapa browser)
                   const filename = `certificate_${certificateId}.pdf`
@@ -682,7 +737,7 @@ function PreviewPanel({ category, previewSrc, title, description, titlePos, desc
           previewSrc.endsWith(".pdf") ? (
             <object data={previewSrc} type="application/pdf" className="w-full h-full" />
           ) : (
-            <img src={previewSrc} alt="Preview" className="absolute inset-0 w-full h-full object-contain" />
+            <img src={previewSrc} alt="Preview" className="absolute inset-0 w-full h-full object-contain" data-preview-image />
           )
         ) : null}
         <div

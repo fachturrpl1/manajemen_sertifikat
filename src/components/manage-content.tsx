@@ -7,6 +7,7 @@ import { ModalOverlay, ModalContent } from "@/components/ui/separator"
 import { supabase } from "@/lib/supabase"
 import { useEffect } from "react"
 import jsPDF from "jspdf"
+import { useToast } from "@/components/ui/toast"
 
 type CertificateRow = {
   id?: string
@@ -39,6 +40,7 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
   const [updateMessage, setUpdateMessage] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
+  const { showToast, ToastContainer } = useToast()
 
   // Helper function untuk menghitung posisi yang sama dengan halaman edit
   const calculatePosition = (x: number, y: number, containerWidth: number, containerHeight: number) => {
@@ -87,24 +89,24 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
         { event: '*', schema: 'public', table: 'certificates' },
         async () => {
           // Refetch data when any change occurs
-      const { data, error } = await supabase
-        .from("certificates")
-        .select("id,name,number,category,recipient_org,issuer,issued_at,expires_at")
-      if (error) {
-        console.error("Supabase certificates fetch error:", error)
-        return
-      }
-      const mapped: CertificateRow[] = (data ?? []).map((r: any) => ({
-        id: r.id,
-        name: r.name,
-        number: r.number,
-        category: r.category,
-        recipientOrg: r.recipient_org,
-        issuer: r.issuer,
-        issuedAt: r.issued_at ?? undefined,
-        expiresAt: r.expires_at ?? undefined,
-      }))
-      setRows(mapped)
+          const { data, error } = await supabase
+            .from("certificates")
+            .select("id,name,number,category,recipient_org,issuer,issued_at,expires_at")
+          if (error) {
+            console.error("Supabase certificates fetch error:", error)
+            return
+          }
+          const mapped: CertificateRow[] = (data ?? []).map((r: any) => ({
+            id: r.id,
+            name: r.name,
+            number: r.number,
+            category: r.category,
+            recipientOrg: r.recipient_org,
+            issuer: r.issuer,
+            issuedAt: r.issued_at ?? undefined,
+            expiresAt: r.expires_at ?? undefined,
+          }))
+          setRows(mapped)
         }
       )
       .subscribe()
@@ -311,61 +313,14 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                       <td className="px-4 py-2">{r.expiresAt}</td>
                       <td className="px-4 py-2">
                         <div className="flex gap-2 text-xs">
-                              <button 
-                                aria-label="View" 
-                                title="View" 
-                                className="rounded-md border border-white/10 bg-white/5 px-2 py-1"
-                                onClick={async () => {
-                                  setViewingCertificate(r)
-                                  setShowViewModal(true)
-                                  
-                                  // Set certificate data dari row yang ada terlebih dahulu
-                                  setCertificateData({
-                                    id: r.id,
-                                    name: r.name,
-                                    title: r.name,
-                                    number: r.number,
-                                    category: r.category,
-                                    recipient_org: r.recipientOrg,
-                                    issuer: r.issuer,
-                                    issued_at: r.issuedAt,
-                                    expires_at: r.expiresAt
-                                  })
-                                  
-                                  // Ambil data sertifikat yang sudah diedit
-                                  if (r.id) {
-                                    console.log("Fetching certificate with ID:", r.id) // Debug log
-                                    try {
-                                      const { data, error } = await supabase
-                                        .from("certificates")
-                                        .select("*")
-                                        .eq("id", r.id)
-                                        .single()
-                                      
-                                      if (error) {
-                                        console.error("Error fetching certificate:", error)
-                                        console.error("Error details:", {
-                                          message: error.message,
-                                          details: error.details,
-                                          hint: error.hint,
-                                          code: error.code
-                                        })
-                                        // Tetap gunakan data dari row yang ada
-                                      } else {
-                                        console.log("Certificate data loaded for preview:", data) // Debug log
-                                        setCertificateData(data)
-                                      }
-                                    } catch (err) {
-                                      console.error("Unexpected error:", err)
-                                      // Tetap gunakan data dari row yang ada
-                                    }
-                                  } else {
-                                    console.error("No certificate ID found for row:", r)
-                                  }
-                                }}
-                              >
-                                <Eye className="h-4 w-4 text-white" />
-                              </button>
+                               <button 
+                                 aria-label="View" 
+                                 title="View" 
+                                 className="rounded-md border border-white/10 bg-white/5 px-2 py-1 opacity-50 cursor-not-allowed"
+                                 disabled
+                               >
+                                 <Eye className="h-4 w-4 text-white" />
+                               </button>
                               <button
                                 aria-label="Edit"
                                 title="Edit"
@@ -502,7 +457,7 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                 </div>
               )}
               <div className="mt-6 flex justify-end gap-3">
-                <button
+                <button 
                   type="button"
                   className="rounded-md border border-white/10 bg-white/5 px-3 py-2" 
                   onClick={(e) => {
@@ -791,7 +746,8 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                         <h3 className="mb-3 font-medium">Pratinjau Sertifikat</h3>
                         <div className="relative bg-white rounded-lg overflow-hidden" style={{ 
                           aspectRatio: '4/3', 
-                          maxHeight: '400px',
+                           maxHeight: '300px',
+                           maxWidth: '450px',
                           position: 'relative',
                           contain: 'layout style paint',
                           willChange: 'transform'
@@ -1063,15 +1019,12 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                                 // Copy the public URL to clipboard
                                 await navigator.clipboard.writeText(publicUrl)
                                 
-                                // Show success message
-                                alert('Gambar sertifikat berhasil disimpan dan link disalin ke clipboard!')
-                                
-                                // Optionally open in new tab
-                                window.open(publicUrl, '_blank')
+                                // Show success toast
+                                showToast('Gambar sertifikat berhasil disimpan dan link disalin ke clipboard!', 'success')
                                 
                               } catch (error) {
                                 console.error('Copy failed:', error)
-                                alert('Gagal menyalin gambar: ' + (error instanceof Error ? error.message : 'Unknown error'))
+                                showToast('Gagal menyalin gambar: ' + (error instanceof Error ? error.message : 'Unknown error'), 'error')
                               }
                             }}
                             className="p-1 rounded-md hover:bg-white/10 transition-colors"
@@ -1242,10 +1195,10 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                                 // Download PDF
                                 pdf.save(`certificate_${viewingCertificate.id}.pdf`)
 
-                              } catch (error) {
-                                console.error('Export failed:', error)
-                                alert('Failed to export PDF: ' + (error instanceof Error ? error.message : 'Unknown error'))
-                              }
+                               } catch (error) {
+                                 console.error('Export failed:', error)
+                                 showToast('Failed to export PDF: ' + (error instanceof Error ? error.message : 'Unknown error'), 'error')
+                               }
                             }}
                             className="inline-block rounded-md bg-green-600 hover:bg-green-500 px-4 py-2 text-sm"
                           >
@@ -1278,6 +1231,9 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
           </ModalContent>
         </>
       )}
+       
+       {/* Toast Container */}
+       <ToastContainer />
     </main>
   )
 }

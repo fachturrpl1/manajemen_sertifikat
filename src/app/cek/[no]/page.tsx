@@ -5,6 +5,9 @@ import { use, useState, useEffect } from "react"
 import { supabase } from "@/lib/supabase"
 import { useI18n } from "@/lib/i18n"
 import { Globe } from "lucide-react"
+import jsPDF from "jspdf"
+import html2canvas from "html2canvas"
+import { useToast } from "@/components/ui/toast"
 
 type Props = { params: Promise<{ no: string }> }
 
@@ -16,6 +19,7 @@ export default function CheckCertificatePage({ params }: Props) {
   const [certificateData, setCertificateData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+  const { showToast, ToastContainer } = useToast()
 
   useEffect(() => {
     async function fetchData() {
@@ -159,6 +163,7 @@ export default function CheckCertificatePage({ params }: Props) {
                 aspectRatio: '4/3',
                 margin: '0 auto'
               }}
+              data-preview-container="check"
             >
               {certificateData && certificateData.template_path ? (
                 <>
@@ -166,6 +171,7 @@ export default function CheckCertificatePage({ params }: Props) {
                     src={`/${certificateData.template_path}`}
                     alt="Certificate Template"
                     className="absolute inset-0 w-full h-full object-contain"
+                    data-preview-image
                   />
                   
                   {/* Title Overlay */}
@@ -308,19 +314,536 @@ export default function CheckCertificatePage({ params }: Props) {
 
         {/* Action Buttons */}
         <div className="mt-6 flex gap-3">
-          <button className="rounded-md bg-blue-600 hover:bg-blue-500 px-4 py-2 text-sm">
+          <button 
+            onClick={async () => {
+              try {
+                // Get the preview container
+                const previewContainer = document.querySelector('[data-preview-container="check"]') as HTMLElement
+                if (!previewContainer) {
+                  alert('Preview container not found')
+                  return
+                }
+
+                // Get the template image
+                const templateImg = document.querySelector('[data-preview-image]') as HTMLImageElement
+                if (!templateImg) {
+                  alert('Template image not found')
+                  return
+                }
+
+                // Wait for image to load
+                await new Promise((resolve) => {
+                  if (templateImg.complete) {
+                    resolve(true)
+                  } else {
+                    templateImg.onload = () => resolve(true)
+                  }
+                })
+
+                // Try html2canvas first, fallback to manual rendering
+                let canvas: HTMLCanvasElement
+                try {
+                  canvas = await html2canvas(previewContainer, {
+                    backgroundColor: '#ffffff',
+                    scale: 1,
+                    useCORS: true,
+                    allowTaint: false,
+                    logging: false,
+                    ignoreElements: (element) => {
+                      // Skip elements with unsupported CSS properties
+                      const style = window.getComputedStyle(element)
+                      return style.color?.includes('oklch') || 
+                             style.backgroundColor?.includes('oklch') ||
+                             style.borderColor?.includes('oklch')
+                    }
+                  })
+                } catch (html2canvasError) {
+                  console.warn('html2canvas failed, using manual rendering:', html2canvasError)
+                  
+                  // Fallback to manual canvas rendering
+                  const templateImg = document.querySelector('[data-preview-image]') as HTMLImageElement
+                  if (!templateImg) {
+                    throw new Error('Template image not found')
+                  }
+
+                  // Wait for image to load
+                  await new Promise((resolve) => {
+                    if (templateImg.complete) {
+                      resolve(true)
+                    } else {
+                      templateImg.onload = () => resolve(true)
+                    }
+                  })
+
+                  // Create canvas with original image dimensions
+                  canvas = document.createElement('canvas')
+                  const ctx = canvas.getContext('2d')
+                  if (!ctx) throw new Error('Canvas context not available')
+
+                  canvas.width = templateImg.naturalWidth
+                  canvas.height = templateImg.naturalHeight
+
+                  // Draw the template image
+                  ctx.drawImage(templateImg, 0, 0, canvas.width, canvas.height)
+
+                  // Helper function to draw text
+                  const drawText = (text: string, x: number, y: number, size: number, color: string, align: string, font: string, bold = false) => {
+                    if (!text) return
+                    
+                    ctx.fillStyle = color
+                    ctx.font = `${bold ? 'bold ' : ''}${size}px ${font}`
+                    ctx.textAlign = align as CanvasTextAlign
+                    ctx.textBaseline = 'top'
+                    
+                    // Use coordinates directly without scaling
+                    ctx.fillText(text, x, y)
+                  }
+
+                  // Draw title
+                  if (certificateData.title) {
+                    drawText(
+                      certificateData.title,
+                      certificateData.title_x || 370,
+                      certificateData.title_y || 180,
+                      certificateData.title_size || 32,
+                      certificateData.title_color || "#000000",
+                      certificateData.title_align || "center",
+                      certificateData.title_font || "Inter, ui-sans-serif, system-ui",
+                      true
+                    )
+                  }
+
+                  // Draw description
+                  if (certificateData.description) {
+                    drawText(
+                      certificateData.description,
+                    certificateData.desc_x || 50,
+                    certificateData.desc_y || 200,
+                      certificateData.desc_size || 15,
+                      certificateData.desc_color || "#000000",
+                      certificateData.desc_align || "left",
+                      certificateData.desc_font || "Inter, ui-sans-serif, system-ui"
+                    )
+                  }
+
+                  // Draw date
+                  if (certificateData.issued_at) {
+                    const dateText = new Date(certificateData.issued_at).toLocaleDateString('id-ID', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })
+                    drawText(
+                      dateText,
+                    certificateData.date_x || 50,
+                    certificateData.date_y || 80,
+                      certificateData.date_size || 14,
+                      certificateData.date_color || "#000000",
+                      certificateData.date_align || "left",
+                      certificateData.date_font || "Inter, ui-sans-serif, system-ui"
+                    )
+                  }
+                }
+
+                // Convert canvas to PDF
+                const imgData = canvas.toDataURL('image/png', 1.0)
+                
+                // Create PDF with canvas dimensions
+                const pdf = new jsPDF({
+                  orientation: canvas.width >= canvas.height ? 'landscape' : 'portrait',
+                  unit: 'px',
+                  format: [canvas.width, canvas.height]
+                })
+
+                // Add the captured image to PDF
+                pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height)
+
+                // Download PDF
+                pdf.save(`certificate_${certificateData.number || certificateData.id}.pdf`)
+
+              } catch (error) {
+                console.error('Export failed:', error)
+                showToast('Failed to export PDF: ' + (error instanceof Error ? error.message : 'Unknown error'), 'error')
+              }
+            }}
+            className="rounded-md bg-blue-600 hover:bg-blue-500 px-4 py-2 text-sm"
+          >
             {t('exportPdf')}
           </button>
-          <button className="rounded-md border border-white/10 bg-white/5 hover:bg-white/10 px-4 py-2 text-sm">
+          <button 
+            onClick={async () => {
+              try {
+                // Get the preview container
+                const previewContainer = document.querySelector('[data-preview-container="check"]') as HTMLElement
+                if (!previewContainer) {
+                  showToast('Preview container not found', 'error')
+                  return
+                }
+
+                // Get the template image
+                const templateImg = document.querySelector('[data-preview-image]') as HTMLImageElement
+                if (!templateImg) {
+                  showToast('Template image not found', 'error')
+                  return
+                }
+
+                // Wait for image to load
+                await new Promise((resolve) => {
+                  if (templateImg.complete) {
+                    resolve(true)
+                  } else {
+                    templateImg.onload = () => resolve(true)
+                  }
+                })
+
+                // Try html2canvas first, fallback to manual rendering
+                let canvas: HTMLCanvasElement
+                try {
+                  canvas = await html2canvas(previewContainer, {
+                    backgroundColor: '#ffffff',
+                    scale: 1,
+                    useCORS: true,
+                    allowTaint: false,
+                    logging: false,
+                    ignoreElements: (element) => {
+                      // Skip elements with unsupported CSS properties
+                      const style = window.getComputedStyle(element)
+                      return style.color?.includes('oklch') || 
+                             style.backgroundColor?.includes('oklch') ||
+                             style.borderColor?.includes('oklch')
+                    }
+                  })
+                } catch (html2canvasError) {
+                  console.warn('html2canvas failed, using manual rendering:', html2canvasError)
+                  
+                  // Fallback to manual canvas rendering
+                  const templateImg = document.querySelector('[data-preview-image]') as HTMLImageElement
+                  if (!templateImg) {
+                    throw new Error('Template image not found')
+                  }
+
+                  // Wait for image to load
+                  await new Promise((resolve) => {
+                    if (templateImg.complete) {
+                      resolve(true)
+                    } else {
+                      templateImg.onload = () => resolve(true)
+                    }
+                  })
+
+                  // Create canvas with original image dimensions
+                  canvas = document.createElement('canvas')
+                  const ctx = canvas.getContext('2d')
+                  if (!ctx) throw new Error('Canvas context not available')
+
+                  canvas.width = templateImg.naturalWidth
+                  canvas.height = templateImg.naturalHeight
+
+                  // Draw the template image
+                  ctx.drawImage(templateImg, 0, 0, canvas.width, canvas.height)
+
+                  // Helper function to draw text
+                  const drawText = (text: string, x: number, y: number, size: number, color: string, align: string, font: string, bold = false) => {
+                    if (!text) return
+                    
+                    ctx.fillStyle = color
+                    ctx.font = `${bold ? 'bold ' : ''}${size}px ${font}`
+                    ctx.textAlign = align as CanvasTextAlign
+                    ctx.textBaseline = 'top'
+                    
+                    // Use coordinates directly without scaling
+                    ctx.fillText(text, x, y)
+                  }
+
+                  // Draw title
+                  if (certificateData.title) {
+                    drawText(
+                      certificateData.title,
+                      certificateData.title_x || 370,
+                      certificateData.title_y || 180,
+                      certificateData.title_size || 32,
+                      certificateData.title_color || "#000000",
+                      certificateData.title_align || "center",
+                      certificateData.title_font || "Inter, ui-sans-serif, system-ui",
+                      true
+                    )
+                  }
+
+                  // Draw description
+                  if (certificateData.description) {
+                    drawText(
+                      certificateData.description,
+                    certificateData.desc_x || 50,
+                    certificateData.desc_y || 200,
+                      certificateData.desc_size || 15,
+                      certificateData.desc_color || "#000000",
+                      certificateData.desc_align || "left",
+                      certificateData.desc_font || "Inter, ui-sans-serif, system-ui"
+                    )
+                  }
+
+                  // Draw date
+                  if (certificateData.issued_at) {
+                    const dateText = new Date(certificateData.issued_at).toLocaleDateString('id-ID', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })
+                    drawText(
+                      dateText,
+                    certificateData.date_x || 50,
+                    certificateData.date_y || 80,
+                      certificateData.date_size || 14,
+                      certificateData.date_color || "#000000",
+                      certificateData.date_align || "left",
+                      certificateData.date_font || "Inter, ui-sans-serif, system-ui"
+                    )
+                  }
+                }
+
+                // Convert canvas to blob
+                const blob = await new Promise<Blob>((resolve) => {
+                  canvas.toBlob((blob) => {
+                    if (blob) resolve(blob)
+                  }, 'image/jpeg', 0.8)
+                })
+                
+                // Upload to Supabase Storage
+                const fileName = `certificate_${certificateData.id}_${Date.now()}.jpg`
+                const { data: uploadData, error: uploadError } = await supabase.storage
+                  .from('sertifikat')
+                  .upload(fileName, blob, {
+                    contentType: 'image/jpeg',
+                    upsert: false
+                  })
+                
+                if (uploadError) {
+                  throw new Error('Failed to upload to storage: ' + uploadError.message)
+                }
+                
+                // Get public URL
+                const { data: publicUrlData } = supabase.storage
+                  .from('sertifikat')
+                  .getPublicUrl(fileName)
+                
+                const publicUrl = publicUrlData.publicUrl
+                
+                // Create email content
+                const subject = `Sertifikat ${certificateData.title || certificateData.name || 'Digital'}`
+                const body = `Halo,
+
+Berikut adalah sertifikat digital Anda:
+
+📜 **Detail Sertifikat:**
+• Judul: ${certificateData.title || certificateData.name || '-'}
+• Nomor: ${certificateData.number || '-'}
+• Kategori: ${certificateData.category || '-'}
+• Tanggal: ${certificateData.issued_at ? new Date(certificateData.issued_at).toLocaleDateString('id-ID', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                }) : '-'}
+
+🔗 **Link Sertifikat:** ${publicUrl}
+
+Sertifikat ini dapat dibuka dan dibagikan melalui link di atas.
+
+Terima kasih.`
+
+                // Open email client
+                const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+                window.open(mailtoUrl, '_blank')
+                
+                // Show success toast
+                showToast('Email client dibuka dengan link sertifikat!', 'success')
+                
+              } catch (error) {
+                console.error('Send email failed:', error)
+                showToast('Gagal mengirim email: ' + (error instanceof Error ? error.message : 'Unknown error'), 'error')
+              }
+            }}
+            className="rounded-md border border-white/10 bg-white/5 hover:bg-white/10 px-4 py-2 text-sm"
+          >
             Send Email
           </button>
-          <button className="rounded-md border border-white/10 bg-white/5 hover:bg-white/10 px-4 py-2 text-sm">
+          <button 
+            onClick={async () => {
+              try {
+                // Get the preview container
+                const previewContainer = document.querySelector('[data-preview-container="check"]') as HTMLElement
+                if (!previewContainer) {
+                  alert('Preview container not found')
+                  return
+                }
+
+                // Get the template image
+                const templateImg = document.querySelector('[data-preview-image]') as HTMLImageElement
+                if (!templateImg) {
+                  alert('Template image not found')
+                  return
+                }
+
+                // Wait for image to load
+                await new Promise((resolve) => {
+                  if (templateImg.complete) {
+                    resolve(true)
+                  } else {
+                    templateImg.onload = () => resolve(true)
+                  }
+                })
+
+                // Try html2canvas first, fallback to manual rendering
+                let canvas: HTMLCanvasElement
+                try {
+                  canvas = await html2canvas(previewContainer, {
+                    backgroundColor: '#ffffff',
+                    scale: 1,
+                    useCORS: true,
+                    allowTaint: false,
+                    logging: false,
+                    ignoreElements: (element) => {
+                      // Skip elements with unsupported CSS properties
+                      const style = window.getComputedStyle(element)
+                      return style.color?.includes('oklch') || 
+                             style.backgroundColor?.includes('oklch') ||
+                             style.borderColor?.includes('oklch')
+                    }
+                  })
+                } catch (html2canvasError) {
+                  console.warn('html2canvas failed, using manual rendering:', html2canvasError)
+                  
+                  // Fallback to manual canvas rendering
+                  const templateImg = document.querySelector('[data-preview-image]') as HTMLImageElement
+                  if (!templateImg) {
+                    throw new Error('Template image not found')
+                  }
+
+                  // Wait for image to load
+                  await new Promise((resolve) => {
+                    if (templateImg.complete) {
+                      resolve(true)
+                    } else {
+                      templateImg.onload = () => resolve(true)
+                    }
+                  })
+
+                  // Create canvas with original image dimensions
+                  canvas = document.createElement('canvas')
+                  const ctx = canvas.getContext('2d')
+                  if (!ctx) throw new Error('Canvas context not available')
+
+                  canvas.width = templateImg.naturalWidth
+                  canvas.height = templateImg.naturalHeight
+
+                  // Draw the template image
+                  ctx.drawImage(templateImg, 0, 0, canvas.width, canvas.height)
+
+                  // Helper function to draw text
+                  const drawText = (text: string, x: number, y: number, size: number, color: string, align: string, font: string, bold = false) => {
+                    if (!text) return
+                    
+                    ctx.fillStyle = color
+                    ctx.font = `${bold ? 'bold ' : ''}${size}px ${font}`
+                    ctx.textAlign = align as CanvasTextAlign
+                    ctx.textBaseline = 'top'
+                    
+                    // Use coordinates directly without scaling
+                    ctx.fillText(text, x, y)
+                  }
+
+                  // Draw title
+                  if (certificateData.title) {
+                    drawText(
+                      certificateData.title,
+                      certificateData.title_x || 370,
+                      certificateData.title_y || 180,
+                      certificateData.title_size || 32,
+                      certificateData.title_color || "#000000",
+                      certificateData.title_align || "center",
+                      certificateData.title_font || "Inter, ui-sans-serif, system-ui",
+                      true
+                    )
+                  }
+
+                  // Draw description
+                  if (certificateData.description) {
+                    drawText(
+                      certificateData.description,
+                    certificateData.desc_x || 50,
+                    certificateData.desc_y || 200,
+                      certificateData.desc_size || 15,
+                      certificateData.desc_color || "#000000",
+                      certificateData.desc_align || "left",
+                      certificateData.desc_font || "Inter, ui-sans-serif, system-ui"
+                    )
+                  }
+
+                  // Draw date
+                  if (certificateData.issued_at) {
+                    const dateText = new Date(certificateData.issued_at).toLocaleDateString('id-ID', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })
+                    drawText(
+                      dateText,
+                    certificateData.date_x || 50,
+                    certificateData.date_y || 80,
+                      certificateData.date_size || 14,
+                      certificateData.date_color || "#000000",
+                      certificateData.date_align || "left",
+                      certificateData.date_font || "Inter, ui-sans-serif, system-ui"
+                    )
+                  }
+                }
+
+                // Convert canvas to blob
+                const blob = await new Promise<Blob>((resolve) => {
+                  canvas.toBlob((blob) => {
+                    if (blob) resolve(blob)
+                  }, 'image/jpeg', 0.8)
+                })
+                
+                // Upload to Supabase Storage
+                const fileName = `certificate_${certificateData.id}_${Date.now()}.jpg`
+                const { data: uploadData, error: uploadError } = await supabase.storage
+                  .from('sertifikat')
+                  .upload(fileName, blob, {
+                    contentType: 'image/jpeg',
+                    upsert: false
+                  })
+                
+                if (uploadError) {
+                  throw new Error('Failed to upload to storage: ' + uploadError.message)
+                }
+                
+                // Get public URL
+                const { data: publicUrlData } = supabase.storage
+                  .from('sertifikat')
+                  .getPublicUrl(fileName)
+                
+                const publicUrl = publicUrlData.publicUrl
+                
+                // Copy the public URL to clipboard
+                await navigator.clipboard.writeText(publicUrl)
+                
+                // Show success toast
+                showToast('Gambar sertifikat berhasil disimpan dan link disalin ke clipboard!', 'success')
+                
+              } catch (error) {
+                console.error('Copy failed:', error)
+                showToast('Gagal menyalin gambar: ' + (error instanceof Error ? error.message : 'Unknown error'), 'error')
+              }
+            }}
+            className="rounded-md border border-white/10 bg-white/5 hover:bg-white/10 px-4 py-2 text-sm"
+          >
             Copy Link
           </button>
         </div>
       </div>
+      
+      {/* Toast Container */}
+      <ToastContainer />
     </div>
   )
 }
-
-
