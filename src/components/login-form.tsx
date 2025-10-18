@@ -14,6 +14,7 @@ import { useState } from "react"
 import { Eye, EyeOff } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { useAuth } from "@/lib/useAuth"
+import { useI18n } from "@/lib/i18n"
 
 export function LoginForm({
   className,
@@ -21,6 +22,7 @@ export function LoginForm({
 }: React.ComponentProps<"form">) {
   const router = useRouter()
   const { login } = useAuth()
+  const { t } = useI18n()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const [showPassword, setShowPassword] = useState(false)
@@ -48,7 +50,7 @@ export function LoginForm({
 
       if (userError || !user) {
         console.error("Login error:", userError)
-        setError("Email atau password salah")
+        setError(t('emailOrPasswordWrong'))
         return
       }
 
@@ -71,7 +73,7 @@ export function LoginForm({
       }
     } catch (error) {
       console.error('Login error:', error)
-      setError("Terjadi kesalahan saat login")
+      setError(t('loginError'))
     } finally {
       setIsLoading(false)
     }
@@ -80,9 +82,9 @@ export function LoginForm({
     <form className={cn("flex flex-col gap-6", className)} onSubmit={handleSubmit} {...props}>
       <FieldGroup>
         <div className="flex flex-col items-center gap-1 text-center">
-          <h1 className="text-2xl font-bold">Login to your account</h1>
+          <h1 className="text-2xl font-bold">{t('loginToAccount')}</h1>
           <p className="text-muted-foreground text-sm text-balance">
-            Enter your email below to login to your account
+            {t('enterEmailToLogin')}
           </p>
         </div>
         {error && (
@@ -92,7 +94,7 @@ export function LoginForm({
         )}
         <Field>
           <FieldLabel htmlFor="email">Email</FieldLabel>
-          <Input id="email" type="email" placeholder="example@gmail .com" required />
+          <Input id="email" type="email" placeholder={t('emailPlaceholder')} required />
         </Field>
         <Field>
           <div className="flex items-center">
@@ -102,7 +104,7 @@ export function LoginForm({
             <Input 
               id="password" 
               type={showPassword ? "text" : "password"} 
-              placeholder="password" 
+              placeholder={t('passwordPlaceholder')} 
               required 
             />
             <button
@@ -120,12 +122,12 @@ export function LoginForm({
         </Field>
         <Field>
           <Button type="submit" disabled={isLoading}>
-            {isLoading ? "Logging in..." : "Login"}
+            {isLoading ? t('loggingIn') : t('login')}
           </Button>
         </Field>
         <Link href="/all">
           <Field className="gap-1 py-0 text-blue-500">
-            <Button type="submit">Continue as guest</Button>
+            <Button type="submit">{t('continueAsGuest')}</Button>
           </Field>
         </Link>
       </FieldGroup>

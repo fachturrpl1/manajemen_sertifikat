@@ -30,6 +30,9 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
   const [draft, setDraft] = useState<CertificateRow | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [showAddModal, setShowAddModal] = useState(false)
+  const [showViewModal, setShowViewModal] = useState(false)
+  const [viewingCertificate, setViewingCertificate] = useState<CertificateRow | null>(null)
+  const [certificateData, setCertificateData] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isUpdating, setIsUpdating] = useState(false)
   const [updateMessage, setUpdateMessage] = useState("")
@@ -295,7 +298,29 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                       <td className="px-4 py-2">{r.expiresAt}</td>
                       <td className="px-4 py-2">
                         <div className="flex gap-2 text-xs">
-                              <button aria-label="View" title="View" className="rounded-md border border-white/10 bg-white/5 px-2 py-1">
+                              <button 
+                                aria-label="View" 
+                                title="View" 
+                                className="rounded-md border border-white/10 bg-white/5 px-2 py-1"
+                                onClick={async () => {
+                                  setViewingCertificate(r)
+                                  setShowViewModal(true)
+                                  // Ambil data sertifikat yang sudah diedit
+                                  if (r.id) {
+                                    const { data, error } = await supabase
+                                      .from("certificates")
+                                      .select("*")
+                                      .eq("id", r.id)
+                                      .single()
+                                    if (error) {
+                                      console.error("Error fetching certificate:", error)
+                                      setCertificateData(null)
+                                    } else {
+                                      setCertificateData(data)
+                                    }
+                                  }
+                                }}
+                              >
                                 <Eye className="h-4 w-4 text-white" />
                               </button>
                               <button
@@ -688,6 +713,189 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                   {isUpdating ? "Memproses..." : "Tambah"}
                 </button>
               </div>
+            </div>
+          </ModalContent>
+        </>
+      )}
+
+      {/* View Certificate Modal */}
+      {showViewModal && viewingCertificate && (
+        <>
+          <ModalOverlay onClick={() => setShowViewModal(false)} />
+          <ModalContent>
+            <div className="w-full max-w-4xl rounded-xl border border-white/10 bg-[#0d1223] p-6 text-sm">
+              <div className="mb-4 flex items-center justify-between">
+                <div className="font-semibold">Pratinjau Sertifikat</div>
+                <button 
+                  onClick={() => setShowViewModal(false)} 
+                  className="rounded-md border border-white/10 bg-white/5 p-1" 
+                  aria-label="Close"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              
+              {certificateData ? (
+                <div className="space-y-4">
+                  {/* Cek apakah sertifikat sudah diedit */}
+                  {certificateData.title || certificateData.description || certificateData.template_path ? (
+                    <div className="space-y-4">
+                      {/* Pratinjau Visual Sertifikat */}
+                      <div className="rounded-lg border border-white/10 bg-white/5 p-4">
+                        <h3 className="mb-3 font-medium">Pratinjau Sertifikat</h3>
+                        <div className="relative bg-white rounded-lg overflow-hidden" style={{ 
+                          aspectRatio: '4/3', 
+                          maxHeight: '400px',
+                          position: 'relative',
+                          contain: 'layout style paint',
+                          willChange: 'transform'
+                        }}>
+                          {/* Template Background */}
+                          {certificateData.template_path ? (
+                            <img 
+                              src={`/${certificateData.template_path}`} 
+                              alt="Certificate Template" 
+                              className="absolute inset-0 w-full h-full object-contain"
+                            />
+                          ) : (
+                            <div className="absolute inset-0 bg-gradient-to-b from-white to-gray-100 flex items-center justify-center">
+                              <div className="text-gray-400">Template tidak tersedia</div>
+                            </div>
+                          )}
+                          
+                          {/* Overlay Text Container - Fixed positioning */}
+                          <div className="absolute inset-0" style={{ position: 'relative' }}>
+                            {/* Title */}
+                            {certificateData.title && (
+                              <div 
+                                className="absolute font-bold text-black"
+                                style={{
+                                  left: `${certificateData.title_x || 370}px`,
+                                  top: `${certificateData.title_y || 180}px`,
+                                  fontSize: `${certificateData.title_size || 32}px`,
+                                  color: certificateData.title_color || '#000000',
+                                  textAlign: certificateData.title_align || 'center',
+                                  fontFamily: certificateData.title_font || 'serif',
+                                  transform: certificateData.title_align === 'center' ? 'translateX(-50%)' : certificateData.title_align === 'right' ? 'translateX(-100%)' : undefined,
+                                  position: 'absolute',
+                                  zIndex: 10,
+                                  pointerEvents: 'none',
+                                  willChange: 'transform',
+                                  backfaceVisibility: 'hidden',
+                                  WebkitBackfaceVisibility: 'hidden'
+                                }}
+                              >
+                                {certificateData.title}
+                              </div>
+                            )}
+                            
+                            {/* Description */}
+                            {certificateData.description && (
+                              <div 
+                                className="absolute text-black"
+                                style={{
+                                  left: `${certificateData.desc_x || 370}px`,
+                                  top: `${certificateData.desc_y || 220}px`,
+                                  fontSize: `${certificateData.desc_size || 18}px`,
+                                  color: certificateData.desc_color || '#000000',
+                                  textAlign: certificateData.desc_align || 'center',
+                                  fontFamily: certificateData.desc_font || 'serif',
+                                  whiteSpace: 'pre-line',
+                                  transform: certificateData.desc_align === 'center' ? 'translateX(-50%)' : certificateData.desc_align === 'right' ? 'translateX(-100%)' : undefined,
+                                  position: 'absolute',
+                                  zIndex: 10,
+                                  pointerEvents: 'none',
+                                  willChange: 'transform',
+                                  backfaceVisibility: 'hidden',
+                                  WebkitBackfaceVisibility: 'hidden'
+                                }}
+                              >
+                                {certificateData.description}
+                              </div>
+                            )}
+                            
+                            {/* Date */}
+                            {certificateData.issued_at && (
+                              <div 
+                                className="absolute text-black"
+                                style={{
+                                  left: `${certificateData.date_x || 370}px`,
+                                  top: `${certificateData.date_y || 260}px`,
+                                  fontSize: `${certificateData.date_size || 14}px`,
+                                  color: certificateData.date_color || '#000000',
+                                  textAlign: certificateData.title_align || 'center',
+                                  fontFamily: certificateData.date_font || 'serif',
+                                  transform: certificateData.title_align === 'center' ? 'translateX(-50%)' : certificateData.title_align === 'right' ? 'translateX(-100%)' : undefined,
+                                  position: 'absolute',
+                                  zIndex: 10,
+                                  pointerEvents: 'none',
+                                  willChange: 'transform',
+                                  backfaceVisibility: 'hidden',
+                                  WebkitBackfaceVisibility: 'hidden'
+                                }}
+                              >
+                                {certificateData.issued_at}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Detail Info */}
+                      <div className="rounded-lg border border-white/10 bg-white/5 p-4">
+                        <h3 className="mb-3 font-medium">Detail Sertifikat</h3>
+                        <div className="space-y-2">
+                          {certificateData.title && (
+                            <div>
+                              <span className="text-white/70">Title:</span> {certificateData.title}
+                            </div>
+                          )}
+                          {certificateData.description && (
+                            <div>
+                              <span className="text-white/70">Description:</span> {certificateData.description}
+                            </div>
+                          )}
+                          {certificateData.template_path && (
+                            <div>
+                              <span className="text-white/70">Template:</span> {certificateData.template_path}
+                            </div>
+                          )}
+                          {certificateData.issued_at && (
+                            <div>
+                              <span className="text-white/70">Tanggal:</span> {certificateData.issued_at}
+                            </div>
+                          )}
+                        </div>
+                        <div className="mt-4">
+                          <a 
+                            href={`/admin/edit?id=${viewingCertificate.id}`}
+                            className="inline-block rounded-md bg-blue-600 hover:bg-blue-500 px-4 py-2 text-sm"
+                          >
+                            Edit Sertifikat
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-6 text-center">
+                      <div className="text-yellow-300 font-medium mb-2">Sertifikat Belum Dibuat</div>
+                      <p className="text-white/70 mb-4">
+                        Sertifikat ini belum memiliki template atau konten yang diedit.
+                      </p>
+                      <a 
+                        href={`/admin/edit?id=${viewingCertificate.id}`}
+                        className="inline-block rounded-md bg-blue-600 hover:bg-blue-500 px-4 py-2 text-sm"
+                      >
+                        Buat Sertifikat
+                      </a>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="rounded-lg border border-white/10 bg-white/5 p-6 text-center">
+                  <div className="text-white/70">Memuat data sertifikat...</div>
+                </div>
+              )}
             </div>
           </ModalContent>
         </>

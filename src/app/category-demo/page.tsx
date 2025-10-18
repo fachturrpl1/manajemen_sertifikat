@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { CategorySelector } from "@/components/category-selector"
 
-type Category = "mou" | "industri" | "magang" | "pelatihan"
+type Category = "mou" | "kunjungan industri" | "magang" | "pelatihan"
 
 export default function CategoryDemoPage() {
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null)

@@ -1,6 +1,11 @@
+"use client"
+
 import Link from "next/link"
+import { useI18n } from "@/lib/i18n"
+import { Globe } from "lucide-react"
 
 export default function AuPage() {
+  const { t, locale, setLocale } = useI18n()
   return (
     <div className="relative min-h-svh bg-gradient-to-b from-[#0b1220] to-[#0f1c35] text-white">
       <div className="absolute left-6 top-6 z-20">
@@ -14,8 +19,17 @@ export default function AuPage() {
           </span>
         </a>
       </div>
-      <div className="absolute right-6 top-6 z-20">
-        <Link href="/login" className="text-sm text-blue-400 hover:text-white">Login</Link>
+      <div className="absolute right-6 top-6 z-20 flex items-center gap-4">
+        <Link href="/login" className="text-sm text-blue-400 hover:text-white">{t('login')}</Link>
+        
+        <button
+          onClick={() => setLocale(locale === 'en' ? 'id' : 'en')}
+          className="flex items-center gap-2 rounded-md border border-white/10 bg-white/5 px-3 py-1.5 text-sm hover:bg-white/10 transition-colors"
+          title={locale === 'en' ? 'Switch to Indonesian' : 'Switch to English'}
+        >
+          <Globe className="h-4 w-4" />
+          <span className="font-medium">{locale === 'en' ? 'EN' : 'ID'}</span>
+        </button>
       </div>
     
       {/* subtle pattern */}
@@ -27,12 +41,10 @@ export default function AuPage() {
       <section className="relative mx-auto grid max-w-6xl grid-cols-1 items-center gap-10 px-6 py-16 md:grid-cols-2 md:py-24">
         <div>
           <h1 className="text-4xl font-extrabold leading-tight tracking-tight md:text-5xl">
-            Pembuat & Manajemen Member Online
+            {t('creatorAndManagement')}
           </h1>
           <p className="mt-4 max-w-2xl text-white/80">
-            Rancang, terbitkan, dan kelola sertifikat untuk MoU, Magang, Pelatihan,
-            dan Kunjungan Industri. Pilih template, atur posisi nama/QR secara dinamis,
-            unduh PDF, dan kirim lewat email—semuanya dalam satu tempat.
+            {t('designDescription')}
           </p>
 
           <div className="mt-8 flex items-center gap-3">
@@ -40,25 +52,25 @@ export default function AuPage() {
               href="/all"
               className="inline-flex items-center justify-center rounded-md bg-blue-600 px-5 py-3 text-sm font-medium text-white hover:bg-blue-500"
             >
-              Coba Verifikasi Publik
+              {t('tryPublicVerification')}
             </a>
           </div>
 
-          <p className="mt-3 text-xs text-white/50">* Tidak diperlukan kartu kredit</p>
+          <p className="mt-3 text-xs text-white/50">* {t('noCreditCard')}</p>
         </div>
 
         <div className="relative">
           {/* mock preview area */}
           <div className="rounded-2xl border border-white/10 bg-[#0d172b] p-4 shadow-xl shadow-blue-500/10">
             <div className="aspect-[16/10] w-full rounded-lg border border-white/10 bg-white/5" />
-            <div className="mt-4 grid grid-cols-2 gap-3 text-xs text-white/70">
-              <div className="rounded-md border border-white/10 bg-white/5 p-2">Otomasi PDF & Email Sertifikat</div>
-              <div className="rounded-md border border-white/10 bg-white/5 p-2">Verifikasi Publik via URL Unik</div>
-              <div className="rounded-md border border-white/10 bg-white/5 p-2">Template Dinamis (Portrait/Landscape)</div>
-              <div className="rounded-md border border-white/10 bg-white/5 p-2">Import Massal dari Excel</div>
-              <div className="rounded-md border border-white/10 bg-white/5 p-2">Akses Peran: Admin & Team</div>
-              <div className="rounded-md border border-white/10 bg-white/5 p-2">Multibahasa: English & Indonesia</div>
-            </div>
+        <div className="mt-4 grid grid-cols-2 gap-3 text-xs text-white/70">
+          <div className="rounded-md border border-white/10 bg-white/5 p-2">{t('feature1')}</div>
+          <div className="rounded-md border border-white/10 bg-white/5 p-2">{t('feature2')}</div>
+          <div className="rounded-md border border-white/10 bg-white/5 p-2">{t('feature3')}</div>
+          <div className="rounded-md border border-white/10 bg-white/5 p-2">{t('feature4')}</div>
+          <div className="rounded-md border border-white/10 bg-white/5 p-2">{t('feature5')}</div>
+          <div className="rounded-md border border-white/10 bg-white/5 p-2">{t('feature6')}</div>
+        </div>
           </div>
         </div>
       </section>

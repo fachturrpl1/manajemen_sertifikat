@@ -63,7 +63,7 @@ export default function AdminPage() {
   // Opsi kategori (samakan dengan kategori pada sistem)
   const categoryOptions = useMemo(
     () => [
-      { value: "kunjungan_industri", label: "Kunjungan Industri" },
+      { value: "kunjungan industri", label: "Kunjungan Industri" },
       { value: "magang", label: "Magang" },
       { value: "mou", label: "MoU" },
       { value: "pelatihan", label: "Pelatihan" },
@@ -263,33 +263,33 @@ export default function AdminPage() {
               </div>
             </div>
             {activeElement === 'title' && (
-              <div>
-                <label className="block text-sm text-white/70 mb-1">Title</label>
-                <input
-                  className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm"
-                  value={title}
-                  onChange={async (e) => {
-                    const v = e.target.value; setTitle(v)
-                    if (certificateId) await supabase.from("certificates").update({ title: v }).eq("id", certificateId)
-                  }}
-                  placeholder="Judul sertifikat"
-                />
-              </div>
+            <div>
+              <label className="block text-sm text-white/70 mb-1">Title</label>
+              <input
+                className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm"
+                value={title}
+                onChange={async (e) => {
+                  const v = e.target.value; setTitle(v)
+                  if (certificateId) await supabase.from("certificates").update({ title: v }).eq("id", certificateId)
+                }}
+                placeholder="Judul sertifikat"
+              />
+            </div>
             )}
             {activeElement === 'description' && (
-              <div>
-                <label className="block text-sm text-white/70 mb-1">Description</label>
-                <textarea
-                  className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm"
-                  rows={3}
-                  value={description}
-                  onChange={async (e) => {
-                    const v = e.target.value; setDescription(v)
-                    if (certificateId) await supabase.from("certificates").update({ description: v }).eq("id", certificateId)
-                  }}
-                  placeholder="Deskripsi singkat"
-                />
-              </div>
+            <div>
+              <label className="block text-sm text-white/70 mb-1">Description</label>
+              <textarea
+                className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm"
+                rows={3}
+                value={description}
+                onChange={async (e) => {
+                  const v = e.target.value; setDescription(v)
+                  if (certificateId) await supabase.from("certificates").update({ description: v }).eq("id", certificateId)
+                }}
+                placeholder="Deskripsi singkat"
+              />
+            </div>
             )}
             {activeElement === 'date' && (
               <div>
@@ -303,8 +303,8 @@ export default function AdminPage() {
                 <label className="block text-sm text-white/70 mb-1">Posisi X</label>
                 <input type="number" className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm" value={activeElement==='title'?titleX:activeElement==='description'?descX:dateX}
                   onChange={(e) => { const n = Math.max(0, Number(e.target.value)||0); if(activeElement==='title'){ setTitleX(n); queueSave({ title_x: n }) } else if(activeElement==='description'){ setDescX(n); queueSave({ desc_x: n }) } else { setDateX(n) } }} />
-              </div>
-              <div>
+            </div>
+            <div>
                 <label className="block text-sm text-white/70 mb-1">Posisi Y</label>
                 <input type="number" className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm" value={activeElement==='title'?titleY:activeElement==='description'?descY:dateY}
                   onChange={(e) => { const n = Math.max(0, Number(e.target.value)||0); if(activeElement==='title'){ setTitleY(n); queueSave({ title_y: n }) } else if(activeElement==='description'){ setDescY(n); queueSave({ desc_y: n }) } else { setDateY(n) } }} />
@@ -335,17 +335,17 @@ export default function AdminPage() {
               </div>
             )}
             {activeElement === 'description' && (
-              <div className="grid grid-cols-2 gap-3">
-                <div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
                   <label className="block text-sm text-white/70 mb-1">Justify (Deskripsi)</label>
                   <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={descAlign}
                     onChange={(e)=>{ const v = e.target.value as "left"|"center"|"right"; setDescAlign(v); queueSave({ desc_align: v }) }}>
-                    <option value="left">Left</option>
-                    <option value="center">Center</option>
-                    <option value="right">Right</option>
-                  </select>
-                </div>
-                <div>
+                  <option value="left">Left</option>
+                  <option value="center">Center</option>
+                  <option value="right">Right</option>
+                </select>
+            </div>
+            <div>
                   <label className="block text-sm text-white/70 mb-1">Font (Deskripsi)</label>
                   <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={descFont}
                     onChange={(e)=>{ const v=e.target.value; setDescFont(v); queueSave({ desc_font: v }) }}>
@@ -363,21 +363,21 @@ export default function AdminPage() {
                   <label className="block text-sm text-white/70 mb-1">Font (Tanggal)</label>
                   <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={dateFont}
                     onChange={(e)=>{ const v=e.target.value; setDateFont(v); queueSave({ date_font: v }) }}>
-                    <option value="Inter, ui-sans-serif, system-ui">Inter</option>
-                    <option value="Arial, Helvetica, sans-serif">Arial</option>
-                    <option value="Times New Roman, Times, serif">Times New Roman</option>
-                    <option value="Georgia, serif">Georgia</option>
-                  </select>
-                </div>
+                  <option value="Inter, ui-sans-serif, system-ui">Inter</option>
+                  <option value="Arial, Helvetica, sans-serif">Arial</option>
+                  <option value="Times New Roman, Times, serif">Times New Roman</option>
+                  <option value="Georgia, serif">Georgia</option>
+                </select>
               </div>
+            </div>
             )}
             <div className="grid grid-cols-2 gap-3">
-              <div>
+            <div>
                 <label className="block text-sm text-white/70 mb-1">Font Size</label>
                 <input type="number" className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm" value={activeElement==='title'?titleSize:activeElement==='description'?descSize:dateSize}
                   onChange={(e)=>{ const n=Number(e.target.value)||12; if(activeElement==='title'){ setTitleSize(n); queueSave({ title_size: n }) } else if(activeElement==='description'){ setDescSize(n); queueSave({ desc_size: n }) } else { setDateSize(n) } }} />
-              </div>
-              <div>
+            </div>
+            <div>
                 <label className="block text-sm text-white/70 mb-1">Warna</label>
                 <input type="color" className="h-10 w-full rounded-md border border-white/10 bg-white/5 p-1" value={activeElement==='title'?titleColor:activeElement==='description'?descColor:dateColor}
                   onChange={(e)=>{ const v=e.target.value; if(activeElement==='title'){ setTitleColor(v); queueSave({ title_color: v }) } else if(activeElement==='description'){ setDescColor(v); queueSave({ desc_color: v }) } else { setDateColor(v) } }} />
@@ -472,7 +472,7 @@ export default function AdminPage() {
                   drawText(title || '', titleX, titleY, titleSize, titleColor, titleAlign, titleFont, true)
                   drawText(description || '', descX, descY, descSize, descColor, descAlign, descFont, false)
                   if (issuedAt) {
-                    drawText(issuedAt, dateX, dateY, dateSize, datePos.color, titleAlign, dateFont, false)
+                    drawText(issuedAt, dateX, dateY, dateSize, dateColor, titleAlign, dateFont, false)
                   }
                   // ke PDF
                   const imgData = canvas.toDataURL('image/png', 1.0)
@@ -592,6 +592,11 @@ function PreviewPanel({ category, previewSrc, title, description, titlePos, desc
       <div
         className={`mt-4 h-[420px] rounded-lg border border-white/10 bg-white/5 relative overflow-hidden ${dragging ? "cursor-grabbing" : "cursor-grab"}`}
         ref={containerRef}
+        style={{
+          position: 'relative',
+          contain: 'layout style paint',
+          willChange: 'transform'
+        }}
         data-preview-container="1"
         onMouseDown={(e) => {
           // Mulai drag hanya saat menekan pada overlay teks
@@ -631,7 +636,21 @@ function PreviewPanel({ category, previewSrc, title, description, titlePos, desc
         {/* Overlay text - title */}
         <div
           className="absolute"
-          style={{ left: `${clampX(titlePos.x)}px`, top: `${clampY(titlePos.y)}px`, width: "calc(100% - 40px)", transform: titleAlign === "center" ? "translateX(-50%)" : undefined, textAlign: titleAlign as "left"|"center"|"right", fontFamily: titleFont, fontSize: `${titlePos.size}px`, color: titlePos.color }}
+          style={{ 
+            left: `${clampX(titlePos.x)}px`, 
+            top: `${clampY(titlePos.y)}px`, 
+            width: "calc(100% - 40px)", 
+            transform: titleAlign === "center" ? "translateX(-50%)" : titleAlign === "right" ? "translateX(-100%)" : undefined, 
+            textAlign: titleAlign as "left"|"center"|"right", 
+            fontFamily: titleFont, 
+            fontSize: `${titlePos.size}px`, 
+            color: titlePos.color,
+            position: 'absolute',
+            zIndex: 10,
+            willChange: 'transform',
+            backfaceVisibility: 'hidden',
+            WebkitBackfaceVisibility: 'hidden'
+          }}
           data-overlay="text"
         >
           <div className="font-bold">{title}</div>
@@ -639,7 +658,22 @@ function PreviewPanel({ category, previewSrc, title, description, titlePos, desc
         {/* Overlay text - description */}
         <div
           className="absolute"
-          style={{ left: `${clampX(descPos.x)}px`, top: `${clampY(descPos.y)}px`, width: "calc(100% - 40px)", transform: descAlign === "center" ? "translateX(-50%)" : undefined, textAlign: descAlign as "left"|"center"|"right", fontFamily: descFont, fontSize: `${descPos.size}px`, color: descPos.color }}
+          style={{ 
+            left: `${clampX(descPos.x)}px`, 
+            top: `${clampY(descPos.y)}px`, 
+            width: "calc(100% - 40px)", 
+            transform: descAlign === "center" ? "translateX(-50%)" : descAlign === "right" ? "translateX(-100%)" : undefined, 
+            textAlign: descAlign as "left"|"center"|"right", 
+            fontFamily: descFont, 
+            fontSize: `${descPos.size}px`, 
+            color: descPos.color,
+            whiteSpace: 'pre-line',
+            position: 'absolute',
+            zIndex: 10,
+            willChange: 'transform',
+            backfaceVisibility: 'hidden',
+            WebkitBackfaceVisibility: 'hidden'
+          }}
         >
           <div className="opacity-90">{description}</div>
         </div>
@@ -647,7 +681,21 @@ function PreviewPanel({ category, previewSrc, title, description, titlePos, desc
         {issuedAt && (
           <div
             className="absolute"
-            style={{ left: `${clampX(datePos.x)}px`, top: `${clampY(datePos.y)}px`, width: "calc(100% - 40px)", transform: titleAlign === "center" ? "translateX(-50%)" : undefined, textAlign: titleAlign as "left"|"center"|"right", fontFamily: dateFont, fontSize: `${datePos.size}px`, color: datePos.color }}
+            style={{ 
+              left: `${clampX(datePos.x)}px`, 
+              top: `${clampY(datePos.y)}px`, 
+              width: "calc(100% - 40px)", 
+              transform: titleAlign === "center" ? "translateX(-50%)" : titleAlign === "right" ? "translateX(-100%)" : undefined, 
+              textAlign: titleAlign as "left"|"center"|"right", 
+              fontFamily: dateFont, 
+              fontSize: `${datePos.size}px`, 
+              color: datePos.color,
+              position: 'absolute',
+              zIndex: 10,
+              willChange: 'transform',
+              backfaceVisibility: 'hidden',
+              WebkitBackfaceVisibility: 'hidden'
+            }}
           >
             <div className="mt-1 opacity-80">{issuedAt}</div>
           </div>
@@ -662,7 +710,7 @@ function PreviewPanel({ category, previewSrc, title, description, titlePos, desc
 
 // Peta template per kategori (public/certificate/<kategori>/...)
 const TEMPLATE_MAP: Record<string, string[]> = {
-  kunjungan_industri: [
+  "kunjungan industri": [
     "certificate/kunjungan_industri/industri1.png",
     "certificate/kunjungan_industri/industri2.png",
   ],

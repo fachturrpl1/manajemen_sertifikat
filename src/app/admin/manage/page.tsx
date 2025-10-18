@@ -5,9 +5,12 @@ import { ProtectedRoute } from "@/components/protected-route"
 import { useState } from "react"
 import { ManageContent } from "@/components/manage-content"
 import { MemberManageContent } from "@/components/member-manage-content"
+import { useI18n } from "@/lib/i18n"
 
 export default function ManagePage() {
   const [tab, setTab] = useState<"cert" | "member">("cert")
+  const { t } = useI18n()
+  
   return (
     <ProtectedRoute allowedRoles={['admin']}>
       <div className="min-h-svh bg-gradient-to-b from-[#0b1220] to-[#0f1c35] text-white">
@@ -19,13 +22,13 @@ export default function ManagePage() {
             onClick={() => setTab("cert")}
             className={`${tab === "cert" ? "bg-blue-600 text-white" : "text-white/80 hover:text-white"} rounded-md px-3 py-1.5 text-sm`}
           >
-            Manajemen Member
+            {t('certificateManagement')}
           </button>
           <button
             onClick={() => setTab("member")}
             className={`${tab === "member" ? "bg-blue-600 text-white" : "text-white/80 hover:text-white"} rounded-md px-3 py-1.5 text-sm`}
           >
-            Manajemen Tim
+            {t('memberManagement')}
           </button>
           </div>
         </div>

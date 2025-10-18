@@ -3,11 +3,11 @@
 import { useState } from "react"
 import { ChevronDown, HelpCircle } from "lucide-react"
 
-type Category = "mou" | "industri" | "magang" | "pelatihan"
+type Category = "mou" | "kunjungan industri" | "magang" | "pelatihan"
 
 const categories = [
   { value: "mou", label: "MOU" },
-  { value: "industri", label: "Industri" },
+  { value: "kunjungan industri", label: "Kunjungan Industri" },
   { value: "magang", label: "Magang" },
   { value: "pelatihan", label: "Pelatihan" }
 ]
