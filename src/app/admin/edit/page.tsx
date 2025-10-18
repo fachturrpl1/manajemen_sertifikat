@@ -7,7 +7,6 @@ import { useSearchParams } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import { useI18n } from "@/lib/i18n"
 import { getTemplateConfig, TemplateConfig } from "@/lib/template-configs"
-import jsPDF from "jspdf"
 import { CertificatePreviewModal } from "@/components/certificate-preview-modal"
 
 export default function AdminPage() {
@@ -960,87 +959,6 @@ export default function AdminPage() {
                 disabled={!certificateId || savingAll || uiSaving}
               >
                 {savingAll ? t('saving') : t('save')}
-              </button>
-              <button
-                className="rounded-md border border-purple-500/40 bg-purple-500/10 px-3 py-2 text-sm hover:bg-purple-500/20 disabled:opacity-50"
-                onClick={async () => {
-                  if (!certificateId) return
-                  const container = document.querySelector('[data-preview-container="1"]') as HTMLElement | null
-                  if (!container) return
-                  const rect = container.getBoundingClientRect()
-                  const scale = 2
-                  const cw = Math.max(1, Math.round(rect.width)) * scale
-                  const ch = Math.max(1, Math.round(rect.height)) * scale
-                  const canvas = document.createElement('canvas')
-                  const ctx = canvas.getContext('2d')!
-                  canvas.width = cw
-                  canvas.height = ch
-                  // background putih
-                  ctx.fillStyle = '#ffffff'
-                  ctx.fillRect(0,0,cw,ch)
-                  // gambar template
-                  if (previewSrc) {
-                    const img = await new Promise<HTMLImageElement>((res, rej) => {
-                      const i = new Image()
-                      i.crossOrigin = 'anonymous'
-                      i.onload = () => res(i)
-                      i.onerror = rej
-                      i.src = `/${previewSrc}`
-                    })
-                    const ratio = Math.min(cw / img.width, ch / img.height)
-                    const w = img.width * ratio
-                    const h = img.height * ratio
-                    const ox = (cw - w) / 2
-                    const oy = (ch - h) / 2
-                    ctx.drawImage(img, ox, oy, w, h)
-                  }
-                  // helper
-                  const toAlign = (a: string): CanvasTextAlign => a as CanvasTextAlign
-                  const drawText = (text: string, x: number, y: number, size: number, color: string, align: string, font: string, bold=false) => {
-                    ctx.fillStyle = color
-                    ctx.textAlign = toAlign(align)
-                    ctx.textBaseline = 'top'
-                    ctx.font = `${bold?'700 ':''}${Math.round(size*scale)}px ${font}`
-                    ctx.fillText(text, Math.round(x*scale), Math.round(y*scale))
-                  }
-                  // tulis teks
-                  drawText(title || '', titleX, titleY, titleSize, titleColor, titleAlign, titleFont, true)
-                  drawText(description || '', descX, descY, descSize, descColor, descAlign, descFont, false)
-                  if (issuedAt) {
-                    drawText(issuedAt, dateX, dateY, dateSize, dateColor, dateAlign, dateFont, false)
-                  }
-                  // ke PDF
-                  const imgData = canvas.toDataURL('image/png', 1.0)
-                  const pdf = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' })
-                  const pw = pdf.internal.pageSize.getWidth(); const ph = pdf.internal.pageSize.getHeight()
-                  const r = Math.min(pw / cw, ph / ch); const rw=cw*r; const rh=ch*r; const x=(pw-rw)/2; const y=(ph-rh)/2
-                  pdf.addImage(imgData, 'PNG', x, y, rw, rh)
-                  const pdfBlob = pdf.output('blob')
-                  // Unduh lokal
-                  const dlUrl = URL.createObjectURL(pdfBlob)
-                  const a = document.createElement('a')
-                  a.href = dlUrl
-                  a.download = `certificate_${certificateId}.pdf`
-                  document.body.appendChild(a)
-                  a.click()
-                  a.remove()
-                  URL.revokeObjectURL(dlUrl)
-                  const ab = await pdfBlob.arrayBuffer()
-                  const base64 = btoa(String.fromCharCode(...new Uint8Array(ab)))
-                  const payload = {
-                    certificate_id: certificateId,
-                    filename: `certificate_${certificateId}.pdf`,
-                    mimetype: 'application/pdf',
-                    size: pdfBlob.size,
-                    data_base64: base64,
-                  }
-                  const { error } = await supabase.from('certificate_files').insert(payload)
-                  if (error) setMessage(t('failedToSavePdf') + error.message)
-                  else { setMessage(t('pdfDownloadedAndSaved')); setTimeout(()=>setMessage(''),1500) }
-                }}
-                disabled={!certificateId}
-              >
-                {t('exportPdf')}
               </button>
               </div>
             </div>
