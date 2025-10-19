@@ -7,10 +7,12 @@ import { useSearchParams } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import { useI18n } from "@/lib/i18n"
 import { getTemplateConfig, TemplateConfig } from "@/lib/template-configs"
+import { PreviewPanel } from "@/components/preview-panel"
 
 export default function AdminPage() {
   const params = useSearchParams()
   const certificateId = params.get("id") || undefined
+  const isNew = params.get("new") === "1"
   const { t } = useI18n()
   const [category, setCategory] = useState("")
   const [saving, setSaving] = useState(false)
@@ -23,12 +25,15 @@ export default function AdminPage() {
   const [previewSrc, setPreviewSrc] = useState<string>("")
   const [currentTemplateConfig, setCurrentTemplateConfig] = useState<TemplateConfig | null>(null)
   const [applyingTemplate, setApplyingTemplate] = useState(false)
+  const [newCertificateId, setNewCertificateId] = useState<string | null>(null)
   
   // Undo/Redo state management
   const [history, setHistory] = useState<Array<{
     title: string
     description: string
     issuedAt: string
+    expiresAt: string
+    certificateNumber: string
     titleX: number
     titleY: number
     titleSize: number
@@ -47,6 +52,18 @@ export default function AdminPage() {
     dateColor: string
     dateAlign: "left" | "center" | "right"
     dateFont: string
+    expiredX: number
+    expiredY: number
+    expiredSize: number
+    expiredColor: string
+    expiredAlign: "left" | "center" | "right"
+    expiredFont: string
+    certNumberX: number
+    certNumberY: number
+    certNumberSize: number
+    certNumberColor: string
+    certNumberAlign: "left" | "center" | "right"
+    certNumberFont: string
   }>>([])
   const [historyIndex, setHistoryIndex] = useState(-1)
   const [canUndo, setCanUndo] = useState(false)
@@ -57,9 +74,11 @@ export default function AdminPage() {
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
   const [issuedAt, setIssuedAt] = useState<string>("")
+  const [expiresAt, setExpiresAt] = useState<string>("")
+  const [certificateNumber, setCertificateNumber] = useState<string>("")
 
   // Per-element styles & positions
-  const [activeElement, setActiveElement] = useState<"title" | "description" | "date">("title")
+  const [activeElement, setActiveElement] = useState<"title" | "description" | "date" | "expired_date" | "certificate_number">("title")
   const [titleX, setTitleX] = useState<number>(370)
   const [titleY, setTitleY] = useState<number>(180)
   const [titleSize, setTitleSize] = useState<number>(32)
@@ -75,13 +94,27 @@ export default function AdminPage() {
   const [dateSize, setDateSize] = useState<number>(14)
   const [dateColor, setDateColor] = useState<string>("#000000")
 
+  const [expiredX, setExpiredX] = useState<number>(50)
+  const [expiredY, setExpiredY] = useState<number>(130)
+  const [expiredSize, setExpiredSize] = useState<number>(14)
+  const [expiredColor, setExpiredColor] = useState<string>("#000000")
+
+  const [certNumberX, setCertNumberX] = useState<number>(50)
+  const [certNumberY, setCertNumberY] = useState<number>(150)
+  const [certNumberSize, setCertNumberSize] = useState<number>(14)
+  const [certNumberColor, setCertNumberColor] = useState<string>("#000000")
+
   // Align & font per elemen
   const [titleAlign, setTitleAlign] = useState<"left" | "center" | "right">("center")
   const [descAlign, setDescAlign] = useState<"left" | "center" | "right">("center")
   const [dateAlign, setDateAlign] = useState<"left" | "center" | "right">("center")
+  const [expiredAlign, setExpiredAlign] = useState<"left" | "center" | "right">("center")
+  const [certNumberAlign, setCertNumberAlign] = useState<"left" | "center" | "right">("center")
   const [titleFont, setTitleFont] = useState("Inter, ui-sans-serif, system-ui")
   const [descFont, setDescFont] = useState("Inter, ui-sans-serif, system-ui")
   const [dateFont, setDateFont] = useState("Inter, ui-sans-serif, system-ui")
+  const [expiredFont, setExpiredFont] = useState("Inter, ui-sans-serif, system-ui")
+  const [certNumberFont, setCertNumberFont] = useState("Inter, ui-sans-serif, system-ui")
 
   // Fungsi untuk menyimpan state ke history
   const saveToHistory = () => {
@@ -89,6 +122,8 @@ export default function AdminPage() {
       title,
       description,
       issuedAt,
+      expiresAt,
+      certificateNumber,
       titleX,
       titleY,
       titleSize,
@@ -106,7 +141,19 @@ export default function AdminPage() {
       dateSize,
       dateColor,
       dateAlign,
-      dateFont
+      dateFont,
+      expiredX,
+      expiredY,
+      expiredSize,
+      expiredColor,
+      expiredAlign,
+      expiredFont,
+      certNumberX,
+      certNumberY,
+      certNumberSize,
+      certNumberColor,
+      certNumberAlign,
+      certNumberFont
     }
 
     // Hapus semua state setelah index saat ini (jika ada)
@@ -134,6 +181,8 @@ export default function AdminPage() {
       setTitle(state.title)
       setDescription(state.description)
       setIssuedAt(state.issuedAt)
+      setExpiresAt(state.expiresAt)
+      setCertificateNumber(state.certificateNumber)
       setTitleX(state.titleX)
       setTitleY(state.titleY)
       setTitleSize(state.titleSize)
@@ -152,6 +201,18 @@ export default function AdminPage() {
       setDateColor(state.dateColor)
       setDateAlign(state.dateAlign)
       setDateFont(state.dateFont)
+      setExpiredX(state.expiredX)
+      setExpiredY(state.expiredY)
+      setExpiredSize(state.expiredSize)
+      setExpiredColor(state.expiredColor)
+      setExpiredAlign(state.expiredAlign)
+      setExpiredFont(state.expiredFont)
+      setCertNumberX(state.certNumberX)
+      setCertNumberY(state.certNumberY)
+      setCertNumberSize(state.certNumberSize)
+      setCertNumberColor(state.certNumberColor)
+      setCertNumberAlign(state.certNumberAlign)
+      setCertNumberFont(state.certNumberFont)
       
       setHistoryIndex(newIndex)
       setCanUndo(newIndex > 0)
@@ -168,6 +229,8 @@ export default function AdminPage() {
       setTitle(state.title)
       setDescription(state.description)
       setIssuedAt(state.issuedAt)
+      setExpiresAt(state.expiresAt)
+      setCertificateNumber(state.certificateNumber)
       setTitleX(state.titleX)
       setTitleY(state.titleY)
       setTitleSize(state.titleSize)
@@ -186,6 +249,18 @@ export default function AdminPage() {
       setDateColor(state.dateColor)
       setDateAlign(state.dateAlign)
       setDateFont(state.dateFont)
+      setExpiredX(state.expiredX)
+      setExpiredY(state.expiredY)
+      setExpiredSize(state.expiredSize)
+      setExpiredColor(state.expiredColor)
+      setExpiredAlign(state.expiredAlign)
+      setExpiredFont(state.expiredFont)
+      setCertNumberX(state.certNumberX)
+      setCertNumberY(state.certNumberY)
+      setCertNumberSize(state.certNumberSize)
+      setCertNumberColor(state.certNumberColor)
+      setCertNumberAlign(state.certNumberAlign)
+      setCertNumberFont(state.certNumberFont)
       
       setHistoryIndex(newIndex)
       setCanUndo(true)
@@ -355,12 +430,13 @@ export default function AdminPage() {
 
   // Helper: queue save with debounce to Supabase
   function queueSave(update: Record<string, unknown>) {
-    if (!certificateId) return
+    const currentId = certificateId || newCertificateId
+    if (!currentId) return
     setUiSaving(true)
     if (saveTimer.current) clearTimeout(saveTimer.current)
     saveTimer.current = setTimeout(async () => {
       console.log("Saving to database:", update) // Debug log
-      console.log("Certificate ID:", certificateId) // Debug log
+      console.log("Certificate ID:", currentId) // Debug log
       
       try {
         // Filter out undefined values
@@ -385,7 +461,7 @@ export default function AdminPage() {
         
         console.log("Cleaned update payload:", cleanUpdate)
         
-        const { error } = await supabase.from("certificates").update(cleanUpdate).eq("id", certificateId)
+        const { error } = await supabase.from("certificates").update(cleanUpdate).eq("id", currentId)
         if (error) {
           console.error("Error saving to database:", error)
           console.error("Error details:", {
@@ -433,20 +509,96 @@ export default function AdminPage() {
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [canUndo, canRedo, undo, redo])
 
-  // Ambil data sertifikat lengkap untuk record yang dipilih
+  // Ambil data sertifikat lengkap untuk record yang dipilih atau buat baru
   useEffect(() => {
-    if (!certificateId) return
+    if (!certificateId && !isNew) return
     
     const loadCertificateData = async () => {
       try {
+        if (isNew) {
+          // Create new certificate
+          setMessage("Creating new certificate...")
+          
+          // Generate unique certificate number
+          const timestamp = Date.now()
+          const randomSuffix = Math.random().toString(36).substring(2, 8).toUpperCase()
+          const uniqueNumber = `CERT-${timestamp}-${randomSuffix}`
+          
+          const { data: newCert, error: createError } = await supabase
+            .from("certificates")
+            .insert({
+              name: "",
+              title: "",
+              description: "",
+              category: "",
+              number: uniqueNumber,
+              issued_at: null,
+              expires_at: null,
+              issuer: ""
+            })
+            .select("id")
+            .single()
+            
+          if (createError) {
+            console.error("Error creating certificate:", createError)
+            setMessage(t('failedToSave') + `Failed to create certificate: ${createError.message}`)
+            return
+          }
+          
+          if (newCert) {
+            setNewCertificateId(newCert.id)
+            setMessage("New certificate created. Fill in the details below.")
+            // Set default values for new certificate
+            setCategory("")
+            setTitle("")
+            setDescription("")
+            setIssuedAt("")
+            setExpiresAt("")
+            setCertificateNumber(uniqueNumber)
+            // Set default positioning and styling
+            setTitleX(370)
+            setTitleY(180)
+            setTitleSize(32)
+            setTitleColor("#000000")
+            setTitleAlign("center")
+            setTitleFont("Inter, ui-sans-serif, system-ui")
+            setDescX(360)
+            setDescY(235)
+            setDescSize(15)
+            setDescColor("#000000")
+            setDescAlign("center")
+            setDescFont("Inter, ui-sans-serif, system-ui")
+            setDateX(50)
+            setDateY(110)
+            setDateSize(14)
+            setDateColor("#000000")
+            setDateAlign("center")
+            setDateFont("Inter, ui-sans-serif, system-ui")
+            setExpiredX(50)
+            setExpiredY(130)
+            setExpiredSize(14)
+            setExpiredColor("#000000")
+            setExpiredAlign("center")
+            setExpiredFont("Inter, ui-sans-serif, system-ui")
+            setCertNumberX(50)
+            setCertNumberY(150)
+            setCertNumberSize(14)
+            setCertNumberColor("#000000")
+            setCertNumberAlign("center")
+            setCertNumberFont("Inter, ui-sans-serif, system-ui")
+            return
+          }
+        }
+        
+        // Load existing certificate
         setMessage(t('loadingCertificateData'))
         
-      const { data, error } = await supabase
-        .from("certificates")
-        .select("*")
-        .eq("id", certificateId)
-        .single()
-          
+        const { data, error } = await supabase
+          .from("certificates")
+          .select("*")
+          .eq("id", certificateId)
+          .single()
+            
         if (error) {
           console.error("Error loading certificate data:", error)
           setMessage(t('failedToSave') + `Failed to load certificate: ${error.message}`)
@@ -477,6 +629,8 @@ export default function AdminPage() {
         // Set other fields
         setDescription((row.description as string) || "")
         setIssuedAt((row.issued_at as string) || "")
+        setExpiresAt((row.expires_at as string) || "")
+        setCertificateNumber((row.number as string) || "")
         
         // Set positioning and styling with fallback values
         setTitleX((row.title_x as number) ?? 370)
@@ -500,6 +654,20 @@ export default function AdminPage() {
         setDateColor((row.date_color as string) ?? "#000000")
         setDateAlign((row.date_align as "left" | "center" | "right") ?? "center")
         setDateFont((row.date_font as string) ?? "Inter, ui-sans-serif, system-ui")
+        
+        setExpiredX((row.expired_x as number) ?? 50)
+        setExpiredY((row.expired_y as number) ?? 130)
+        setExpiredSize((row.expired_size as number) ?? 14)
+        setExpiredColor((row.expired_color as string) ?? "#000000")
+        setExpiredAlign((row.expired_align as "left" | "center" | "right") ?? "center")
+        setExpiredFont((row.expired_font as string) ?? "Inter, ui-sans-serif, system-ui")
+        
+        setCertNumberX((row.cert_number_x as number) ?? 50)
+        setCertNumberY((row.cert_number_y as number) ?? 150)
+        setCertNumberSize((row.cert_number_size as number) ?? 14)
+        setCertNumberColor((row.cert_number_color as string) ?? "#000000")
+        setCertNumberAlign((row.cert_number_align as "left" | "center" | "right") ?? "center")
+        setCertNumberFont((row.cert_number_font as string) ?? "Inter, ui-sans-serif, system-ui")
         
         // Set template
         if (row.template_path) {
@@ -529,7 +697,7 @@ export default function AdminPage() {
     }
     
     loadCertificateData()
-  }, [certificateId, t])
+  }, [certificateId, isNew, t])
 
   // Inisialisasi history saat data dimuat
   useEffect(() => {
@@ -538,6 +706,8 @@ export default function AdminPage() {
         title,
         description,
         issuedAt,
+        expiresAt,
+        certificateNumber,
         titleX,
         titleY,
         titleSize,
@@ -555,7 +725,19 @@ export default function AdminPage() {
         dateSize,
         dateColor,
         dateAlign,
-        dateFont
+        dateFont,
+        expiredX,
+        expiredY,
+        expiredSize,
+        expiredColor,
+        expiredAlign,
+        expiredFont,
+        certNumberX,
+        certNumberY,
+        certNumberSize,
+        certNumberColor,
+        certNumberAlign,
+        certNumberFont
       }
       
       if (history.length === 0) {
@@ -694,27 +876,44 @@ export default function AdminPage() {
           titlePos={{ x: titleX, y: titleY, size: titleSize, color: titleColor }}
           descPos={{ x: descX, y: descY, size: descSize, color: descColor }}
           datePos={{ x: dateX, y: dateY, size: dateSize, color: dateColor }}
+          expiredPos={{ x: expiredX, y: expiredY, size: expiredSize, color: expiredColor }}
+          certNumberPos={{ x: certNumberX, y: certNumberY, size: certNumberSize, color: certNumberColor }}
           titleAlign={titleAlign}
           descAlign={descAlign}
           dateAlign={dateAlign}
+          expiredAlign={expiredAlign}
+          certNumberAlign={certNumberAlign}
           titleFont={titleFont}
           descFont={descFont}
           dateFont={dateFont}
+          expiredFont={expiredFont}
+          certNumberFont={certNumberFont}
           issuedAt={issuedAt}
+          expiresAt={expiresAt}
+          certificateNumber={certificateNumber}
           active={activeElement}
+          useI18n={true}
           onDragPosition={(nx, ny) => {
             if (activeElement === "title") { setTitleX(nx); setTitleY(ny) }
             else if (activeElement === "description") { setDescX(nx); setDescY(ny) }
-            else { setDateX(nx); setDateY(ny) }
+            else if (activeElement === "date") { setDateX(nx); setDateY(ny) }
+            else if (activeElement === "expired_date") { setExpiredX(nx); setExpiredY(ny) }
+            else if (activeElement === "certificate_number") { setCertNumberX(nx); setCertNumberY(ny) }
           }}
           onCommitPosition={(nx, ny) => {
              saveToHistory()
+            const x = Math.round(nx)
+            const y = Math.round(ny)
             if (activeElement === "title") {
-              queueSave({ title_x: nx, title_y: ny })
+              queueSave({ title_x: x, title_y: y })
             } else if (activeElement === "description") {
-              queueSave({ desc_x: nx, desc_y: ny })
+              queueSave({ desc_x: x, desc_y: y })
             } else if (activeElement === "date") {
-              queueSave({ date_x: nx, date_y: ny })
+              queueSave({ date_x: x, date_y: y })
+            } else if (activeElement === "expired_date") {
+              queueSave({ expired_x: x, expired_y: y })
+            } else if (activeElement === "certificate_number") {
+              queueSave({ cert_number_x: x, cert_number_y: y })
             }
           }}
         />
@@ -772,6 +971,10 @@ export default function AdminPage() {
                 <button className={`rounded-md border border-white/10 px-3 py-2 text-sm ${activeElement==='title'?'bg-white/15':'bg-white/5'}`} onClick={()=>setActiveElement('title')}>{t('title')}</button>
                 <button className={`rounded-md border border-white/10 px-3 py-2 text-sm ${activeElement==='description'?'bg-white/15':'bg-white/5'}`} onClick={()=>setActiveElement('description')}>{t('description')}</button>
                 <button className={`rounded-md border border-white/10 px-3 py-2 text-sm ${activeElement==='date'?'bg-white/15':'bg-white/5'}`} onClick={()=>setActiveElement('date')}>{t('date')}</button>
+              </div>
+              <div className="grid grid-cols-2 gap-2 mt-2">
+                <button className={`rounded-md border border-white/10 px-3 py-2 text-sm ${activeElement==='expired_date'?'bg-white/15':'bg-white/5'}`} onClick={()=>setActiveElement('expired_date')}>Expired Date</button>
+                <button className={`rounded-md border border-white/10 px-3 py-2 text-sm ${activeElement==='certificate_number'?'bg-white/15':'bg-white/5'}`} onClick={()=>setActiveElement('certificate_number')}>No Sertif</button>
               </div>
             </div>
             {activeElement === 'title' && (
@@ -882,16 +1085,135 @@ export default function AdminPage() {
                 </div>
               </div>
             )}
+            {activeElement === 'expired_date' && (
+              <div>
+                <label className="block text-sm text-white/70 mb-1">Tanggal Expired</label>
+                <div className="space-y-3">
+                  {/* Input tanggal expired */}
+                  <input 
+                    type="date" 
+                    className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white" 
+                    value={expiresAt || ""}
+                    onChange={async (e) => {
+                      const v = e.target.value
+                      setExpiresAt(v)
+                      saveToHistory()
+                      if (certificateId) {
+                        try {
+                          const { error } = await supabase.from("certificates").update({ expires_at: v || null }).eq("id", certificateId)
+                          if (error) {
+                            console.error('Error updating expired date:', error)
+                            alert('Gagal menyimpan tanggal expired: ' + error.message)
+                          }
+                        } catch (err) {
+                          console.error('Unexpected error:', err)
+                          alert('Terjadi kesalahan saat menyimpan tanggal expired')
+                        }
+                      }
+                    }}
+                  />
+                  
+                  {/* Status tanggal expired */}
+                  <div className="w-full rounded-md border border-orange-500/30 bg-orange-500/10 px-3 py-2 text-sm text-white/90 flex items-center justify-between">
+                    <span className="flex items-center gap-2">
+                      <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
+                      {expiresAt ? new Date(expiresAt).toLocaleDateString('id-ID') : 'Belum diatur'}
+                    </span>
+                    <span className="text-xs text-orange-400/70 font-medium">
+                      {expiresAt ? 'Manual' : 'Kosong'}
+                    </span>
+                  </div>
+                  
+                  {/* Info */}
+                  <div className="text-xs text-white/60 bg-white/5 rounded px-2 py-1">
+                    <span className="text-orange-400">ℹ</span> Tanggal expired akan ditampilkan pada sertifikat
+                  </div>
+                </div>
+              </div>
+            )}
+            {activeElement === 'certificate_number' && (
+              <div>
+                <label className="block text-sm text-white/70 mb-1">Nomor Sertifikat</label>
+                <div className="space-y-3">
+                  {/* Input nomor sertifikat */}
+                  <input 
+                    type="text" 
+                    className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white" 
+                    value={certificateNumber || ""}
+                    onChange={async (e) => {
+                      const v = e.target.value
+                      setCertificateNumber(v)
+                      saveToHistory()
+                      if (certificateId) {
+                        try {
+                          const { error } = await supabase.from("certificates").update({ number: v || null }).eq("id", certificateId)
+                          if (error) {
+                            console.error('Error updating certificate number:', error)
+                            alert('Gagal menyimpan nomor sertifikat: ' + error.message)
+                          }
+                        } catch (err) {
+                          console.error('Unexpected error:', err)
+                          alert('Terjadi kesalahan saat menyimpan nomor sertifikat')
+                        }
+                      }
+                    }}
+                    placeholder="Masukkan nomor sertifikat"
+                  />
+                  
+                  {/* Status nomor sertifikat */}
+                  <div className="w-full rounded-md border border-green-500/30 bg-green-500/10 px-3 py-2 text-sm text-white/90 flex items-center justify-between">
+                    <span className="flex items-center gap-2">
+                      <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                      {certificateNumber || 'Belum diatur'}
+                    </span>
+                    <span className="text-xs text-green-400/70 font-medium">
+                      {certificateNumber ? 'Manual' : 'Kosong'}
+                    </span>
+                  </div>
+                  
+                  {/* Info */}
+                  <div className="text-xs text-white/60 bg-white/5 rounded px-2 py-1">
+                    <span className="text-green-400">ℹ</span> Nomor sertifikat akan ditampilkan pada sertifikat
+                  </div>
+                </div>
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm text-white/70 mb-1">{t('positionX')}</label>
-                <input type="number" className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm" value={activeElement==='title'?titleX:activeElement==='description'?descX:dateX}
-                  onChange={(e) => { const n = Math.max(0, Number(e.target.value)||0); if(activeElement==='title'){ setTitleX(n); saveToHistory(); queueSave({ title_x: n }) } else if(activeElement==='description'){ setDescX(n); saveToHistory(); queueSave({ desc_x: n }) } else { setDateX(n); saveToHistory(); queueSave({ date_x: n }) } }} />
+                <input type="number" className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm" value={
+                  activeElement==='title'?titleX:
+                  activeElement==='description'?descX:
+                  activeElement==='date'?dateX:
+                  activeElement==='expired_date'?expiredX:
+                  activeElement==='certificate_number'?certNumberX:0
+                }
+                  onChange={(e) => { 
+                    const n = Math.max(0, Number(e.target.value)||0); 
+                    if(activeElement==='title'){ setTitleX(n); saveToHistory(); queueSave({ title_x: n }) } 
+                    else if(activeElement==='description'){ setDescX(n); saveToHistory(); queueSave({ desc_x: n }) } 
+                    else if(activeElement==='date'){ setDateX(n); saveToHistory(); queueSave({ date_x: n }) }
+                    else if(activeElement==='expired_date'){ setExpiredX(n); saveToHistory(); queueSave({ expired_x: n }) }
+                    else if(activeElement==='certificate_number'){ setCertNumberX(n); saveToHistory(); queueSave({ cert_number_x: n }) }
+                  }} />
             </div>
             <div>
                 <label className="block text-sm text-white/70 mb-1">{t('positionY')}</label>
-                <input type="number" className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm" value={activeElement==='title'?titleY:activeElement==='description'?descY:dateY}
-                  onChange={(e) => { const n = Math.max(0, Number(e.target.value)||0); if(activeElement==='title'){ setTitleY(n); saveToHistory(); queueSave({ title_y: n }) } else if(activeElement==='description'){ setDescY(n); saveToHistory(); queueSave({ desc_y: n }) } else { setDateY(n); saveToHistory(); queueSave({ date_y: n }) } }} />
+                <input type="number" className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm" value={
+                  activeElement==='title'?titleY:
+                  activeElement==='description'?descY:
+                  activeElement==='date'?dateY:
+                  activeElement==='expired_date'?expiredY:
+                  activeElement==='certificate_number'?certNumberY:0
+                }
+                  onChange={(e) => { 
+                    const n = Math.max(0, Number(e.target.value)||0); 
+                    if(activeElement==='title'){ setTitleY(n); saveToHistory(); queueSave({ title_y: n }) } 
+                    else if(activeElement==='description'){ setDescY(n); saveToHistory(); queueSave({ desc_y: n }) } 
+                    else if(activeElement==='date'){ setDateY(n); saveToHistory(); queueSave({ date_y: n }) }
+                    else if(activeElement==='expired_date'){ setExpiredY(n); saveToHistory(); queueSave({ expired_y: n }) }
+                    else if(activeElement==='certificate_number'){ setCertNumberY(n); saveToHistory(); queueSave({ cert_number_y: n }) }
+                  }} />
               </div>
             </div>
             {/* Justify & Font per elemen */}
@@ -964,16 +1286,88 @@ export default function AdminPage() {
                 </div>
               </div>
             )}
+            {activeElement === 'expired_date' && (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm text-white/70 mb-1">Justify (Expired Date)</label>
+                  <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={expiredAlign}
+                    onChange={(e)=>{ const v = e.target.value as "left"|"center"|"right"; setExpiredAlign(v); saveToHistory(); queueSave({ expired_align: v }) }}>
+                    <option value="left">Left</option>
+                    <option value="center">Center</option>
+                    <option value="right">Right</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm text-white/70 mb-1">Font (Expired Date)</label>
+                  <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={expiredFont}
+                    onChange={(e)=>{ const v=e.target.value; setExpiredFont(v); saveToHistory(); queueSave({ expired_font: v }) }}>
+                    <option value="Inter, ui-sans-serif, system-ui">Inter</option>
+                    <option value="Arial, Helvetica, sans-serif">Arial</option>
+                    <option value="Times New Roman, Times, serif">Times New Roman</option>
+                    <option value="Georgia, serif">Georgia</option>
+                  </select>
+                </div>
+              </div>
+            )}
+            {activeElement === 'certificate_number' && (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm text-white/70 mb-1">Justify (No Sertif)</label>
+                  <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={certNumberAlign}
+                    onChange={(e)=>{ const v = e.target.value as "left"|"center"|"right"; setCertNumberAlign(v); saveToHistory(); queueSave({ cert_number_align: v }) }}>
+                    <option value="left">Left</option>
+                    <option value="center">Center</option>
+                    <option value="right">Right</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm text-white/70 mb-1">Font (No Sertif)</label>
+                  <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={certNumberFont}
+                    onChange={(e)=>{ const v=e.target.value; setCertNumberFont(v); saveToHistory(); queueSave({ cert_number_font: v }) }}>
+                    <option value="Inter, ui-sans-serif, system-ui">Inter</option>
+                    <option value="Arial, Helvetica, sans-serif">Arial</option>
+                    <option value="Times New Roman, Times, serif">Times New Roman</option>
+                    <option value="Georgia, serif">Georgia</option>
+                  </select>
+                </div>
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-3">
             <div>
                 <label className="block text-sm text-white/70 mb-1">{t('fontSize')}</label>
-                <input type="number" className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm" value={activeElement==='title'?titleSize:activeElement==='description'?descSize:dateSize}
-                   onChange={(e)=>{ const n=Number(e.target.value)||12; if(activeElement==='title'){ setTitleSize(n); saveToHistory(); queueSave({ title_size: n }) } else if(activeElement==='description'){ setDescSize(n); saveToHistory(); queueSave({ desc_size: n }) } else { setDateSize(n); saveToHistory(); queueSave({ date_size: n }) } }} />
+                <input type="number" className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm" value={
+                  activeElement==='title'?titleSize:
+                  activeElement==='description'?descSize:
+                  activeElement==='date'?dateSize:
+                  activeElement==='expired_date'?expiredSize:
+                  activeElement==='certificate_number'?certNumberSize:12
+                }
+                   onChange={(e)=>{ 
+                     const n=Number(e.target.value)||12; 
+                     if(activeElement==='title'){ setTitleSize(n); saveToHistory(); queueSave({ title_size: n }) } 
+                     else if(activeElement==='description'){ setDescSize(n); saveToHistory(); queueSave({ desc_size: n }) } 
+                     else if(activeElement==='date'){ setDateSize(n); saveToHistory(); queueSave({ date_size: n }) }
+                     else if(activeElement==='expired_date'){ setExpiredSize(n); saveToHistory(); queueSave({ expired_size: n }) }
+                     else if(activeElement==='certificate_number'){ setCertNumberSize(n); saveToHistory(); queueSave({ cert_number_size: n }) }
+                   }} />
             </div>
             <div>
                 <label className="block text-sm text-white/70 mb-1">{t('color')}</label>
-                <input type="color" className="h-10 w-full rounded-md border border-white/10 bg-white/5 p-1" value={activeElement==='title'?titleColor:activeElement==='description'?descColor:dateColor}
-                  onChange={(e)=>{ const v=e.target.value; if(activeElement==='title'){ setTitleColor(v); saveToHistory(); queueSave({ title_color: v }) } else if(activeElement==='description'){ setDescColor(v); saveToHistory(); queueSave({ desc_color: v }) } else { setDateColor(v); saveToHistory(); queueSave({ date_color: v }) } }} />
+                <input type="color" className="h-10 w-full rounded-md border border-white/10 bg-white/5 p-1" value={
+                  activeElement==='title'?titleColor:
+                  activeElement==='description'?descColor:
+                  activeElement==='date'?dateColor:
+                  activeElement==='expired_date'?expiredColor:
+                  activeElement==='certificate_number'?certNumberColor:'#000000'
+                }
+                  onChange={(e)=>{ 
+                    const v=e.target.value; 
+                    if(activeElement==='title'){ setTitleColor(v); saveToHistory(); queueSave({ title_color: v }) } 
+                    else if(activeElement==='description'){ setDescColor(v); saveToHistory(); queueSave({ desc_color: v }) } 
+                    else if(activeElement==='date'){ setDateColor(v); saveToHistory(); queueSave({ date_color: v }) }
+                    else if(activeElement==='expired_date'){ setExpiredColor(v); saveToHistory(); queueSave({ expired_color: v }) }
+                    else if(activeElement==='certificate_number'){ setCertNumberColor(v); saveToHistory(); queueSave({ cert_number_color: v }) }
+                  }} />
               </div>
             </div>
              <div className="text-right text-xs text-white/50 h-4">
@@ -1015,7 +1409,8 @@ export default function AdminPage() {
               <button
                 className="rounded-md border border-blue-500/40 bg-blue-500/10 px-3 py-2 text-sm hover:bg-blue-500/20 disabled:opacity-50"
                 onClick={async () => {
-                  if (!certificateId) return
+                  const currentId = certificateId || newCertificateId
+                  if (!currentId) return
                   if (saveTimer.current) { clearTimeout(saveTimer.current); saveTimer.current = null }
                   setSavingAll(true)
                   // Coba dengan field dasar + styling yang mungkin sudah ada
@@ -1024,6 +1419,8 @@ export default function AdminPage() {
                     name: title || null,
                     description: description || null,
                     issued_at: issuedAt || null,
+                    expires_at: expiresAt || null,
+                    number: certificateNumber || null,
                     // Field styling yang tersedia di database
                     title_align: titleAlign,
                     title_font: titleFont,
@@ -1042,7 +1439,19 @@ export default function AdminPage() {
                     date_x: dateX,
                     date_y: dateY,
                     date_size: dateSize,
-                    date_color: dateColor
+                    date_color: dateColor,
+                    expired_align: expiredAlign,
+                    expired_font: expiredFont,
+                    expired_x: expiredX,
+                    expired_y: expiredY,
+                    expired_size: expiredSize,
+                    expired_color: expiredColor,
+                    cert_number_align: certNumberAlign,
+                    cert_number_font: certNumberFont,
+                    cert_number_x: certNumberX,
+                    cert_number_y: certNumberY,
+                    cert_number_size: certNumberSize,
+                    cert_number_color: certNumberColor
                   }
                   
                   console.log("Full payload with styling:", payload)
@@ -1058,7 +1467,7 @@ export default function AdminPage() {
                       console.log("Generated preview image for Save All")
                     }
                     
-                    const { error } = await supabase.from('certificates').update(payload).eq('id', certificateId)
+                    const { error } = await supabase.from('certificates').update(payload).eq('id', currentId)
                     if (error) {
                       console.error("Save All error:", error)
                       console.error("Error message:", error.message)
@@ -1092,159 +1501,6 @@ export default function AdminPage() {
   )
 }
 
-function PreviewPanel({ category, previewSrc, title, description, titlePos, descPos, datePos, titleAlign, descAlign, dateAlign, titleFont, descFont, dateFont, issuedAt, active, onDragPosition, onCommitPosition }: { category: string; previewSrc?: string; title?: string; description?: string; titlePos: { x: number; y: number; size: number; color: string }; descPos: { x: number; y: number; size: number; color: string }; datePos: { x: number; y: number; size: number; color: string }; titleAlign: "left"|"center"|"right"; descAlign: "left"|"center"|"right"; dateAlign: "left"|"center"|"right"; titleFont: string; descFont: string; dateFont: string; issuedAt?: string; active: "title"|"description"|"date"; onDragPosition?: (x: number, y: number) => void; onCommitPosition?: (x: number, y: number) => void }) {
-  const { t } = useI18n()
-  const [dragging, setDragging] = useState(false)
-  const containerRef = useRef<HTMLDivElement | null>(null)
-
-
-
-  const clampX = (x: number) => {
-    // Return original position without clamping to match edit mode
-    return x
-  }
-  const clampY = (y: number) => {
-    // Return original position without clamping to match edit mode
-    return y
-  }
-  return (
-    <section className="rounded-xl border border-white/10 bg-[#0d172b] p-6 shadow-xl shadow-blue-500/10 min-h-[420px]">
-       <h2 className="text-3xl font-bold text-blue-400 mb-4 text-center">{t('certificatePreview')}</h2>
-       <div className="text-white/80 text-sm mb-2 text-center">{category ? `${t('categorySelected')}: ${category}` : t('noCategorySelected')}</div>
-       {issuedAt && (
-         <div className="text-green-400/80 text-xs mb-2 flex items-center justify-center gap-2">
-           <span className="w-1.5 h-1.5 bg-green-400 rounded-full"></span>
-           {t('integratedDate')}: {new Date(issuedAt).toLocaleDateString('id-ID', {
-             year: 'numeric',
-             month: 'long',
-             day: 'numeric'
-           })}
-         </div>
-       )}
-      <div className="flex justify-center items-center">
-        <div
-          className={`mt-4 rounded-lg border border-white/10 bg-white/5 relative overflow-hidden ${dragging ? "cursor-grabbing" : "cursor-grab"}`}
-        ref={containerRef}
-        style={{
-          position: 'relative',
-          contain: 'layout style paint',
-            willChange: 'transform',
-            width: '100%',
-            maxWidth: '600px',
-            height: '420px',
-            minHeight: '420px',
-            maxHeight: '420px',
-            aspectRatio: '4/3',
-            margin: '0 auto'
-        }}
-        data-preview-container="1"
-        onMouseDown={(e) => {
-          // Mulai drag hanya saat menekan pada overlay teks
-          const overlay = (e.currentTarget as HTMLDivElement).querySelector('[data-overlay="text"]') as HTMLElement | null
-          if (!overlay) return
-          const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect()
-          const base = active === 'title' ? titlePos : active === 'description' ? descPos : datePos
-          const ox = base.x - Math.round(e.clientX - rect.left)
-          const oy = base.y - Math.round(e.clientY - rect.top)
-          setDragging(true)
-          const onMove = (ev: MouseEvent) => {
-            const nx = Math.round(ev.clientX - rect.left) + ox
-            const ny = Math.round(ev.clientY - rect.top) + oy
-            onDragPosition?.(clampX(nx), clampY(ny))
-          }
-          const onUp = () => {
-            setDragging(false)
-            window.removeEventListener('mousemove', onMove)
-            window.removeEventListener('mouseup', onUp)
-            const baseNow = active === 'title' ? titlePos : active === 'description' ? descPos : datePos
-            const nx = clampX(baseNow.x)
-            const ny = clampY(baseNow.y)
-            onCommitPosition?.(nx, ny)
-          }
-          window.addEventListener('mousemove', onMove)
-          window.addEventListener('mouseup', onUp)
-        }}
-        title={t('clickAndDrag')}
-      >
-        {previewSrc ? (
-          previewSrc.endsWith(".pdf") ? (
-            <object data={previewSrc} type="application/pdf" className="w-full h-full" />
-          ) : (
-            <img src={previewSrc} alt="Preview" className="absolute inset-0 w-full h-full object-contain" />
-          )
-        ) : null}
-        {/* Overlay text - title */}
-        <div
-          className="absolute"
-          style={{ 
-            left: `${clampX(titlePos.x)}px`, 
-            top: `${clampY(titlePos.y)}px`, 
-            width: "auto", 
-            maxWidth: "calc(100% - 40px)",
-            textAlign: titleAlign, 
-            fontFamily: titleFont, 
-            fontSize: `${titlePos.size}px`, 
-            color: titlePos.color,
-            position: 'absolute',
-            zIndex: 10
-          }}
-          data-overlay="text"
-        >
-          <div className="font-bold">{title}</div>
-        </div>
-        {/* Overlay text - description */}
-        <div
-          className="absolute"
-          style={{ 
-            left: `${clampX(descPos.x)}px`, 
-            top: `${clampY(descPos.y)}px`, 
-            width: "auto", 
-            maxWidth: "calc(100% - 40px)",
-            textAlign: descAlign, 
-            fontFamily: descFont, 
-            fontSize: `${descPos.size}px`, 
-            color: descPos.color,
-            whiteSpace: 'pre-line',
-            position: 'absolute',
-            zIndex: 10
-          }}
-        >
-          <div className="opacity-90">{description}</div>
-        </div>
-        {/* Overlay text - date */}
-        {issuedAt && (
-          <div
-            className="absolute"
-            style={{ 
-              left: `${clampX(datePos.x)}px`, 
-              top: `${clampY(datePos.y)}px`, 
-              width: "auto", 
-              maxWidth: "calc(100% - 40px)",
-              textAlign: dateAlign, 
-              fontFamily: dateFont, 
-              fontSize: `${datePos.size}px`, 
-              color: datePos.color,
-              position: 'absolute',
-              zIndex: 10
-            }}
-          >
-             <div className="mt-1 opacity-80">
-               {new Date(issuedAt).toLocaleDateString('id-ID', {
-                 year: 'numeric',
-                 month: 'long',
-                 day: 'numeric'
-               })}
-             </div>
-          </div>
-        )}
-        {!previewSrc && (
-           <div className="absolute inset-0 grid place-items-center text-white/60">{t('selectTemplateOrUpload')}</div>
-        )}
-        </div>
-      </div>
-    </section>
-  )
-}
 
 // Peta template per kategori (public/certificate/<kategori>/...)
 const TEMPLATE_MAP: Record<string, string[]> = {

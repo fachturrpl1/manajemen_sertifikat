@@ -244,6 +244,56 @@ export default function CheckCertificatePage({ params }: Props) {
                       </div>
                     </div>
                   )}
+
+                  {/* Expired Date Overlay */}
+                  {certificateData.expires_at && (
+                    <div
+                      className="absolute"
+                      style={{ 
+                        left: `${certificateData.expired_x || 50}px`, 
+                        top: `${certificateData.expired_y || 130}px`, 
+                        width: "auto", 
+                        maxWidth: "calc(100% - 40px)",
+                        textAlign: certificateData.expired_align || 'left', 
+                        fontFamily: certificateData.expired_font || 'Inter',
+                        fontSize: `${certificateData.expired_size || 14}px`, 
+                        color: certificateData.expired_color || '#000000',
+                        position: 'absolute',
+                        zIndex: 10
+                      }}
+                    >
+                      <div className="mt-1 opacity-80">
+                        Expired: {new Date(certificateData.expires_at).toLocaleDateString('id-ID', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Certificate Number Overlay */}
+                  {certificateData.number && (
+                    <div
+                      className="absolute"
+                      style={{ 
+                        left: `${certificateData.cert_number_x || 50}px`, 
+                        top: `${certificateData.cert_number_y || 150}px`, 
+                        width: "auto", 
+                        maxWidth: "calc(100% - 40px)",
+                        textAlign: certificateData.cert_number_align || 'left', 
+                        fontFamily: certificateData.cert_number_font || 'Inter',
+                        fontSize: `${certificateData.cert_number_size || 14}px`, 
+                        color: certificateData.cert_number_color || '#000000',
+                        position: 'absolute',
+                        zIndex: 10
+                      }}
+                    >
+                      <div className="mt-1 opacity-80">
+                        No: {certificateData.number}
+                      </div>
+                    </div>
+                  )}
                 </>
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center">
