@@ -109,8 +109,68 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
       }
     }
   },
+  "certificate/magang/magang2.png": {
+    templatePath: "certificate/magang/magang2.png",
+    name: "Internship Template 1",
+    defaultPositions: {
+      title: { 
+        x: 350, 
+        y: 190, 
+        size: 30, 
+        color: "#000000", 
+        align: "center", 
+        font: "Times New Roman, Times, serif" 
+      },
+      description: { 
+        x: 340, 
+        y: 240, 
+        size: 16, 
+        color: "#000000", 
+        align: "center", 
+        font: "Arial, Helvetica, sans-serif" 
+      },
+      date: { 
+        x: 60, 
+        y: 100, 
+        size: 13, 
+        color: "#000000", 
+        align: "left", 
+        font: "Arial, Helvetica, sans-serif" 
+      }
+    }
+  },
   "certificate/mou/mou1.png": {
     templatePath: "certificate/mou/mou1.png",
+    name: "MoU Template 1",
+    defaultPositions: {
+      title: { 
+        x: 380, 
+        y: 170, 
+        size: 34, 
+        color: "#000000", 
+        align: "center", 
+        font: "Georgia, serif" 
+      },
+      description: { 
+        x: 370, 
+        y: 220, 
+        size: 15, 
+        color: "#000000", 
+        align: "center", 
+        font: "Times New Roman, Times, serif" 
+      },
+      date: { 
+        x: 80, 
+        y: 130, 
+        size: 14, 
+        color: "#000000", 
+        align: "center", 
+        font: "Times New Roman, Times, serif" 
+      }
+    }
+  },
+  "certificate/mou/mou2.png": {
+    templatePath: "certificate/mou/mou2.png",
     name: "MoU Template 1",
     defaultPositions: {
       title: { 
@@ -168,7 +228,37 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
         font: "Inter, ui-sans-serif, system-ui" 
       }
     }
-  }
+  },
+  "certificate/pelatihan/pelatihan2.png": {
+    templatePath: "certificate/pelatihan/pelatihan2.png",
+    name: "Training Template 1",
+    defaultPositions: {
+      title: { 
+        x: 360, 
+        y: 185, 
+        size: 31, 
+        color: "#000000", 
+        align: "center", 
+        font: "Inter, ui-sans-serif, system-ui" 
+      },
+      description: { 
+        x: 350, 
+        y: 230, 
+        size: 15, 
+        color: "#000000", 
+        align: "center", 
+        font: "Inter, ui-sans-serif, system-ui" 
+      },
+      date: { 
+        x: 70, 
+        y: 115, 
+        size: 13, 
+        color: "#000000", 
+        align: "center", 
+        font: "Inter, ui-sans-serif, system-ui" 
+      }
+    }
+  },
 };
 
 // Fungsi untuk mendapatkan konfigurasi template berdasarkan path

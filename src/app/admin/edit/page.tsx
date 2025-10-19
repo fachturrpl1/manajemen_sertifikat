@@ -310,7 +310,39 @@ export default function AdminPage() {
         allowTaint: true,
         logging: false,
         width: container.offsetWidth,
-        height: container.offsetHeight
+        height: container.offsetHeight,
+        onclone: (clonedDoc) => {
+          const clonedContainer = clonedDoc.querySelector('[data-preview-container="1"]') as HTMLElement | null
+          if (!clonedContainer) return
+          
+          // Bersihkan kelas Tailwind pada subtree untuk menghindari parser modern color (oklab/oklch)
+          const stripClasses = (el: Element) => {
+            if (el instanceof HTMLElement) {
+              el.className = ''
+              // Terapkan style minimal aman
+              el.style.background = 'transparent'
+              el.style.backgroundColor = 'transparent'
+              el.style.border = '0'
+              el.style.boxShadow = 'none'
+            }
+            Array.from(el.children).forEach(stripClasses)
+          }
+          
+          // Bersihkan container dan anak2nya
+          stripClasses(clonedContainer)
+          // Set latar belakang putih untuk area render agar hasil jelas
+          clonedContainer.style.backgroundColor = '#ffffff'
+          
+          // Pastikan elemen <img> preview tetap tampil penuh
+          const img = clonedContainer.querySelector('[data-preview-image]') as HTMLImageElement | null
+          if (img) {
+            img.style.position = 'absolute'
+            img.style.inset = '0'
+            img.style.width = '100%'
+            img.style.height = '100%'
+            img.style.objectFit = 'contain'
+          }
+        }
       })
       
       // Convert ke base64
@@ -782,19 +814,71 @@ export default function AdminPage() {
             {activeElement === 'date' && (
               <div>
                 <label className="block text-sm text-white/70 mb-1">{t('integratedDate')}</label>
-                <div className="w-full rounded-md border border-green-500/30 bg-green-500/10 px-3 py-2 text-sm text-white/90 flex items-center justify-between">
-                  <span className="flex items-center gap-2">
-                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                    {issuedAt ? new Date(issuedAt).toLocaleDateString('id-ID') : t('noDateAvailable')}
-                  </span>
-                  <span className="text-xs text-green-400/70 font-medium">{t('autoFromDatabase')}</span>
-                </div>
-                <div className="mt-2 text-xs text-white/60 bg-white/5 rounded px-2 py-1">
-                  <span className="text-green-400">✓</span> {t('dateFromDatabase')}: {issuedAt ? new Date(issuedAt).toLocaleDateString('id-ID', { 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                  }) : t('noDateAvailable')}
+                <div className="space-y-3">
+                  {/* Input tanggal manual */}
+                  <div>
+                    <label className="block text-xs text-white/60 mb-1">Tanggal Sertifikat</label>
+                    <input 
+                      type="date" 
+                      className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white" 
+                      value={issuedAt || ""}
+                      onChange={async (e) => {
+                        const v = e.target.value
+                        
+                        // Validasi tanggal
+                        if (v) {
+                          const selectedDate = new Date(v)
+                          const today = new Date()
+                          
+                          // Cek apakah tanggal tidak lebih dari hari ini
+                          if (selectedDate > today) {
+                            alert('Tanggal tidak boleh lebih dari hari ini')
+                            return
+                          }
+                          
+                          // Cek apakah tanggal tidak terlalu lama (misal lebih dari 10 tahun)
+                          const tenYearsAgo = new Date()
+                          tenYearsAgo.setFullYear(today.getFullYear() - 10)
+                          
+                          if (selectedDate < tenYearsAgo) {
+                            alert('Tanggal tidak boleh lebih dari 10 tahun yang lalu')
+                            return
+                          }
+                        }
+                        
+                        setIssuedAt(v)
+                        saveToHistory()
+                        if (certificateId) {
+                          try {
+                            const { error } = await supabase.from("certificates").update({ issued_at: v || null }).eq("id", certificateId)
+                            if (error) {
+                              console.error('Error updating date:', error)
+                              alert('Gagal menyimpan tanggal: ' + error.message)
+                            }
+                          } catch (err) {
+                            console.error('Unexpected error:', err)
+                            alert('Terjadi kesalahan saat menyimpan tanggal')
+                          }
+                        }
+                      }}
+                    />
+                  </div>
+                  
+                  {/* Status tanggal */}
+                  <div className="w-full rounded-md border border-blue-500/30 bg-blue-500/10 px-3 py-2 text-sm text-white/90 flex items-center justify-between">
+                    <span className="flex items-center gap-2">
+                      <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                      {issuedAt ? new Date(issuedAt).toLocaleDateString('id-ID') : t('noDateAvailable')}
+                    </span>
+                    <span className="text-xs text-blue-400/70 font-medium">
+                      {issuedAt ? 'Manual' : 'Belum diatur'}
+                    </span>
+                  </div>
+                  
+                  {/* Info tambahan */}
+                  <div className="text-xs text-white/60 bg-white/5 rounded px-2 py-1">
+                    <span className="text-blue-400">ℹ</span> Tanggal akan ditampilkan pada sertifikat sesuai format Indonesia
+                  </div>
                 </div>
               </div>
             )}
@@ -935,7 +1019,7 @@ export default function AdminPage() {
                   if (saveTimer.current) { clearTimeout(saveTimer.current); saveTimer.current = null }
                   setSavingAll(true)
                   // Coba dengan field dasar + styling yang mungkin sudah ada
-                  const payload: Record<string, any> = {
+                  const payload: Record<string, string | number | null> = {
                     title: title || null,
                     name: title || null,
                     description: description || null,
@@ -970,7 +1054,7 @@ export default function AdminPage() {
                     // Generate preview image untuk Save All
                     const previewImage = await generatePreviewImage()
                     if (previewImage) {
-                      (payload as any).preview_image = previewImage
+                      (payload as Record<string, string | number | null>).preview_image = previewImage
                       console.log("Generated preview image for Save All")
                     }
                     

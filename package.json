@@ -24,6 +24,8 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@csstools/postcss-color-mix-function": "^3.0.12",
+    "@csstools/postcss-oklab-function": "^4.0.12",
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",

@@ -324,9 +324,69 @@ export default function CertificateEditor() {
           )}
           {activeElement === 'date' && (
             <div>
-              <label className="block text-sm text-white/70 mb-1">Tanggal (terintegrasi)</label>
-              <input type="date" className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm" value={issuedAt || ""}
-                onChange={async (e)=>{ const v=e.target.value; setIssuedAt(v); if (certificateId) await supabase.from("certificates").update({ issued_at: v || null }).eq("id", certificateId)}} />
+              <label className="block text-sm text-white/70 mb-1">Tanggal Sertifikat</label>
+              <div className="space-y-3">
+                {/* Input tanggal */}
+                <input 
+                  type="date" 
+                  className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white" 
+                  value={issuedAt || ""}
+                  onChange={async (e) => {
+                    const v = e.target.value
+                    
+                    // Validasi tanggal
+                    if (v) {
+                      const selectedDate = new Date(v)
+                      const today = new Date()
+                      
+                      // Cek apakah tanggal tidak lebih dari hari ini
+                      if (selectedDate > today) {
+                        alert('Tanggal tidak boleh lebih dari hari ini')
+                        return
+                      }
+                      
+                      // Cek apakah tanggal tidak terlalu lama (misal lebih dari 10 tahun)
+                      const tenYearsAgo = new Date()
+                      tenYearsAgo.setFullYear(today.getFullYear() - 10)
+                      
+                      if (selectedDate < tenYearsAgo) {
+                        alert('Tanggal tidak boleh lebih dari 10 tahun yang lalu')
+                        return
+                      }
+                    }
+                    
+                    setIssuedAt(v)
+                    if (certificateId) {
+                      try {
+                        const { error } = await supabase.from("certificates").update({ issued_at: v || null }).eq("id", certificateId)
+                        if (error) {
+                          console.error('Error updating date:', error)
+                          alert('Gagal menyimpan tanggal: ' + error.message)
+                        }
+                      } catch (err) {
+                        console.error('Unexpected error:', err)
+                        alert('Terjadi kesalahan saat menyimpan tanggal')
+                      }
+                    }
+                  }}
+                />
+                
+                {/* Status tanggal */}
+                <div className="w-full rounded-md border border-blue-500/30 bg-blue-500/10 px-3 py-2 text-sm text-white/90 flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                    {issuedAt ? new Date(issuedAt).toLocaleDateString('id-ID') : 'Belum diatur'}
+                  </span>
+                  <span className="text-xs text-blue-400/70 font-medium">
+                    {issuedAt ? 'Manual' : 'Kosong'}
+                  </span>
+                </div>
+                
+                {/* Info */}
+                <div className="text-xs text-white/60 bg-white/5 rounded px-2 py-1">
+                  <span className="text-blue-400">ℹ</span> Tanggal akan ditampilkan pada sertifikat
+                </div>
+              </div>
             </div>
           )}
           <div className="grid grid-cols-2 gap-3">
