@@ -114,10 +114,6 @@ function TutorialImages({ category }: { category: Category }) {
         return [
           { src: `${basePath}/mou1.png`, alt: "Tutorial MOU 1" }
         ]
-      case "industri":
-        return [
-          { src: `${basePath}/industri1.png`, alt: "Tutorial Industri 1" }
-        ]
       case "magang":
         return [
           { src: `${basePath}/magang1.png`, alt: "Tutorial Magang 1" }

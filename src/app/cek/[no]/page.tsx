@@ -20,6 +20,28 @@ export default function CheckCertificatePage({ params }: Props) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const { showToast, ToastContainer } = useToast()
+  const [natW, setNatW] = useState<number>(0)
+  const [natH, setNatH] = useState<number>(0)
+  const cacheParam = (() => {
+    const c = certificateData as any
+    const v = c?.updated_at || c?.updatedAt || c?.modified_at || c?.modifiedAt || c?.issued_at || c?.id
+    return v ? String(v).replace(/\s+/g, '-') : String(Date.now())
+  })()
+
+  // Back button handler with safe fallback when no history
+  const handleBack = () => {
+    try {
+      const hasHistory = typeof window !== 'undefined' && window.history.length > 1
+      const sameOriginRef = typeof document !== 'undefined' && document.referrer && new URL(document.referrer).origin === window.location.origin
+      if (hasHistory && sameOriginRef) {
+        router.back()
+      } else {
+        router.push('/all')
+      }
+    } catch {
+      router.push('/all')
+    }
+  }
 
   useEffect(() => {
     async function fetchData() {
@@ -89,7 +111,7 @@ export default function CheckCertificatePage({ params }: Props) {
           </button>
         </div>
       <button
-          onClick={() => router.back()}
+          onClick={handleBack}
           aria-label="Back"
           className="ml-8 mt-8 mb-0 inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white hover:bg-white/10"
         >
@@ -120,7 +142,7 @@ export default function CheckCertificatePage({ params }: Props) {
       </div>
       
       <button
-        onClick={() => router.back()}
+        onClick={handleBack}
         aria-label="Back"
         className="ml-8 mt-8 mb-0 inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white hover:bg-white/10"
       >
@@ -157,25 +179,33 @@ export default function CheckCertificatePage({ params }: Props) {
                 willChange: 'transform',
                 width: '100%',
                 maxWidth: '600px',
-                height: '420px',
-                minHeight: '420px',
-                maxHeight: '420px',
-                aspectRatio: '4/3',
+                aspectRatio: natW && natH ? `${natW}/${natH}` : undefined,
                 margin: '0 auto'
               }}
               data-preview-container="check"
             >
-              {certificateData && certificateData.template_path ? (
+              {certificateData && (certificateData.preview_image || certificateData.template_path) ? (
                 <>
-                  <img
-                    src={`/${certificateData.template_path}`}
-                    alt="Certificate Template"
-                    className="absolute inset-0 w-full h-full object-contain"
-                    data-preview-image
-                  />
+                  {certificateData.preview_image ? (
+                    <img
+                      src={`${certificateData.preview_image}${certificateData.preview_image.includes('?') ? '&' : '?'}v=${cacheParam}`}
+                      alt="Certificate Preview"
+                      className="absolute inset-0 w-full h-full object-contain"
+                      data-preview-image
+                      onLoad={(e)=>{ setNatW(e.currentTarget.naturalWidth); setNatH(e.currentTarget.naturalHeight) }}
+                    />
+                  ) : (
+                    <img
+                      src={`/${certificateData.template_path}`}
+                      alt="Certificate Template"
+                      className="absolute inset-0 w-full h-full object-contain"
+                      data-preview-image
+                      onLoad={(e)=>{ setNatW(e.currentTarget.naturalWidth); setNatH(e.currentTarget.naturalHeight) }}
+                    />
+                  )}
                   
                   {/* Title Overlay */}
-                  {certificateData.title && (
+                  {!certificateData.preview_image && certificateData.title && (
                     <div
                       className="absolute"
                       style={{ 
@@ -192,12 +222,12 @@ export default function CheckCertificatePage({ params }: Props) {
                       }}
                       data-overlay="text"
                     >
-                      <div className="font-bold">{certificateData.title}</div>
+                      <div>{certificateData.title}</div>
                     </div>
                   )}
 
                   {/* Description Overlay */}
-                  {certificateData.description && (
+                  {!certificateData.preview_image && certificateData.description && (
                     <div
                       className="absolute"
                       style={{ 
@@ -219,7 +249,7 @@ export default function CheckCertificatePage({ params }: Props) {
                   )}
 
                   {/* Date Overlay */}
-                  {certificateData.issued_at && (
+                  {!certificateData.preview_image && certificateData.issued_at && (
                     <div
                       className="absolute"
                       style={{ 
@@ -262,7 +292,7 @@ export default function CheckCertificatePage({ params }: Props) {
           <h3 className="text-lg font-semibold mb-4">{t('certificateDetails')}</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <p className="text-white/70 text-sm">{t('title')}</p>
+              <p className="text-white/70 text-sm">{t('name')}</p>
               <p className="font-medium">{certificateData.title || '-'}</p>
             </div>
             <div>
@@ -317,148 +347,30 @@ export default function CheckCertificatePage({ params }: Props) {
           <button 
             onClick={async () => {
               try {
-                // Get the preview container
-                const previewContainer = document.querySelector('[data-preview-container="check"]') as HTMLElement
-                if (!previewContainer) {
-                  alert('Preview container not found')
+                // Always export using the saved PNG preview_image only
+                if (!certificateData?.id) throw new Error('Invalid certificate id')
+                const { data: certWithPreview, error: previewErr } = await supabase
+                  .from('certificates')
+                  .select('preview_image')
+                  .eq('id', certificateData.id)
+                  .single()
+                if (previewErr || !certWithPreview?.preview_image) {
+                  showToast('Preview image belum tersedia. Silakan buka halaman Admin, klik Save untuk menghasilkan PNG, lalu coba lagi.', 'error')
                   return
                 }
-
-                // Get the template image
-                const templateImg = document.querySelector('[data-preview-image]') as HTMLImageElement
-                if (!templateImg) {
-                  alert('Template image not found')
-                  return
-                }
-
-                // Wait for image to load
-                await new Promise((resolve) => {
-                  if (templateImg.complete) {
-                    resolve(true)
-                  } else {
-                    templateImg.onload = () => resolve(true)
-                  }
+                const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+                  const im = new Image()
+                  im.crossOrigin = 'anonymous'
+                  im.onload = () => resolve(im)
+                  im.onerror = reject
+                  const url = certWithPreview.preview_image + (certWithPreview.preview_image.includes('?') ? '&' : '?') + 'v=' + Date.now()
+                  im.src = url
                 })
-
-                // Try html2canvas first, fallback to manual rendering
-                let canvas: HTMLCanvasElement
-                try {
-                  canvas = await html2canvas(previewContainer, {
-                    backgroundColor: '#ffffff',
-                    scale: 1,
-                    useCORS: true,
-                    allowTaint: false,
-                    logging: false,
-                    ignoreElements: (element) => {
-                      // Skip elements with unsupported CSS properties
-                      const style = window.getComputedStyle(element)
-                      return false // All colors are now compatible
-                    }
-                  })
-                } catch (html2canvasError) {
-                  console.warn('html2canvas failed, using manual rendering:', html2canvasError)
-                  
-                  // Fallback to manual canvas rendering
-                  const templateImg = document.querySelector('[data-preview-image]') as HTMLImageElement
-                  if (!templateImg) {
-                    throw new Error('Template image not found')
-                  }
-
-                  // Wait for image to load
-                  await new Promise((resolve) => {
-                    if (templateImg.complete) {
-                      resolve(true)
-                    } else {
-                      templateImg.onload = () => resolve(true)
-                    }
-                  })
-
-                  // Create canvas with original image dimensions
-                  canvas = document.createElement('canvas')
-                  const ctx = canvas.getContext('2d')
-                  if (!ctx) throw new Error('Canvas context not available')
-
-                  canvas.width = templateImg.naturalWidth
-                  canvas.height = templateImg.naturalHeight
-
-                  // Draw the template image
-                  ctx.drawImage(templateImg, 0, 0, canvas.width, canvas.height)
-
-                  // Helper function to draw text
-                  const drawText = (text: string, x: number, y: number, size: number, color: string, align: string, font: string, bold = false) => {
-                    if (!text) return
-                    
-                    ctx.fillStyle = color
-                    ctx.font = `${bold ? 'bold ' : ''}${size}px ${font}`
-                    ctx.textAlign = align as CanvasTextAlign
-                    ctx.textBaseline = 'top'
-                    
-                    // Use coordinates directly without scaling
-                    ctx.fillText(text, x, y)
-                  }
-
-                  // Draw title
-                  if (certificateData.title) {
-                    drawText(
-                      certificateData.title,
-                      certificateData.title_x || 370,
-                      certificateData.title_y || 180,
-                      certificateData.title_size || 32,
-                      certificateData.title_color || "#000000",
-                      certificateData.title_align || "center",
-                      certificateData.title_font || "Inter, ui-sans-serif, system-ui",
-                      true
-                    )
-                  }
-
-                  // Draw description
-                  if (certificateData.description) {
-                    drawText(
-                      certificateData.description,
-                    certificateData.desc_x || 50,
-                    certificateData.desc_y || 200,
-                      certificateData.desc_size || 15,
-                      certificateData.desc_color || "#000000",
-                      certificateData.desc_align || "left",
-                      certificateData.desc_font || "Inter, ui-sans-serif, system-ui"
-                    )
-                  }
-
-                  // Draw date
-                  if (certificateData.issued_at) {
-                    const dateText = new Date(certificateData.issued_at).toLocaleDateString('id-ID', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })
-                    drawText(
-                      dateText,
-                    certificateData.date_x || 50,
-                    certificateData.date_y || 80,
-                      certificateData.date_size || 14,
-                      certificateData.date_color || "#000000",
-                      certificateData.date_align || "left",
-                      certificateData.date_font || "Inter, ui-sans-serif, system-ui"
-                    )
-                  }
-                }
-
-                // Convert canvas to PDF
-                const imgData = canvas.toDataURL('image/png', 1.0)
-                
-                // Create PDF with canvas dimensions
-                const pdf = new jsPDF({
-                  orientation: canvas.width >= canvas.height ? 'landscape' : 'portrait',
-                  unit: 'px',
-                  format: [canvas.width, canvas.height]
-                })
-
-                // Add the captured image to PDF
-                pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height)
-
-                // Download PDF
+                const w = img.naturalWidth || img.width
+                const h = img.naturalHeight || img.height
+                const pdf = new jsPDF({ orientation: w >= h ? 'landscape' : 'portrait', unit: 'px', format: [w, h] })
+                pdf.addImage(img, 'PNG', 0, 0, w, h)
                 pdf.save(`certificate_${certificateData.number || certificateData.id}.pdf`)
-
               } catch (error) {
                 console.error('Export failed:', error)
                 showToast('Failed to export PDF: ' + (error instanceof Error ? error.message : 'Unknown error'), 'error')

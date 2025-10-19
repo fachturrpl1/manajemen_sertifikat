@@ -47,6 +47,18 @@ export default function AdminPage() {
     dateColor: string
     dateAlign: "left" | "center" | "right"
     dateFont: string
+    numberX: number
+    numberY: number
+    numberSize: number
+    numberColor: string
+    numberAlign: "left" | "center" | "right"
+    numberFont: string
+    expX: number
+    expY: number
+    expSize: number
+    expColor: string
+    expAlign: "left" | "center" | "right"
+    expFont: string
   }>>([])
   const [historyIndex, setHistoryIndex] = useState(-1)
   const [canUndo, setCanUndo] = useState(false)
@@ -57,9 +69,12 @@ export default function AdminPage() {
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
   const [issuedAt, setIssuedAt] = useState<string>("")
+  const [expiresAt, setExpiresAt] = useState<string>("")
+  const [numberText, setNumberText] = useState<string>("")
 
   // Per-element styles & positions
-  const [activeElement, setActiveElement] = useState<"title" | "description" | "date">("title")
+  const [activeElement, setActiveElement] = useState<"title" | "description" | "date" | "number" | "expired">("title")
+
   const [titleX, setTitleX] = useState<number>(370)
   const [titleY, setTitleY] = useState<number>(180)
   const [titleSize, setTitleSize] = useState<number>(32)
@@ -75,13 +90,29 @@ export default function AdminPage() {
   const [dateSize, setDateSize] = useState<number>(14)
   const [dateColor, setDateColor] = useState<string>("#000000")
 
+  // Number element styles & positions
+  const [numberX, setNumberX] = useState<number>(370)
+  const [numberY, setNumberY] = useState<number>(300)
+  const [numberSize, setNumberSize] = useState<number>(14)
+  const [numberColor, setNumberColor] = useState<string>("#000000")
+
+  // Expired element styles & positions
+  const [expX, setExpX] = useState<number>(370)
+  const [expY, setExpY] = useState<number>(360)
+  const [expSize, setExpSize] = useState<number>(12)
+  const [expColor, setExpColor] = useState<string>("#000000")
+
   // Align & font per elemen
   const [titleAlign, setTitleAlign] = useState<"left" | "center" | "right">("center")
   const [descAlign, setDescAlign] = useState<"left" | "center" | "right">("center")
   const [dateAlign, setDateAlign] = useState<"left" | "center" | "right">("center")
+  const [numberAlign, setNumberAlign] = useState<"left" | "center" | "right">("center")
+  const [expAlign, setExpAlign] = useState<"left" | "center" | "right">("center")
   const [titleFont, setTitleFont] = useState("Inter, ui-sans-serif, system-ui")
   const [descFont, setDescFont] = useState("Inter, ui-sans-serif, system-ui")
   const [dateFont, setDateFont] = useState("Inter, ui-sans-serif, system-ui")
+  const [numberFont, setNumberFont] = useState("Inter, ui-sans-serif, system-ui")
+  const [expFont, setExpFont] = useState("Inter, ui-sans-serif, system-ui")
 
   // Fungsi untuk menyimpan state ke history
   const saveToHistory = () => {
@@ -89,6 +120,8 @@ export default function AdminPage() {
       title,
       description,
       issuedAt,
+      expiresAt,
+      numberText,
       titleX,
       titleY,
       titleSize,
@@ -106,9 +139,20 @@ export default function AdminPage() {
       dateSize,
       dateColor,
       dateAlign,
-      dateFont
+      dateFont,
+      numberX,
+      numberY,
+      numberSize,
+      numberColor,
+      numberAlign,
+      numberFont,
+      expX,
+      expY,
+      expSize,
+      expColor,
+      expAlign,
+      expFont
     }
-
     // Hapus semua state setelah index saat ini (jika ada)
     const newHistory = history.slice(0, historyIndex + 1)
     newHistory.push(currentState)
@@ -152,6 +196,18 @@ export default function AdminPage() {
       setDateColor(state.dateColor)
       setDateAlign(state.dateAlign)
       setDateFont(state.dateFont)
+      setNumberX(state.numberX)
+      setNumberY(state.numberY)
+      setNumberSize(state.numberSize)
+      setNumberColor(state.numberColor)
+      setNumberAlign(state.numberAlign)
+      setNumberFont(state.numberFont)
+      setExpX(state.expX)
+      setExpY(state.expY)
+      setExpSize(state.expSize)
+      setExpColor(state.expColor)
+      setExpAlign(state.expAlign)
+      setExpFont(state.expFont)
       
       setHistoryIndex(newIndex)
       setCanUndo(newIndex > 0)
@@ -168,6 +224,7 @@ export default function AdminPage() {
       setTitle(state.title)
       setDescription(state.description)
       setIssuedAt(state.issuedAt)
+
       setTitleX(state.titleX)
       setTitleY(state.titleY)
       setTitleSize(state.titleSize)
@@ -186,6 +243,18 @@ export default function AdminPage() {
       setDateColor(state.dateColor)
       setDateAlign(state.dateAlign)
       setDateFont(state.dateFont)
+      setNumberX(state.numberX)
+      setNumberY(state.numberY)
+      setNumberSize(state.numberSize)
+      setNumberColor(state.numberColor)
+      setNumberAlign(state.numberAlign)
+      setNumberFont(state.numberFont)
+      setExpX(state.expX)
+      setExpY(state.expY)
+      setExpSize(state.expSize)
+      setExpColor(state.expColor)
+      setExpAlign(state.expAlign)
+      setExpFont(state.expFont)
       
       setHistoryIndex(newIndex)
       setCanUndo(true)
@@ -345,10 +414,41 @@ export default function AdminPage() {
         }
       })
       
-      // Convert ke base64
+      // Return raw PNG data URL; callers will upload to Storage and store public URL
       return canvas.toDataURL('image/png', 1.0)
     } catch (error) {
       console.error('Error generating preview image:', error)
+      return null
+    }
+  }
+
+  // Convert a PNG data URL to a Blob
+  function dataURLToBlob(dataUrl: string): Blob {
+    const parts = dataUrl.split(',')
+    const base64 = parts.length > 1 ? parts[1] : parts[0]
+    const byteString = atob(base64)
+    const ab = new ArrayBuffer(byteString.length)
+    const ia = new Uint8Array(ab)
+    for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i)
+    return new Blob([ab], { type: 'image/png' })
+  }
+
+  // Upload preview PNG to Supabase Storage 'sertifikat' bucket and return public URL
+  async function uploadPreviewToStorage(previewDataUrl: string, certId?: string): Promise<string | null> {
+    try {
+      const blob = dataURLToBlob(previewDataUrl)
+      const fileName = `certificate_${certId || 'unknown'}_preview_${Date.now()}.png`
+      const { error: upErr } = await supabase.storage
+        .from('sertifikat')
+        .upload(fileName, blob, { contentType: 'image/png', upsert: false })
+      if (upErr) {
+        console.error('Failed to upload preview PNG:', upErr)
+        return null
+      }
+      const { data: pub } = supabase.storage.from('sertifikat').getPublicUrl(fileName)
+      return pub?.publicUrl || null
+    } catch (e) {
+      console.error('uploadPreviewToStorage failed:', e)
       return null
     }
   }
@@ -367,19 +467,31 @@ export default function AdminPage() {
         const cleanUpdate = Object.fromEntries(
           Object.entries(update).filter(([, value]) => value !== undefined)
         )
+        if (Object.keys(cleanUpdate).length === 0) {
+          console.warn('queueSave called with empty update, skipping DB write')
+          setUiSaving(false)
+          return
+        }
         
         // Generate preview image jika ada perubahan yang mempengaruhi tampilan
         const needsPreviewUpdate = Object.keys(cleanUpdate).some(key => 
-          ['title', 'description', 'title_x', 'title_y', 'title_size', 'title_color', 'title_align', 'title_font',
+          ['title', 'description', 'number', 'issued_at', 'expires_at',
+           'title_x', 'title_y', 'title_size', 'title_color', 'title_align', 'title_font',
            'desc_x', 'desc_y', 'desc_size', 'desc_color', 'desc_align', 'desc_font',
-           'date_x', 'date_y', 'date_size', 'date_color', 'date_align', 'date_font', 'template_path'].includes(key)
+           'date_x', 'date_y', 'date_size', 'date_color', 'date_align', 'date_font',
+           'number_x', 'number_y', 'number_size', 'number_color', 'number_align', 'number_font',
+           'expires_x', 'expires_y', 'expires_size', 'expires_color', 'expires_align', 'expires_font',
+           'template_path'].includes(key)
         )
         
         if (needsPreviewUpdate) {
           const previewImage = await generatePreviewImage()
           if (previewImage) {
-            cleanUpdate.preview_image = previewImage
-            console.log("Generated preview image for save")
+            const publicUrl = await uploadPreviewToStorage(previewImage, certificateId)
+            if (publicUrl) {
+              cleanUpdate.preview_image = publicUrl
+              console.log("Uploaded preview PNG and set public URL")
+            }
           }
         }
         
@@ -477,6 +589,8 @@ export default function AdminPage() {
         // Set other fields
         setDescription((row.description as string) || "")
         setIssuedAt((row.issued_at as string) || "")
+        setExpiresAt((row.expires_at as string) || "")
+        setNumberText((row.number as string) || "")
         
         // Set positioning and styling with fallback values
         setTitleX((row.title_x as number) ?? 370)
@@ -500,6 +614,20 @@ export default function AdminPage() {
         setDateColor((row.date_color as string) ?? "#000000")
         setDateAlign((row.date_align as "left" | "center" | "right") ?? "center")
         setDateFont((row.date_font as string) ?? "Inter, ui-sans-serif, system-ui")
+        // Number
+        setNumberX((row.number_x as number) ?? 370)
+        setNumberY((row.number_y as number) ?? 300)
+        setNumberSize((row.number_size as number) ?? 14)
+        setNumberColor((row.number_color as string) ?? "#000000")
+        setNumberAlign((row.number_align as "left" | "center" | "right") ?? "center")
+        setNumberFont((row.number_font as string) ?? "Inter, ui-sans-serif, system-ui")
+        // Expired
+        setExpX((row.expires_x as number) ?? 370)
+        setExpY((row.expires_y as number) ?? 360)
+        setExpSize((row.expires_size as number) ?? 12)
+        setExpColor((row.expires_color as string) ?? "#000000")
+        setExpAlign((row.expires_align as "left" | "center" | "right") ?? "center")
+        setExpFont((row.expires_font as string) ?? "Inter, ui-sans-serif, system-ui")
         
         // Set template
         if (row.template_path) {
@@ -533,11 +661,13 @@ export default function AdminPage() {
 
   // Inisialisasi history saat data dimuat
   useEffect(() => {
-    if (title || description || issuedAt) {
+    if (title || description || issuedAt || expiresAt || numberText) {
       const initialState = {
         title,
         description,
         issuedAt,
+        expiresAt,
+        numberText,
         titleX,
         titleY,
         titleSize,
@@ -555,7 +685,19 @@ export default function AdminPage() {
         dateSize,
         dateColor,
         dateAlign,
-        dateFont
+        dateFont,
+        numberX,
+        numberY,
+        numberSize,
+        numberColor,
+        numberAlign,
+        numberFont,
+        expX,
+        expY,
+        expSize,
+        expColor,
+        expAlign,
+        expFont
       }
       
       if (history.length === 0) {
@@ -565,7 +707,7 @@ export default function AdminPage() {
         setCanRedo(false)
       }
     }
-  }, [title, description, issuedAt, titleX, titleY, titleSize, titleColor, titleAlign, titleFont, descX, descY, descSize, descColor, descAlign, descFont, dateX, dateY, dateSize, dateColor, dateAlign, dateFont, history.length])
+  }, [title, description, issuedAt, expiresAt, numberText, titleX, titleY, titleSize, titleColor, titleAlign, titleFont, descX, descY, descSize, descColor, descAlign, descFont, dateX, dateY, dateSize, dateColor, dateAlign, dateFont, numberX, numberY, numberSize, numberColor, numberAlign, numberFont, expX, expY, expSize, expColor, expAlign, expFont, history.length])
 
   async function saveCategory(newVal: string) {
     if (!certificateId) {
@@ -691,21 +833,31 @@ export default function AdminPage() {
           previewSrc={previewSrc}
           title={title}
           description={description}
+          numberText={numberText}
           titlePos={{ x: titleX, y: titleY, size: titleSize, color: titleColor }}
           descPos={{ x: descX, y: descY, size: descSize, color: descColor }}
           datePos={{ x: dateX, y: dateY, size: dateSize, color: dateColor }}
+          numberPos={{ x: numberX, y: numberY, size: numberSize, color: numberColor }}
+          expiredPos={{ x: expX, y: expY, size: expSize, color: expColor }}
           titleAlign={titleAlign}
           descAlign={descAlign}
           dateAlign={dateAlign}
+          numberAlign={numberAlign}
+          expAlign={expAlign}
           titleFont={titleFont}
           descFont={descFont}
           dateFont={dateFont}
+          numberFont={numberFont}
+          expFont={expFont}
           issuedAt={issuedAt}
+          expiresAt={expiresAt}
           active={activeElement}
           onDragPosition={(nx, ny) => {
             if (activeElement === "title") { setTitleX(nx); setTitleY(ny) }
             else if (activeElement === "description") { setDescX(nx); setDescY(ny) }
-            else { setDateX(nx); setDateY(ny) }
+            else if (activeElement === "date") { setDateX(nx); setDateY(ny) }
+            else if (activeElement === "number") { setNumberX(nx); setNumberY(ny) }
+            else { setExpX(nx); setExpY(ny) }
           }}
           onCommitPosition={(nx, ny) => {
              saveToHistory()
@@ -715,6 +867,10 @@ export default function AdminPage() {
               queueSave({ desc_x: nx, desc_y: ny })
             } else if (activeElement === "date") {
               queueSave({ date_x: nx, date_y: ny })
+            } else if (activeElement === "number") {
+              queueSave({ number_x: nx, number_y: ny })
+            } else if (activeElement === "expired") {
+              queueSave({ expires_x: nx, expires_y: ny })
             }
           }}
         />
@@ -769,14 +925,16 @@ export default function AdminPage() {
             <div>
               <label className="block text-sm text-white/70 mb-1">{t('editElements')}</label>
               <div className="grid grid-cols-3 gap-2">
-                <button className={`rounded-md border border-white/10 px-3 py-2 text-sm ${activeElement==='title'?'bg-white/15':'bg-white/5'}`} onClick={()=>setActiveElement('title')}>{t('title')}</button>
+                <button className={`rounded-md border border-white/10 px-3 py-2 text-sm ${activeElement==='title'?'bg-white/15':'bg-white/5'}`} onClick={()=>setActiveElement('title')}>{t('name')}</button>
                 <button className={`rounded-md border border-white/10 px-3 py-2 text-sm ${activeElement==='description'?'bg-white/15':'bg-white/5'}`} onClick={()=>setActiveElement('description')}>{t('description')}</button>
                 <button className={`rounded-md border border-white/10 px-3 py-2 text-sm ${activeElement==='date'?'bg-white/15':'bg-white/5'}`} onClick={()=>setActiveElement('date')}>{t('date')}</button>
+                <button className={`rounded-md border border-white/10 px-3 py-2 text-sm ${activeElement==='number'?'bg-white/15':'bg-white/5'}`} onClick={()=>setActiveElement('number')}>Number</button>
+                <button className={`rounded-md border border-white/10 px-3 py-2 text-sm ${activeElement==='expired'?'bg-white/15':'bg-white/5'}`} onClick={()=>setActiveElement('expired')}>Expired</button>
               </div>
             </div>
             {activeElement === 'title' && (
             <div>
-              <label className="block text-sm text-white/70 mb-1">{t('title')}</label>
+              <label className="block text-sm text-white/70 mb-1">{t('name')}</label>
               <input
                 className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm"
                 value={title}
@@ -808,6 +966,21 @@ export default function AdminPage() {
                   if (certificateId) await supabase.from("certificates").update({ description: v }).eq("id", certificateId)
                 }}
                 placeholder={t('briefDescription')}
+              />
+            </div>
+            )}
+            {activeElement === 'number' && (
+            <div>
+              <label className="block text-sm text-white/70 mb-1">Nomor Sertifikat</label>
+              <input
+                className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm"
+                value={numberText}
+                onChange={async (e) => {
+                  const v = e.target.value; setNumberText(v)
+                   saveToHistory()
+                  if (certificateId) await supabase.from("certificates").update({ number: v }).eq("id", certificateId)
+                }}
+                placeholder="Nomor sertifikat"
               />
             </div>
             )}
@@ -878,6 +1051,27 @@ export default function AdminPage() {
                   {/* Info tambahan */}
                   <div className="text-xs text-white/60 bg-white/5 rounded px-2 py-1">
                     <span className="text-blue-400">ℹ</span> Tanggal akan ditampilkan pada sertifikat sesuai format Indonesia
+                  </div>
+                </div>
+              </div>
+            )}
+            {activeElement === 'expired' && (
+              <div>
+                <label className="block text-sm text-white/70 mb-1">Expired Date</label>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs text-white/60 mb-1">Tanggal Kedaluwarsa</label>
+                    <input 
+                      type="date" 
+                      className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white" 
+                      value={expiresAt || ""}
+                      onChange={async (e) => {
+                        const v = e.target.value
+                        setExpiresAt(v)
+                         saveToHistory()
+                        if (certificateId) await supabase.from("certificates").update({ expires_at: v }).eq("id", certificateId)
+                      }}
+                    />
                   </div>
                 </div>
               </div>
@@ -1042,22 +1236,19 @@ export default function AdminPage() {
                     date_x: dateX,
                     date_y: dateY,
                     date_size: dateSize,
-                    date_color: dateColor
+                    date_color: dateColor,
                   }
-                  
-                  console.log("Full payload with styling:", payload)
-                  console.log("Certificate ID:", certificateId)
-                  
-                  try {
-                    console.log("Attempting to update database...")
-                    
-                    // Generate preview image untuk Save All
-                    const previewImage = await generatePreviewImage()
-                    if (previewImage) {
-                      (payload as Record<string, string | number | null>).preview_image = previewImage
-                      console.log("Generated preview image for Save All")
+
+                  // Generate and upload preview PNG
+                  const previewImageDataUrl = await generatePreviewImage()
+                  if (previewImageDataUrl) {
+                    const publicUrl = await uploadPreviewToStorage(previewImageDataUrl, certificateId)
+                    if (publicUrl) {
+                      payload.preview_image = publicUrl
                     }
-                    
+                  }
+
+                  try {
                     const { error } = await supabase.from('certificates').update(payload).eq('id', certificateId)
                     if (error) {
                       console.error("Save All error:", error)
@@ -1092,12 +1283,229 @@ export default function AdminPage() {
   )
 }
 
-function PreviewPanel({ category, previewSrc, title, description, titlePos, descPos, datePos, titleAlign, descAlign, dateAlign, titleFont, descFont, dateFont, issuedAt, active, onDragPosition, onCommitPosition }: { category: string; previewSrc?: string; title?: string; description?: string; titlePos: { x: number; y: number; size: number; color: string }; descPos: { x: number; y: number; size: number; color: string }; datePos: { x: number; y: number; size: number; color: string }; titleAlign: "left"|"center"|"right"; descAlign: "left"|"center"|"right"; dateAlign: "left"|"center"|"right"; titleFont: string; descFont: string; dateFont: string; issuedAt?: string; active: "title"|"description"|"date"; onDragPosition?: (x: number, y: number) => void; onCommitPosition?: (x: number, y: number) => void }) {
+function PreviewPanel({ category, previewSrc, title, description, numberText, titlePos, descPos, datePos, numberPos, expiredPos, titleAlign, descAlign, dateAlign, numberAlign, expAlign, titleFont, descFont, dateFont, numberFont, expFont, issuedAt, expiresAt, active, onDragPosition, onCommitPosition }: { category: string; previewSrc?: string; title?: string; description?: string; numberText?: string; titlePos: { x: number; y: number; size: number; color: string }; descPos: { x: number; y: number; size: number; color: string }; datePos: { x: number; y: number; size: number; color: string }; numberPos: { x: number; y: number; size: number; color: string }; expiredPos: { x: number; y: number; size: number; color: string }; titleAlign: "left"|"center"|"right"; descAlign: "left"|"center"|"right"; dateAlign: "left"|"center"|"right"; numberAlign: "left"|"center"|"right"; expAlign: "left"|"center"|"right"; titleFont: string; descFont: string; dateFont: string; numberFont: string; expFont: string; issuedAt?: string; expiresAt?: string; active: "title"|"description"|"date"|"number"|"expired"; onDragPosition?: (x: number, y: number) => void; onCommitPosition?: (x: number, y: number) => void }) {
   const { t } = useI18n()
   const [dragging, setDragging] = useState(false)
   const containerRef = useRef<HTMLDivElement | null>(null)
+  const [natW, setNatW] = useState<number>(0)
+  const [natH, setNatH] = useState<number>(0)
+  const [livePng, setLivePng] = useState<string>("")
+
+  function getMetrics() {
+    const cont = containerRef.current
+    if (!cont || !natW || !natH) return { offX: 0, offY: 0, dispW: 0, dispH: 0, scaleX: 1, scaleY: 1 }
+    const cW = cont.clientWidth
+    const cH = cont.clientHeight
+    const ratioImg = natW / natH
+    const ratioCont = cW / cH
+    let dispW = cW, dispH = cH
+    if (ratioCont > ratioImg) {
+      dispH = cH
+      dispW = Math.round(cH * ratioImg)
+    } else {
+      dispW = cW
+      dispH = Math.round(cW / ratioImg)
+    }
+    const offX = Math.round((cW - dispW) / 2)
+    const offY = Math.round((cH - dispH) / 2)
+    return { offX, offY, dispW, dispH, scaleX: dispW / natW, scaleY: dispH / natH }
+  }
+
+  function imgToScreen(x: number, y: number) {
+    const m = getMetrics()
+    return { x: Math.round(m.offX + x * m.scaleX), y: Math.round(m.offY + y * m.scaleY) }
+  }
+
+  function screenToImg(x: number, y: number) {
+    const m = getMetrics()
+    return { x: Math.round((x - m.offX) / m.scaleX), y: Math.round((y - m.offY) / m.scaleY) }
+  }
+
+  async function renderLivePng() {
+    try {
+      if (!previewSrc || !natW || !natH) return
+      const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+        const im = new Image()
+        im.crossOrigin = 'anonymous'
+        im.onload = () => resolve(im)
+        im.onerror = reject
+        im.src = previewSrc
+      })
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')!
+      canvas.width = natW
+      canvas.height = natH
+      ctx.drawImage(img, 0, 0, natW, natH)
+
+      const wrapText = (ctx2: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number) => {
+        const lines = String(text).split('\n')
+        for (const line of lines) {
+          let cur = ''
+          const words = line.split(' ')
+          for (let n = 0; n < words.length; n++) {
+            const test = cur ? cur + ' ' + words[n] : words[n]
+            const w = ctx2.measureText(test).width
+            if (w > maxWidth && n > 0) {
+              ctx2.fillText(cur, x, y)
+              y += lineHeight
+              cur = words[n]
+            } else {
+              cur = test
+            }
+          }
+          ctx2.fillText(cur, x, y)
+          y += lineHeight
+        }
+      }
+
+      const drawText = async (
+        text: string,
+        x: number,
+        y: number,
+        size: number,
+        color: string,
+        align: string,
+        font: string,
+        bold = false,
+        maxWidth?: number,
+        forceLeftAnchor = false
+      ) => {
+        if (!text) return
+        ctx.fillStyle = color
+        const weight = bold ? '700' : '400'
+        const baseFamily = (font || '').split(',')[0]?.replace(/['"]/g, '').trim() || 'Inter'
+        try { await (document as any).fonts?.load?.(`${weight} ${size}px '${baseFamily}'`) } catch {}
+        await document.fonts.ready?.()
 
 
+        
+        // const fontsAny = (document as any).fonts
+        // const ready = fontsAny?.ready
+        // if (ready && typeof (ready as any).then === 'function') {
+        //   try { await Promise.race([ready, new Promise(res => setTimeout(res, 500))]) } catch {}
+        // }
+        ctx.font = `${weight} ${size}px ${font}`
+        ctx.textBaseline = 'top'
+
+        const singleLine = !maxWidth
+        const blockWidth = maxWidth ?? Math.max(0, natW - x - 20)
+        let anchorX = x
+
+        if (forceLeftAnchor) {
+          ctx.textAlign = 'left'
+        } else if (align === 'center') {
+          ctx.textAlign = 'center'
+          anchorX = Math.round(x + blockWidth / 2)
+        } else if (align === 'right') {
+          ctx.textAlign = 'right'
+          anchorX = Math.round(x + blockWidth)
+        } else {
+          ctx.textAlign = 'left'
+        }
+
+        const dx = anchorX
+        const dy = y
+
+        if (!singleLine) {
+          // Generic wrapping supporting left/center/right by drawing each wrapped line with current textAlign
+          const words = String(text).split(/\s+/)
+          let line = ''
+          let yy = dy
+          for (let i = 0; i < words.length; i++) {
+            const test = line ? line + ' ' + words[i] : words[i]
+            const w = ctx.measureText(test).width
+            if (w > blockWidth && i > 0) {
+              ctx.fillText(line, dx, yy)
+              yy += Math.round(size * 1.4)
+              line = words[i]
+            } else {
+              line = test
+            }
+          }
+          if (line) ctx.fillText(line, dx, yy)
+        } else {
+          ctx.fillText(text, dx, dy)
+        }
+      }
+
+      // Title
+      if (title) {
+        await drawText(
+          title,
+          titlePos.x,
+          titlePos.y,
+          titlePos.size,
+          titlePos.color,
+          titleAlign,
+          titleFont,
+          true,
+          undefined,
+          true
+        )
+      }
+
+      // Description
+      if (description) {
+        await drawText(
+          description,
+          descPos.x,
+          descPos.y,
+          descPos.size,
+          descPos.color,
+          descAlign,
+          descFont,
+          false,
+          Math.max(0, natW - descPos.x - 40)
+        )
+      }
+
+      // Date
+      if (issuedAt) {
+        const dateText = new Date(issuedAt).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })
+        await drawText(
+          dateText,
+          datePos.x,
+          datePos.y,
+          datePos.size,
+          datePos.color,
+          dateAlign,
+          dateFont
+        )
+      }
+
+      // Number
+      if (numberText) {
+        await drawText(
+          numberText,
+          numberPos.x,
+          numberPos.y,
+          numberPos.size,
+          numberPos.color,
+          numberAlign,
+          numberFont
+        )
+      }
+
+      // Expires
+      if (expiresAt) {
+        const expText = new Date(expiresAt).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })
+        await drawText(
+          expText,
+          expiredPos.x,
+          expiredPos.y,
+          expiredPos.size,
+          expiredPos.color,
+          expAlign,
+          expFont
+        )
+      }
+
+      const url = canvas.toDataURL('image/png', 1.0)
+      setLivePng(url)
+    } catch (e) {
+      console.error('renderLivePng failed:', e)
+    }
+  }
 
   const clampX = (x: number) => {
     // Return original position without clamping to match edit mode
@@ -1131,10 +1539,7 @@ function PreviewPanel({ category, previewSrc, title, description, titlePos, desc
             willChange: 'transform',
             width: '100%',
             maxWidth: '600px',
-            height: '420px',
-            minHeight: '420px',
-            maxHeight: '420px',
-            aspectRatio: '4/3',
+            aspectRatio: natW && natH ? `${natW}/${natH}` : undefined,
             margin: '0 auto'
         }}
         data-preview-container="1"
@@ -1143,20 +1548,22 @@ function PreviewPanel({ category, previewSrc, title, description, titlePos, desc
           const overlay = (e.currentTarget as HTMLDivElement).querySelector('[data-overlay="text"]') as HTMLElement | null
           if (!overlay) return
           const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect()
-          const base = active === 'title' ? titlePos : active === 'description' ? descPos : datePos
-          const ox = base.x - Math.round(e.clientX - rect.left)
-          const oy = base.y - Math.round(e.clientY - rect.top)
+          const base = active === 'title' ? titlePos : active === 'description' ? descPos : active === 'date' ? datePos : active === 'number' ? numberPos : expiredPos
+          const start = screenToImg(Math.round(e.clientX - rect.left), Math.round(e.clientY - rect.top))
+          const ox = base.x - start.x
+          const oy = base.y - start.y
           setDragging(true)
           const onMove = (ev: MouseEvent) => {
-            const nx = Math.round(ev.clientX - rect.left) + ox
-            const ny = Math.round(ev.clientY - rect.top) + oy
+            const pos = screenToImg(Math.round(ev.clientX - rect.left), Math.round(ev.clientY - rect.top))
+            const nx = pos.x + ox
+            const ny = pos.y + oy
             onDragPosition?.(clampX(nx), clampY(ny))
           }
           const onUp = () => {
             setDragging(false)
             window.removeEventListener('mousemove', onMove)
             window.removeEventListener('mouseup', onUp)
-            const baseNow = active === 'title' ? titlePos : active === 'description' ? descPos : datePos
+            const baseNow = active === 'title' ? titlePos : active === 'description' ? descPos : active === 'date' ? datePos : active === 'number' ? numberPos : expiredPos
             const nx = clampX(baseNow.x)
             const ny = clampY(baseNow.y)
             onCommitPosition?.(nx, ny)
@@ -1166,19 +1573,21 @@ function PreviewPanel({ category, previewSrc, title, description, titlePos, desc
         }}
         title={t('clickAndDrag')}
       >
-        {previewSrc ? (
-          previewSrc.endsWith(".pdf") ? (
+        {livePng ? (
+          <img src={livePng} alt="Live Preview" className="absolute inset-0 w-full h-full object-contain" data-preview-image />
+        ) : previewSrc ? (
+          previewSrc.endsWith('.pdf') ? (
             <object data={previewSrc} type="application/pdf" className="w-full h-full" />
           ) : (
-            <img src={previewSrc} alt="Preview" className="absolute inset-0 w-full h-full object-contain" />
+            <img src={previewSrc} alt="Template" className="absolute inset-0 w-full h-full object-contain" onLoad={(e)=>{ setNatW(e.currentTarget.naturalWidth); setNatH(e.currentTarget.naturalHeight); setTimeout(()=>{renderLivePng()},0) }} />
           )
         ) : null}
         {/* Overlay text - title */}
         <div
           className="absolute"
           style={{ 
-            left: `${clampX(titlePos.x)}px`, 
-            top: `${clampY(titlePos.y)}px`, 
+            left: `${imgToScreen(titlePos.x, titlePos.y).x}px`, 
+            top: `${imgToScreen(titlePos.x, titlePos.y).y}px`, 
             width: "auto", 
             maxWidth: "calc(100% - 40px)",
             textAlign: titleAlign, 
@@ -1186,18 +1595,19 @@ function PreviewPanel({ category, previewSrc, title, description, titlePos, desc
             fontSize: `${titlePos.size}px`, 
             color: titlePos.color,
             position: 'absolute',
-            zIndex: 10
+            zIndex: 10,
+            opacity: livePng ? 0 : 1
           }}
           data-overlay="text"
         >
-          <div className="font-bold">{title}</div>
+          <div>{title}</div>
         </div>
         {/* Overlay text - description */}
         <div
           className="absolute"
           style={{ 
-            left: `${clampX(descPos.x)}px`, 
-            top: `${clampY(descPos.y)}px`, 
+            left: `${imgToScreen(descPos.x, descPos.y).x}px`, 
+            top: `${imgToScreen(descPos.x, descPos.y).y}px`, 
             width: "auto", 
             maxWidth: "calc(100% - 40px)",
             textAlign: descAlign, 
@@ -1206,18 +1616,40 @@ function PreviewPanel({ category, previewSrc, title, description, titlePos, desc
             color: descPos.color,
             whiteSpace: 'pre-line',
             position: 'absolute',
-            zIndex: 10
+            zIndex: 10,
+            opacity: livePng ? 0 : 1
           }}
         >
           <div className="opacity-90">{description}</div>
         </div>
+        {/* Overlay text - number */}
+        {numberText && (
+          <div
+            className="absolute"
+            style={{
+              left: `${imgToScreen(numberPos.x, numberPos.y).x}px`,
+              top: `${imgToScreen(numberPos.x, numberPos.y).y}px`,
+              width: 'auto',
+              maxWidth: 'calc(100% - 40px)',
+              textAlign: numberAlign,
+              fontFamily: numberFont,
+              fontSize: `${numberPos.size}px`,
+              color: numberPos.color,
+              position: 'absolute',
+              zIndex: 10,
+              opacity: livePng ? 0 : 1
+            }}
+          >
+            <div>{numberText}</div>
+          </div>
+        )}
         {/* Overlay text - date */}
         {issuedAt && (
           <div
             className="absolute"
             style={{ 
-              left: `${clampX(datePos.x)}px`, 
-              top: `${clampY(datePos.y)}px`, 
+              left: `${imgToScreen(datePos.x, datePos.y).x}px`, 
+              top: `${imgToScreen(datePos.x, datePos.y).y}px`, 
               width: "auto", 
               maxWidth: "calc(100% - 40px)",
               textAlign: dateAlign, 
@@ -1225,7 +1657,8 @@ function PreviewPanel({ category, previewSrc, title, description, titlePos, desc
               fontSize: `${datePos.size}px`, 
               color: datePos.color,
               position: 'absolute',
-              zIndex: 10
+              zIndex: 10,
+              opacity: livePng ? 0 : 1
             }}
           >
              <div className="mt-1 opacity-80">
@@ -1235,6 +1668,29 @@ function PreviewPanel({ category, previewSrc, title, description, titlePos, desc
                  day: 'numeric'
                })}
              </div>
+          </div>
+        )}
+        {/* Overlay text - expired */}
+        {expiresAt && (
+          <div
+            className="absolute"
+            style={{
+              left: `${imgToScreen(expiredPos.x, expiredPos.y).x}px`,
+              top: `${imgToScreen(expiredPos.x, expiredPos.y).y}px`,
+              width: 'auto',
+              maxWidth: 'calc(100% - 40px)',
+              textAlign: expAlign,
+              fontFamily: expFont,
+              fontSize: `${expiredPos.size}px`,
+              color: expiredPos.color,
+              position: 'absolute',
+              zIndex: 10,
+              opacity: livePng ? 0 : 1
+            }}
+          >
+            <div className="mt-1 opacity-80">
+              {new Date(expiresAt).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}
+            </div>
           </div>
         )}
         {!previewSrc && (
@@ -1254,12 +1710,15 @@ const TEMPLATE_MAP: Record<string, string[]> = {
   ],
   magang: [
     "certificate/magang/magang1.png",
+    "certificate/magang/magang2.png",
   ],
   mou: [
     "certificate/mou/mou1.png",
+    "certificate/mou/mou2.png",
   ],
   pelatihan: [
     "certificate/pelatihan/pelatihan1.png",
+    "certificate/pelatihan/pelatihan2.png",
   ],
 }
 

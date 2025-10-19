@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { useI18n } from "@/lib/i18n"
 import { Globe } from "lucide-react"
+import Image from "next/image"
 
 export default function AuPage() {
   const { t, locale, setLocale } = useI18n()
@@ -62,15 +63,24 @@ export default function AuPage() {
         <div className="relative">
           {/* mock preview area */}
           <div className="rounded-2xl border border-white/10 bg-[#0d172b] p-4 shadow-xl shadow-blue-500/10">
-            <div className="aspect-[16/10] w-full rounded-lg border border-white/10 bg-white/5" />
-        <div className="mt-4 grid grid-cols-2 gap-3 text-xs text-white/70">
-          <div className="rounded-md border border-white/10 bg-white/5 p-2">{t('feature1')}</div>
-          <div className="rounded-md border border-white/10 bg-white/5 p-2">{t('feature2')}</div>
-          <div className="rounded-md border border-white/10 bg-white/5 p-2">{t('feature3')}</div>
-          <div className="rounded-md border border-white/10 bg-white/5 p-2">{t('feature4')}</div>
-          <div className="rounded-md border border-white/10 bg-white/5 p-2">{t('feature5')}</div>
-          <div className="rounded-md border border-white/10 bg-white/5 p-2">{t('feature6')}</div>
-        </div>
+            <div className="aspect-[16/10] w-full rounded-lg bg-white/5 relative overflow-hidden box-content">
+              <Image
+                src="/root.jpg"
+                alt="Preview"
+                fill
+                className="object-cover object-center"
+                sizes="(max-width: 768px) 100vw, 50vw"
+                priority
+              />
+            </div>
+            <div className="mt-4 grid grid-cols-2 gap-3 text-xs text-white/70">
+              <div className="rounded-md border border-white/10 bg-white/5 p-2">{t('feature1')}</div>
+              <div className="rounded-md border border-white/10 bg-white/5 p-2">{t('feature2')}</div>
+              <div className="rounded-md border border-white/10 bg-white/5 p-2">{t('feature3')}</div>
+              <div className="rounded-md border border-white/10 bg-white/5 p-2">{t('feature4')}</div>
+              <div className="rounded-md border border-white/10 bg-white/5 p-2">{t('feature5')}</div>
+              <div className="rounded-md border border-white/10 bg-white/5 p-2">{t('feature6')}</div>
+            </div>
           </div>
         </div>
       </section>

@@ -28,7 +28,7 @@ export function AdminNavbar() {
       </div>
       </Link>
         <nav className="hidden md:flex items-center gap-6 text-sm text-white/70">
-          <Link className="hover:text-white" href="/admin">Home</Link>
+          <Link className="hover:text-white" href="/admin">{t('dashboard')}</Link>
           <Link className="hover:text-white" href="/admin/manage">{t('manage')}</Link>
           <Link className="hover:text-white" href="/admin/faq">{t('faq')}</Link>
         </nav>

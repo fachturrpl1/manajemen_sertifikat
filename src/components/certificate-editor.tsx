@@ -404,7 +404,7 @@ export default function CertificateEditor() {
           {activeElement === 'title' && (
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm text-white/70 mb-1">Justify (Title)</label>
+                <label className="block text-sm text-white/70 mb-1">Justify (Nama)</label>
                 <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={titleAlign}
                   onChange={(e)=>{ const v = e.target.value as "left"|"center"|"right"; setTitleAlign(v); queueSave({ title_align: v }) }}>
                   <option value="left">Left</option>
@@ -413,7 +413,7 @@ export default function CertificateEditor() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm text-white/70 mb-1">Font (Title)</label>
+                <label className="block text-sm text-white/70 mb-1">Font (Nama)</label>
                 <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={titleFont}
                   onChange={(e)=>{ const v=e.target.value; setTitleFont(v); queueSave({ title_font: v }) }}>
                   <option value="Inter, ui-sans-serif, system-ui">Inter</option>
@@ -697,12 +697,15 @@ const TEMPLATE_MAP: Record<string, string[]> = {
   ],
   magang: [
     "certificate/magang/magang1.png",
+    "certificate/magang/magang2.png",
   ],
   mou: [
     "certificate/mou/mou1.png",
+    "certificate/mou/mou2.png",
   ],
   pelatihan: [
     "certificate/pelatihan/pelatihan1.png",
+    "certificate/pelatihan/pelatihan2.png",
   ],
 }
 

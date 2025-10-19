@@ -14,7 +14,12 @@ export interface TemplateConfig {
     title: TemplatePosition;
     description: TemplatePosition;
     date: TemplatePosition;
+    number: TemplatePosition;
+    expired: TemplatePosition;
   };
+  
+  
+  
 }
 
 // Konfigurasi template dengan default positions
@@ -24,7 +29,7 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
     name: "Industrial Visit Template 1",
     defaultPositions: {
       title: { 
-        x: 205,
+        x: 180,
         y: 185, 
         size: 32, 
         color: "#000000", 
@@ -46,6 +51,22 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
         color: "#000000", 
         align: "center", 
         font: "Inter, ui-sans-serif, system-ui" 
+      },
+      number: {
+        x: 260,
+        y: 280,
+        size: 12,
+        color: "#000000",
+        align: "center",
+        font: "Inter, ui-sans-serif, system-ui"
+      },
+      expired: {
+        x: 260,
+        y: 340,
+        size: 12,
+        color: "#000000",
+        align: "center",
+        font: "Inter, ui-sans-serif, system-ui"
       }
     }
   },
@@ -54,28 +75,44 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
     name: "Industrial Visit Template 2",
     defaultPositions: {
       title: { 
-        x: 400,
-        y: 200, 
-        size: 28, 
+        x: 220,
+        y: 166, 
+        size: 22, 
         color: "#1a1a1a", 
         align: "center", 
         font: "Georgia, serif" 
       },
       description: { 
-        x: 380, 
-        y: 250, 
-        size: 14, 
+        x: 222, 
+        y: 212, 
+        size: 10, 
         color: "#333333", 
         align: "center", 
         font: "Inter, ui-sans-serif, system-ui" 
       },
       date: { 
-        x: 325, 
-        y: 359, 
-        size: 12, 
+        x: 332, 
+        y: 344, 
+        size: 9, 
         color: "#666666", 
         align: "right", 
         font: "Arial, Helvetica, sans-serif" 
+      },
+      number: {
+        x: 222,
+        y: 280,
+        size: 11,
+        color: "#333333",
+        align: "center",
+        font: "Inter, ui-sans-serif, system-ui"
+      },
+      expired: {
+        x: 222,
+        y: 360,
+        size: 10,
+        color: "#333333",
+        align: "center",
+        font: "Inter, ui-sans-serif, system-ui"
       }
     }
   },
@@ -106,12 +143,28 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
         color: "#000000", 
         align: "left", 
         font: "Arial, Helvetica, sans-serif" 
+      },
+      number: {
+        x: 350,
+        y: 300,
+        size: 14,
+        color: "#000000",
+        align: "center",
+        font: "Inter, ui-sans-serif, system-ui"
+      },
+      expired: {
+        x: 350,
+        y: 360,
+        size: 12,
+        color: "#000000",
+        align: "center",
+        font: "Inter, ui-sans-serif, system-ui"
       }
     }
   },
   "certificate/magang/magang2.png": {
     templatePath: "certificate/magang/magang2.png",
-    name: "Internship Template 1",
+    name: "Internship Template 2",
     defaultPositions: {
       title: { 
         x: 350, 
@@ -136,6 +189,22 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
         color: "#000000", 
         align: "left", 
         font: "Arial, Helvetica, sans-serif" 
+      },
+      number: {
+        x: 350,
+        y: 300,
+        size: 14,
+        color: "#000000",
+        align: "center",
+        font: "Inter, ui-sans-serif, system-ui"
+      },
+      expired: {
+        x: 350,
+        y: 360,
+        size: 12,
+        color: "#000000",
+        align: "center",
+        font: "Inter, ui-sans-serif, system-ui"
       }
     }
   },
@@ -166,12 +235,28 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
         color: "#000000", 
         align: "center", 
         font: "Times New Roman, Times, serif" 
+      },
+      number: {
+        x: 380,
+        y: 300,
+        size: 14,
+        color: "#000000",
+        align: "center",
+        font: "Inter, ui-sans-serif, system-ui"
+      },
+      expired: {
+        x: 380,
+        y: 360,
+        size: 12,
+        color: "#000000",
+        align: "center",
+        font: "Inter, ui-sans-serif, system-ui"
       }
     }
   },
   "certificate/mou/mou2.png": {
     templatePath: "certificate/mou/mou2.png",
-    name: "MoU Template 1",
+    name: "MoU Template 2",
     defaultPositions: {
       title: { 
         x: 380, 
@@ -196,6 +281,22 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
         color: "#000000", 
         align: "center", 
         font: "Times New Roman, Times, serif" 
+      },
+      number: {
+        x: 380,
+        y: 300,
+        size: 14,
+        color: "#000000",
+        align: "center",
+        font: "Inter, ui-sans-serif, system-ui"
+      },
+      expired: {
+        x: 380,
+        y: 360,
+        size: 12,
+        color: "#000000",
+        align: "center",
+        font: "Inter, ui-sans-serif, system-ui"
       }
     }
   },
@@ -226,12 +327,28 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
         color: "#000000", 
         align: "center", 
         font: "Inter, ui-sans-serif, system-ui" 
+      },
+      number: {
+        x: 360,
+        y: 300,
+        size: 14,
+        color: "#000000",
+        align: "center",
+        font: "Inter, ui-sans-serif, system-ui"
+      },
+      expired: {
+        x: 360,
+        y: 360,
+        size: 12,
+        color: "#000000",
+        align: "center",
+        font: "Inter, ui-sans-serif, system-ui"
       }
     }
   },
   "certificate/pelatihan/pelatihan2.png": {
     templatePath: "certificate/pelatihan/pelatihan2.png",
-    name: "Training Template 1",
+    name: "Training Template 2",
     defaultPositions: {
       title: { 
         x: 360, 
@@ -256,6 +373,22 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
         color: "#000000", 
         align: "center", 
         font: "Inter, ui-sans-serif, system-ui" 
+      },
+      number: {
+        x: 360,
+        y: 300,
+        size: 14,
+        color: "#000000",
+        align: "center",
+        font: "Inter, ui-sans-serif, system-ui"
+      },
+      expired: {
+        x: 360,
+        y: 360,
+        size: 12,
+        color: "#000000",
+        align: "center",
+        font: "Inter, ui-sans-serif, system-ui"
       }
     }
   },

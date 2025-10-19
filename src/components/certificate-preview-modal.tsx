@@ -269,7 +269,7 @@ export function CertificatePreviewModal({
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm mb-4">
                 <div>
-                  <span className="text-white/70">{t('title')}:</span>
+                  <span className="text-white/70">{t('name')}:</span>
                   <span className="ml-2 text-white">{title || t('noName')}</span>
                 </div>
                 <div>

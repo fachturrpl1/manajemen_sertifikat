@@ -66,11 +66,14 @@ export default function TeamPage() {
         <TeamNavbar />
         <main className="mx-auto max-w-7xl px-4 md:px-6 py-6 grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-6">
         <section className="rounded-xl border border-white/10 bg-[#0d172b] p-6 shadow-xl shadow-blue-500/10">
-          <h2 className="text-3xl font-bold text-blue-400 mb-4">{t('workGuide')}</h2>
+          <h2 className="text-3xl font-bold text-blue-400 mb-4">{t('howToUse')}</h2>
           <ol className="space-y-3 text-white/80 list-decimal pl-5">
-            <li>{t('workStep1')}</li>
-            <li>{t('workStep2')}</li>
-            <li>{t('workStep3')}</li>
+            <li>{t('step1')}</li>
+            <li>{t('step2')}</li>
+            <li>{t('step3')}</li>
+            <li>{t('step4')}</li>
+            <li>{t('step5')}</li>
+            <li>{t('step6')}</li>
           </ol>
         </section>
 
