@@ -14,6 +14,7 @@ type CertificateRow = {
   name?: string
   number?: string
   category?: string
+  recipientOrg?: string
   issuer?: string
   issuedAt?: string
   expiresAt?: string
@@ -69,6 +70,7 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
         name: r.name as string | undefined,
         number: r.number as string | undefined,
         category: r.category as string | undefined,
+        recipientOrg: r.recipient_org as string | undefined,
         issuer: r.issuer as string | undefined,
         issuedAt: r.issued_at as string | undefined,
         expiresAt: r.expires_at as string | undefined,
@@ -89,7 +91,7 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
           // Refetch data when any change occurs
           const { data, error } = await supabase
             .from("certificates")
-            .select("id,name,number,category,issuer,issued_at,expires_at")
+            .select("id,name,number,category,recipient_org,issuer,issued_at,expires_at")
           if (error) {
             console.error("Supabase certificates fetch error:", error)
             return
@@ -99,6 +101,7 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
             name: r.name,
             number: r.number,
             category: r.category,
+            recipientOrg: r.recipient_org,
             issuer: r.issuer,
             issuedAt: r.issued_at ?? undefined,
             expiresAt: r.expires_at ?? undefined,
@@ -118,7 +121,7 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
     if (!query) return rows
     const q = query.toLowerCase()
     return rows.filter((r) =>
-      [r.name, r.number, r.category, r.issuer]
+      [r.name, r.number, r.category, r.recipientOrg, r.issuer]
         .filter(Boolean)
         .some((v) => String(v).toLowerCase().includes(q))
     )
@@ -171,6 +174,7 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
         name: (r["NAMA"] ?? r["NAME"]) as string,
         number: (r["NOMOR"] ?? r["NUMBER"]) as string,
         category: (r["KATEGORI"] ?? r["CATEGORY"]) as string,
+        recipientOrg: (r["INSTANSI PENERIMA"] ?? r["RECIPIENT ORGANIZATION"]) as string,
         issuer: (r["PENERBIT"] ?? r["ISSUER"]) as string,
         issuedAt: parseDate(r["TANGGAL TERBIT"] ?? r["ISSUED AT"]),
         expiresAt: parseDate(r["TANGGAL KADALUARSA"] ?? r["EXPIRES AT"]),
@@ -182,6 +186,7 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
           name: m.name ?? null,
           number: m.number ?? null,
           category: m.category ?? null,
+          recipient_org: m.recipientOrg ?? null,
           issuer: m.issuer ?? null,
           issued_at: m.issuedAt ?? null,
           expires_at: m.expiresAt ?? null,
@@ -201,12 +206,13 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
         // refresh from db to get ids
         const { data } = await supabase
           .from("certificates")
-          .select("id,name,number,category,issuer,issued_at,expires_at")
+          .select("id,name,number,category,recipient_org,issuer,issued_at,expires_at")
         const mappedDb: CertificateRow[] = (data ?? []).map((r: Record<string, unknown>) => ({
           id: r.id as string | undefined,
           name: r.name as string | undefined,
           number: r.number as string | undefined,
           category: r.category as string | undefined,
+          recipientOrg: r.recipient_org as string | undefined,
           issuer: r.issuer as string | undefined,
           issuedAt: r.issued_at as string | undefined,
           expiresAt: r.expires_at as string | undefined,
@@ -231,6 +237,7 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
               name: "",
               number: "",
               category: "",
+              recipientOrg: "",
               issuer: "",
               issuedAt: "",
               expiresAt: ""
@@ -272,6 +279,7 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                 <th className="px-4 py-3 font-medium">NAMA</th>
                 <th className="px-4 py-3 font-medium">NOMOR</th>
                 <th className="px-4 py-3 font-medium">KATEGORI</th>
+                <th className="px-4 py-3 font-medium">INSTANSI PENERIMA</th>
                 <th className="px-4 py-3 font-medium">PENERBIT</th>
                 <th className="px-4 py-3 font-medium">TANGGAL TERBIT</th>
                 <th className="px-4 py-3 font-medium">TANGGAL KADALUARSA</th>
@@ -281,13 +289,13 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-10 text-center text-white/50">
+                  <td colSpan={8} className="px-4 py-10 text-center text-white/50">
                     Memuat data...
                   </td>
                 </tr>
               ) : paginatedRows.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-10 text-center text-white/50">
+                  <td colSpan={8} className="px-4 py-10 text-center text-white/50">
                     Belum ada data untuk ditampilkan
                   </td>
                 </tr>
@@ -299,6 +307,7 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                       <td className="px-4 py-2">{r.name}</td>
                       <td className="px-4 py-2">{r.number}</td>
                       <td className="px-4 py-2">{r.category}</td>
+                      <td className="px-4 py-2">{r.recipientOrg}</td>
                       <td className="px-4 py-2">{r.issuer}</td>
                       <td className="px-4 py-2">{r.issuedAt}</td>
                       <td className="px-4 py-2">{r.expiresAt}</td>
@@ -422,6 +431,10 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                   <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.issuer ?? ""} onChange={(e) => setDraft({ ...draft, issuer: e.target.value })} />
                 </div>
                 <div>
+                  <div className="mb-2 text-white/70">Instansi Penerima</div>
+                  <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.recipientOrg ?? ""} onChange={(e) => setDraft({ ...draft, recipientOrg: e.target.value })} />
+                </div>
+                <div>
                   <div className="mb-2 text-white/70">Tanggal Terbit</div>
                   <input type="date" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.issuedAt ?? ""} onChange={(e) => setDraft({ ...draft, issuedAt: e.target.value })} />
                 </div>
@@ -503,6 +516,7 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                             name: row.name ?? null,
                             number: row.number ?? null,
                             category: row.category ?? null,
+                            recipient_org: row.recipientOrg ?? null,
                             issuer: row.issuer ?? null,
                             issued_at: row.issuedAt ?? null,
                             expires_at: row.expiresAt ?? null,
@@ -542,6 +556,7 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                             name: row.name ?? null,
                             number: row.number ?? null,
                             category: row.category ?? null,
+                            recipient_org: row.recipientOrg ?? null,
                             issuer: row.issuer ?? null,
                             issued_at: row.issuedAt ?? null,
                             expires_at: row.expiresAt ?? null,
@@ -616,6 +631,10 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                   <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.issuer ?? ""} onChange={(e) => setDraft({ ...draft, issuer: e.target.value })} />
                 </div>
                 <div>
+                  <div className="mb-1 text-white/70">Instansi Penerima</div>
+                  <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.recipientOrg ?? ""} onChange={(e) => setDraft({ ...draft, recipientOrg: e.target.value })} />
+                </div>
+                <div>
                   <div className="mb-1 text-white/70">Tanggal Terbit</div>
                   <input type="date" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.issuedAt ?? ""} onChange={(e) => setDraft({ ...draft, issuedAt: e.target.value })} />
                 </div>
@@ -655,6 +674,7 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                             name: draft.name ?? null,
                             number: draft.number ?? null,
                             category: draft.category ?? null,
+                            recipient_org: draft.recipientOrg ?? null,
                             issuer: draft.issuer ?? null,
                             issued_at: draft.issuedAt ?? null,
                             expires_at: draft.expiresAt ?? null,
