@@ -4,37 +4,10 @@ import { TeamNavbar } from "@/components/team-navbar"
 import { ManageContent } from "@/components/manage-content"
 
 export default function TeamManagePage() {
-<<<<<<< HEAD
-  const [tab, setTab] = useState<"member" | "team">("team")
-  const { t } = useI18n()
-  return (
-    <div className="min-h-svh bg-gradient-to-b from-[#0b1220] to-[#0f1c35] text-white">
-      <TeamNavbar />
-      <div className="mx-auto max-w-7xl px-4 pt-6">
-        <div className="flex justify-center">
-          <div className="inline-flex rounded-lg border border-white/10 bg-white/5 p-1">
-            <button
-              onClick={() => setTab("member")}
-              className={`${tab === "member" ? "bg-blue-600 text-white" : "text-white/80 hover:text-white"} rounded-md px-3 py-1.5 text-sm`}
-            >
-              Member
-            </button>
-            <button
-              onClick={() => setTab("team")}
-              className={`${tab === "team" ? "bg-blue-600 text-white" : "text-white/80 hover:text-white"} rounded-md px-3 py-1.5 text-sm`}
-            >
-              Team
-            </button>
-          </div>
-        </div>
-      </div>
-      {tab === "member" ? <ManageContent role="team" /> : <MemberManageContent />}
-=======
   return (
     <div className="min-h-svh bg-gradient-to-b from-[#0b1220] to-[#0f1c35] text-white">
       <TeamNavbar />
       <ManageContent role="team" />
->>>>>>> a164e9477b7c34cbdeae87f23ac7e0f08e66e32f
     </div>
   )
 }

@@ -118,6 +118,13 @@ export function MemberManageContent() {
     fileInputRef.current?.click()
   }
 
+  function generatePassword(len: number = 10): string {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789@#$%'
+    let out = ''
+    for (let i = 0; i < len; i++) out += chars[Math.floor(Math.random() * chars.length)]
+    return out
+  }
+
   function parseDate(value: unknown): string | undefined {
     if (value == null || value === "") return undefined
     if (typeof value === "number") {
@@ -146,17 +153,22 @@ export function MemberManageContent() {
         defval: "",
       })
 
-      const mapped: MemberRow[] = json.map((r) => ({
-        name: (r["NAME"] ?? r["NAMA"]) as string,
-        organization: (r["ORGANIZATION"] ?? r["ORGANISASI"]) as string,
-        phone: (r["PHONE"] ?? r["PHONE NUMBER"] ?? r["TELP"]) as string,
-        email: (r["EMAIL"]) as string,
-        job: (r["JOB"] ?? r["PEKERJAAN"]) as string,
-        dob: parseDate(r["DATE OF BIRTH"] ?? r["DOB"] ?? r["TANGGAL LAHIR"]),
-        address: (r["ADDRESS"] ?? r["ALAMAT"]) as string,
-        city: (r["CITY"] ?? r["KOTA"]) as string,
-        notes: (r["NOTES"] ?? r["CATATAN"]) as string,
-      }))
+      const mapped: MemberRow[] = json.map((r) => {
+        const pwdCell = (r["PASSWORD"] ?? r["KATA SANDI"] ?? r["PASS"]) as string | undefined
+        const password = (pwdCell && String(pwdCell).trim()) ? String(pwdCell).trim() : generatePassword(10)
+        return {
+          name: (r["NAME"] ?? r["NAMA"]) as string,
+          organization: (r["ORGANIZATION"] ?? r["ORGANISASI"]) as string,
+          phone: (r["PHONE"] ?? r["PHONE NUMBER"] ?? r["TELP"]) as string,
+          email: (r["EMAIL"]) as string,
+          job: (r["JOB"] ?? r["PEKERJAAN"]) as string,
+          dob: parseDate(r["DATE OF BIRTH"] ?? r["DOB"] ?? r["TANGGAL LAHIR"]),
+          address: (r["ADDRESS"] ?? r["ALAMAT"]) as string,
+          city: (r["CITY"] ?? r["KOTA"]) as string,
+          notes: (r["NOTES"] ?? r["CATATAN"]) as string,
+          password,
+        }
+      })
       setRows(mapped)
       ;(async () => {
         const payload = mapped.map((m) => ({
@@ -169,9 +181,40 @@ export function MemberManageContent() {
           address: m.address ?? null,
           city: m.city ?? null,
           notes: m.notes ?? null,
+          password: (m.password && String(m.password)) || generatePassword(10),
         }))
-        const { error } = await supabase.from("members").insert(payload)
-        if (error) console.error(error)
+        // Insert per-row to menemukan baris yang gagal dengan jelas
+        let successCount = 0
+        const failures: Array<{ row: any; error: any }> = []
+        for (const row of payload) {
+          try {
+            await supabase.from("members").insert(row).throwOnError()
+            successCount++
+          } catch (err: any) {
+            // Log raw error shapes for diagnostics
+            console.error('members insert raw error object:', err)
+            try { console.error('members insert error JSON:', JSON.stringify(err)) } catch {}
+            failures.push({ row, error: {
+              toString: String(err),
+              message: err?.message,
+              details: err?.details,
+              hint: err?.hint,
+              code: err?.code,
+            }})
+          }
+        }
+        if (failures.length > 0) {
+          console.error("members insert errors:", {
+            successCount,
+            failureCount: failures.length,
+            examples: failures.slice(0, 3),
+          })
+          try {
+            const f = failures[0]
+            alert(`Import gagal pada baris pertama yang gagal. Kode: ${f?.error?.code || '-'}\nPesan: ${f?.error?.message || f?.error?.toString || 'Unknown'}\nHint: ${f?.error?.hint || '-'}\nSilakan cek Console untuk detail.`)
+          } catch {}
+          return
+        }
         const { data } = await supabase
           .from("members")
           .select("id,name,organization,phone,email,job,dob,address,city,notes")
@@ -221,16 +264,7 @@ export function MemberManageContent() {
         >
           + Baru
         </button>
-        <button onClick={handleImportClick} className="rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white hover:bg-white/10">
-          Import Excel
-        </button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".xlsx,.xls"
-          onChange={onFileChange}
-          className="hidden"
-        />
+        {/* Import Excel button removed as requested */}
         <div className="ml-2 flex-1">
           <div className="relative">
             <input
@@ -258,20 +292,19 @@ export function MemberManageContent() {
                 <th className="px-4 py-3 font-medium">ADDRESS</th>
                 <th className="px-4 py-3 font-medium">CITY</th>
                 <th className="px-4 py-3 font-medium">PASSWORD</th>
-                <th className="px-4 py-3 font-medium">NOTES</th>
                 <th className="px-4 py-3 font-medium">AKSI</th>
               </tr>
             </thead>
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={11} className="px-4 py-10 text-center text-white/50">
+                  <td colSpan={10} className="px-4 py-10 text-center text-white/50">
                     Memuat data...
                   </td>
                 </tr>
               ) : filteredRows.length === 0 ? (
                 <tr>
-                  <td colSpan={11} className="px-4 py-10 text-center text-white/50">
+                  <td colSpan={10} className="px-4 py-10 text-center text-white/50">
                     Belum ada data untuk ditampilkan
                   </td>
                 </tr>
@@ -289,7 +322,6 @@ export function MemberManageContent() {
                       <td className="px-4 py-2 text-white">{r.address}</td>
                       <td className="px-4 py-2 text-white">{r.city}</td>
                       <td className="px-4 py-2 text-white">{r.password || "-"}</td>
-                      <td className="px-4 py-2 text-white">{r.notes}</td>
                       <td className="px-4 py-2">
                         <div className="flex gap-2 text-xs">
                               <button
@@ -360,7 +392,7 @@ export function MemberManageContent() {
                   <input placeholder="Nama lengkap" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2 placeholder:text-white/40" value={draft.name ?? ""} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
                 </div>
                 <div>
-                  <div className="mb-2 text-white/70">Organization</div>
+                  <div className="mb-2 text-white/70">Organization (opsional)</div>
                   <input placeholder="Nama organisasi" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2 placeholder:text-white/40" value={draft.organization ?? ""} onChange={(e) => setDraft({ ...draft, organization: e.target.value })} />
                 </div>
                 <div>
@@ -376,25 +408,22 @@ export function MemberManageContent() {
                   <input placeholder="Pekerjaan" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2 placeholder:text-white/40" value={draft.job ?? ""} onChange={(e) => setDraft({ ...draft, job: e.target.value })} />
                 </div>
                 <div>
-                  <div className="mb-2 text-white/70">Date of Birth</div>
+                  <div className="mb-2 text-white/70">Date of Birth (opsional)</div>
                   <input type="date" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2 placeholder:text-white/40" value={draft.dob ?? ""} onChange={(e) => setDraft({ ...draft, dob: e.target.value })} />
                 </div>
                 <div>
-                  <div className="mb-2 text-white/70">Address</div>
+                  <div className="mb-2 text-white/70">Address (opsional)</div>
                   <input placeholder="Alamat lengkap" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2 placeholder:text-white/40" value={draft.address ?? ""} onChange={(e) => setDraft({ ...draft, address: e.target.value })} />
                 </div>
                 <div>
-                  <div className="mb-2 text-white/70">City</div>
+                  <div className="mb-2 text-white/70">City (opsional)</div>
                   <input placeholder="Kota" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2 placeholder:text-white/40" value={draft.city ?? ""} onChange={(e) => setDraft({ ...draft, city: e.target.value })} />
                 </div>
                 <div className="md:col-span-2">
                   <div className="mb-2 text-white/70">Password</div>
                   <input type="text" placeholder="Password akun (opsional)" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2 placeholder:text-white/40" value={draft.password ?? ""} onChange={(e) => setDraft({ ...draft, password: e.target.value })} />
                 </div>
-                <div className="md:col-span-2">
-                  <div className="mb-2 text-white/70">Notes</div>
-                  <textarea placeholder="Catatan tambahan" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2 placeholder:text-white/40" rows={3} value={draft.notes ?? ""} onChange={(e) => setDraft({ ...draft, notes: e.target.value })} />
-                </div>
+                {/* Notes field removed as requested */}
               </div>
               {updateMessage && (
                 <div className={`mb-4 mt-4 rounded-md p-3 text-sm ${
@@ -578,7 +607,7 @@ export function MemberManageContent() {
                   <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.name ?? ""} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
                 </div>
                 <div>
-                  <div className="mb-1 text-white/70">Organization</div>
+                  <div className="mb-1 text-white/70">Organization (opsional)</div>
                   <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.organization ?? ""} onChange={(e) => setDraft({ ...draft, organization: e.target.value })} />
                 </div>
                 <div>
@@ -594,25 +623,22 @@ export function MemberManageContent() {
                   <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.job ?? ""} onChange={(e) => setDraft({ ...draft, job: e.target.value })} />
                 </div>
                 <div>
-                  <div className="mb-1 text-white/70">Date of Birth</div>
+                  <div className="mb-1 text-white/70">Date of Birth (opsional)</div>
                   <input type="date" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.dob ?? ""} onChange={(e) => setDraft({ ...draft, dob: e.target.value })} />
                 </div>
                 <div>
-                  <div className="mb-1 text-white/70">Address</div>
+                  <div className="mb-1 text-white/70">Address (opsional)</div>
                   <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.address ?? ""} onChange={(e) => setDraft({ ...draft, address: e.target.value })} />
                 </div>
                 <div>
-                  <div className="mb-1 text-white/70">City</div>
+                  <div className="mb-1 text-white/70">City (opsional)</div>
                   <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.city ?? ""} onChange={(e) => setDraft({ ...draft, city: e.target.value })} />
                 </div>
                 <div>
                   <div className="mb-1 text-white/70">Password</div>
                   <input type="text" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.password ?? ""} onChange={(e) => setDraft({ ...draft, password: e.target.value })} />
                 </div>
-                <div className="md:col-span-2">
-                  <div className="mb-1 text-white/70">Notes</div>
-                  <textarea className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" rows={3} value={draft.notes ?? ""} onChange={(e) => setDraft({ ...draft, notes: e.target.value })} />
-                </div>
+                {/* Notes field removed as requested */}
               </div>
               {updateMessage && (
                 <div className={`mb-6 mt-6 rounded-md p-4 text-sm ${
@@ -646,8 +672,8 @@ export function MemberManageContent() {
                             dob: draft.dob ?? null,
                             address: draft.address ?? null,
                             city: draft.city ?? null,
-                            notes: draft.notes ?? null,
                             password: draft.password ?? null,
+                            role: 'team',
                           })
                           .select("id")
                           .single()

@@ -354,6 +354,7 @@ export default function AdminPage() {
 
       // Set current template config
       setCurrentTemplateConfig(config)
+<<<<<<< HEAD
 
       // Save all changes to database
       if (certificateId) {
@@ -406,6 +407,8 @@ export default function AdminPage() {
           setTimeout(() => setMessage(''), 1500)
         }
       }
+=======
+>>>>>>> 7fab695567984e2c9c163c48797b0c46811dce19
     } catch (error) {
       console.error("Error applying template config:", error)
       setMessage(t('failedToSave') + (error instanceof Error ? error.message : 'Unknown error'))
@@ -1436,6 +1439,7 @@ export default function AdminPage() {
                     date_y: dateY,
                     date_size: dateSize,
                     date_color: dateColor,
+                    template_path: selectedTemplate || null,
                     // Number fields
                     number: numberText || null,
                     number_align: numberAlign,
