@@ -42,6 +42,16 @@ export default function CheckCertificatePage({ params }: Props) {
     modifiedAt?: string;
     template_path?: string;
     preview_image?: string;
+    // Layout fields (title)
+    title_x?: number; title_y?: number; title_size?: number; title_color?: string; title_align?: "left"|"center"|"right"; title_font?: string;
+    // Layout fields (description)
+    desc_x?: number; desc_y?: number; desc_size?: number; desc_color?: string; desc_align?: "left"|"center"|"right"; desc_font?: string;
+    // Layout fields (date/issued)
+    date_x?: number; date_y?: number; date_size?: number; date_color?: string; date_align?: "left"|"center"|"right"; date_font?: string; date_format?: string;
+    // Layout fields (number)
+    number_x?: number; number_y?: number; number_size?: number; number_color?: string; number_align?: "left"|"center"|"right"; number_font?: string;
+    // Layout fields (expired)
+    expires_x?: number; expires_y?: number; expires_size?: number; expires_color?: string; expires_align?: "left"|"center"|"right"; expires_font?: string; expired_format?: string;
   } | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
