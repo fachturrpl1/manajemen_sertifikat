@@ -26,6 +26,8 @@ export default function AdminPage() {
   const [previewSrc, setPreviewSrc] = useState<string>("")
   const [currentTemplateConfig, setCurrentTemplateConfig] = useState<TemplateConfig | null>(null)
   const [applyingTemplate, setApplyingTemplate] = useState(false)
+  const [uploadedPreviewUrl, setUploadedPreviewUrl] = useState<string>("")
+  const [uploadedFileId, setUploadedFileId] = useState<string | null>(null)
   
   // Restore last edited ID on refresh if URL has no id
   useEffect(() => {
@@ -53,6 +55,8 @@ export default function AdminPage() {
     title: string
     description: string
     issuedAt: string
+    expiresAt: string
+    numberText: string
     titleX: number
     titleY: number
     titleSize: number
@@ -140,57 +144,54 @@ export default function AdminPage() {
 
   // Fungsi untuk menyimpan state ke history
   const saveToHistory = () => {
-    const currentState = {
-      title,
-      description,
-      issuedAt,
-      expiresAt,
-      numberText,
-      titleX,
-      titleY,
-      titleSize,
-      titleColor,
-      titleAlign,
-      titleFont,
-      descX,
-      descY,
-      descSize,
-      descColor,
-      descAlign,
-      descFont,
-      dateX,
-      dateY,
-      dateSize,
-      dateColor,
-      dateAlign,
-      dateFont,
-      numberX,
-      numberY,
-      numberSize,
-      numberColor,
-      numberAlign,
-      numberFont,
-      expX,
-      expY,
-      expSize,
-      expColor,
-      expAlign,
-      expFont
-    }
-    // Hapus semua state setelah index saat ini (jika ada)
-    const newHistory = history.slice(0, historyIndex + 1)
-    newHistory.push(currentState)
-    
-    // Batasi history maksimal 50 state
-    if (newHistory.length > 50) {
-      newHistory.shift()
-    } else {
-      setHistoryIndex(prev => prev + 1)
-    }
-    
-    setHistory(newHistory)
-    setCanUndo(newHistory.length > 1)
-    setCanRedo(false)
+    setTimeout(() => {
+      const snapshot = {
+        title,
+        description,
+        issuedAt,
+        expiresAt,
+        numberText,
+        titleX,
+        titleY,
+        titleSize,
+        titleColor,
+        titleAlign,
+        titleFont,
+        descX,
+        descY,
+        descSize,
+        descColor,
+        descAlign,
+        descFont,
+        dateX,
+        dateY,
+        dateSize,
+        dateColor,
+        dateAlign,
+        dateFont,
+        numberX,
+        numberY,
+        numberSize,
+        numberColor,
+        numberAlign,
+        numberFont,
+        expX,
+        expY,
+        expSize,
+        expColor,
+        expAlign,
+        expFont
+      }
+      setHistory(prev => {
+        const base = prev.slice(0, historyIndex + 1)
+        base.push(snapshot)
+        if (base.length > 50) base.shift()
+        return base
+      })
+      setHistoryIndex(prev => Math.min(prev + 1, 49))
+      setCanUndo(true)
+      setCanRedo(false)
+    }, 0)
   }
 
   // Fungsi untuk undo
@@ -354,61 +355,39 @@ export default function AdminPage() {
 
       // Set current template config
       setCurrentTemplateConfig(config)
-<<<<<<< HEAD
-
-      // Save all changes to database
-      if (certificateId) {
-        const updateData = {
-          title_x: defaultPositions.title.x,
-          title_y: defaultPositions.title.y,
-          title_size: defaultPositions.title.size,
-          title_color: defaultPositions.title.color,
-          title_align: defaultPositions.title.align,
-          title_font: defaultPositions.title.font,
-          desc_x: defaultPositions.description.x,
-          desc_y: defaultPositions.description.y,
-          desc_size: defaultPositions.description.size,
-          desc_color: defaultPositions.description.color,
-          desc_align: defaultPositions.description.align,
-          desc_font: defaultPositions.description.font,
-          date_x: defaultPositions.date.x,
-          date_y: defaultPositions.date.y,
-          date_size: defaultPositions.date.size,
-          date_color: defaultPositions.date.color,
-          date_align: defaultPositions.date.align,
-          date_font: defaultPositions.date.font,
-          number_x: defaultPositions.number.x,
-          number_y: defaultPositions.number.y,
-          number_size: defaultPositions.number.size,
-          number_color: defaultPositions.number.color,
-          number_align: defaultPositions.number.align,
-          number_font: defaultPositions.number.font,
-          expires_x: defaultPositions.expired.x,
-          expires_y: defaultPositions.expired.y,
-          expires_size: defaultPositions.expired.size,
-          expires_color: defaultPositions.expired.color,
-          expires_align: defaultPositions.expired.align,
-          expires_font: defaultPositions.expired.font,
-          template_path: templatePath
-        }
-
-        const { error } = await supabase
-          .from("certificates")
-          .update(updateData)
-          .eq("id", certificateId)
-
-        if (error) {
-          console.error("Error saving template config:", error)
-          setMessage(t('failedToSave') + error.message)
-          throw new Error(`Database error: ${error.message}`)
-        } else {
-          console.log("Template config applied and saved successfully")
-          setMessage(t('changesSaved'))
-          setTimeout(() => setMessage(''), 1500)
-        }
-      }
-=======
->>>>>>> 7fab695567984e2c9c163c48797b0c46811dce19
+      queueSave({
+        template_path: templatePath,
+        title_x: defaultPositions.title.x,
+        title_y: defaultPositions.title.y,
+        title_size: defaultPositions.title.size,
+        title_color: defaultPositions.title.color,
+        title_align: defaultPositions.title.align,
+        title_font: defaultPositions.title.font,
+        desc_x: defaultPositions.description.x,
+        desc_y: defaultPositions.description.y,
+        desc_size: defaultPositions.description.size,
+        desc_color: defaultPositions.description.color,
+        desc_align: defaultPositions.description.align,
+        desc_font: defaultPositions.description.font,
+        date_x: defaultPositions.date.x,
+        date_y: defaultPositions.date.y,
+        date_size: defaultPositions.date.size,
+        date_color: defaultPositions.date.color,
+        date_align: defaultPositions.date.align,
+        date_font: defaultPositions.date.font,
+        number_x: defaultPositions.number.x,
+        number_y: defaultPositions.number.y,
+        number_size: defaultPositions.number.size,
+        number_color: defaultPositions.number.color,
+        number_align: defaultPositions.number.align,
+        number_font: defaultPositions.number.font,
+        expires_x: defaultPositions.expired.x,
+        expires_y: defaultPositions.expired.y,
+        expires_size: defaultPositions.expired.size,
+        expires_color: defaultPositions.expired.color,
+        expires_align: defaultPositions.expired.align,
+        expires_font: defaultPositions.expired.font,
+      })
     } catch (error) {
       console.error("Error applying template config:", error)
       setMessage(t('failedToSave') + (error instanceof Error ? error.message : 'Unknown error'))
@@ -528,16 +507,8 @@ export default function AdminPage() {
           return
         }
         
-        // Generate preview image jika ada perubahan yang mempengaruhi tampilan
-        const needsPreviewUpdate = Object.keys(cleanUpdate).some(key => 
-          ['title', 'description', 'number', 'issued_at', 'expires_at',
-           'title_x', 'title_y', 'title_size', 'title_color', 'title_align', 'title_font',
-           'desc_x', 'desc_y', 'desc_size', 'desc_color', 'desc_align', 'desc_font',
-           'date_x', 'date_y', 'date_size', 'date_color', 'date_align', 'date_font',
-           'number_x', 'number_y', 'number_size', 'number_color', 'number_align', 'number_font',
-           'expires_x', 'expires_y', 'expires_size', 'expires_color', 'expires_align', 'expires_font',
-           'template_path'].includes(key)
-        )
+        // Nonaktifkan generate preview di autosave untuk menghilangkan delay UI
+        const needsPreviewUpdate = false
         
         if (needsPreviewUpdate) {
           const previewImage = await generatePreviewImage()
@@ -570,7 +541,7 @@ export default function AdminPage() {
       }
       
       setUiSaving(false)
-    }, 500)
+    }, 0)
   }
 
   // Opsi kategori (samakan dengan kategori pada sistem)
@@ -697,6 +668,48 @@ export default function AdminPage() {
           // Load template config
           const config = getTemplateConfig(templatePath)
           setCurrentTemplateConfig(config)
+          if (config && config.defaultPositions) {
+            const dp = config.defaultPositions
+            const updates: Record<string, any> = {}
+            if (row.title_x == null) { setTitleX(dp.title.x); updates.title_x = dp.title.x }
+            if (row.title_y == null) { setTitleY(dp.title.y); updates.title_y = dp.title.y }
+            if (row.title_size == null) { setTitleSize(dp.title.size); updates.title_size = dp.title.size }
+            if (row.title_color == null) { setTitleColor(dp.title.color); updates.title_color = dp.title.color }
+            if (row.title_align == null) { setTitleAlign(dp.title.align); updates.title_align = dp.title.align }
+            if (row.title_font == null) { setTitleFont(dp.title.font); updates.title_font = dp.title.font }
+
+            if (row.desc_x == null) { setDescX(dp.description.x); updates.desc_x = dp.description.x }
+            if (row.desc_y == null) { setDescY(dp.description.y); updates.desc_y = dp.description.y }
+            if (row.desc_size == null) { setDescSize(dp.description.size); updates.desc_size = dp.description.size }
+            if (row.desc_color == null) { setDescColor(dp.description.color); updates.desc_color = dp.description.color }
+            if (row.desc_align == null) { setDescAlign(dp.description.align); updates.desc_align = dp.description.align }
+            if (row.desc_font == null) { setDescFont(dp.description.font); updates.desc_font = dp.description.font }
+
+            if (row.date_x == null) { setDateX(dp.date.x); updates.date_x = dp.date.x }
+            if (row.date_y == null) { setDateY(dp.date.y); updates.date_y = dp.date.y }
+            if (row.date_size == null) { setDateSize(dp.date.size); updates.date_size = dp.date.size }
+            if (row.date_color == null) { setDateColor(dp.date.color); updates.date_color = dp.date.color }
+            if (row.date_align == null) { setDateAlign(dp.date.align); updates.date_align = dp.date.align }
+            if (row.date_font == null) { setDateFont(dp.date.font); updates.date_font = dp.date.font }
+
+            if (row.number_x == null) { setNumberX(dp.number.x); updates.number_x = dp.number.x }
+            if (row.number_y == null) { setNumberY(dp.number.y); updates.number_y = dp.number.y }
+            if (row.number_size == null) { setNumberSize(dp.number.size); updates.number_size = dp.number.size }
+            if (row.number_color == null) { setNumberColor(dp.number.color); updates.number_color = dp.number.color }
+            if (row.number_align == null) { setNumberAlign(dp.number.align); updates.number_align = dp.number.align }
+            if (row.number_font == null) { setNumberFont(dp.number.font); updates.number_font = dp.number.font }
+
+            if (row.expires_x == null) { setExpX(dp.expired.x); updates.expires_x = dp.expired.x }
+            if (row.expires_y == null) { setExpY(dp.expired.y); updates.expires_y = dp.expired.y }
+            if (row.expires_size == null) { setExpSize(dp.expired.size); updates.expires_size = dp.expired.size }
+            if (row.expires_color == null) { setExpColor(dp.expired.color); updates.expires_color = dp.expired.color }
+            if (row.expires_align == null) { setExpAlign(dp.expired.align); updates.expires_align = dp.expired.align }
+            if (row.expires_font == null) { setExpFont(dp.expired.font); updates.expires_font = dp.expired.font }
+
+            if (Object.keys(updates).length > 0) {
+              queueSave(updates)
+            }
+          }
         } else if (row.category) {
           const first = getTemplates(row.category as string)[0]
           if (first) {
@@ -711,6 +724,48 @@ export default function AdminPage() {
             const config = getTemplateConfig(first)
             setCurrentTemplateConfig(config)
             await supabase.from("certificates").update({ template_path: first }).eq("id", certificateId)
+            if (config && config.defaultPositions) {
+              const dp = config.defaultPositions
+              const updates: Record<string, any> = {}
+              if (row.title_x == null) { setTitleX(dp.title.x); updates.title_x = dp.title.x }
+              if (row.title_y == null) { setTitleY(dp.title.y); updates.title_y = dp.title.y }
+              if (row.title_size == null) { setTitleSize(dp.title.size); updates.title_size = dp.title.size }
+              if (row.title_color == null) { setTitleColor(dp.title.color); updates.title_color = dp.title.color }
+              if (row.title_align == null) { setTitleAlign(dp.title.align); updates.title_align = dp.title.align }
+              if (row.title_font == null) { setTitleFont(dp.title.font); updates.title_font = dp.title.font }
+
+              if (row.desc_x == null) { setDescX(dp.description.x); updates.desc_x = dp.description.x }
+              if (row.desc_y == null) { setDescY(dp.description.y); updates.desc_y = dp.description.y }
+              if (row.desc_size == null) { setDescSize(dp.description.size); updates.desc_size = dp.description.size }
+              if (row.desc_color == null) { setDescColor(dp.description.color); updates.desc_color = dp.description.color }
+              if (row.desc_align == null) { setDescAlign(dp.description.align); updates.desc_align = dp.description.align }
+              if (row.desc_font == null) { setDescFont(dp.description.font); updates.desc_font = dp.description.font }
+
+              if (row.date_x == null) { setDateX(dp.date.x); updates.date_x = dp.date.x }
+              if (row.date_y == null) { setDateY(dp.date.y); updates.date_y = dp.date.y }
+              if (row.date_size == null) { setDateSize(dp.date.size); updates.date_size = dp.date.size }
+              if (row.date_color == null) { setDateColor(dp.date.color); updates.date_color = dp.date.color }
+              if (row.date_align == null) { setDateAlign(dp.date.align); updates.date_align = dp.date.align }
+              if (row.date_font == null) { setDateFont(dp.date.font); updates.date_font = dp.date.font }
+
+              if (row.number_x == null) { setNumberX(dp.number.x); updates.number_x = dp.number.x }
+              if (row.number_y == null) { setNumberY(dp.number.y); updates.number_y = dp.number.y }
+              if (row.number_size == null) { setNumberSize(dp.number.size); updates.number_size = dp.number.size }
+              if (row.number_color == null) { setNumberColor(dp.number.color); updates.number_color = dp.number.color }
+              if (row.number_align == null) { setNumberAlign(dp.number.align); updates.number_align = dp.number.align }
+              if (row.number_font == null) { setNumberFont(dp.number.font); updates.number_font = dp.number.font }
+
+              if (row.expires_x == null) { setExpX(dp.expired.x); updates.expires_x = dp.expired.x }
+              if (row.expires_y == null) { setExpY(dp.expired.y); updates.expires_y = dp.expired.y }
+              if (row.expires_size == null) { setExpSize(dp.expired.size); updates.expires_size = dp.expired.size }
+              if (row.expires_color == null) { setExpColor(dp.expired.color); updates.expires_color = dp.expired.color }
+              if (row.expires_align == null) { setExpAlign(dp.expired.align); updates.expires_align = dp.expired.align }
+              if (row.expires_font == null) { setExpFont(dp.expired.font); updates.expires_font = dp.expired.font }
+
+              if (Object.keys(updates).length > 0) {
+                queueSave(updates)
+              }
+            }
           }
         }
       } catch (err) {
@@ -872,6 +927,14 @@ export default function AdminPage() {
       setUploading(true)
       setMessage("")
       
+      // Tampilkan preview lokal segera
+      try {
+        const localUrl = URL.createObjectURL(file)
+        setUploadedPreviewUrl(localUrl)
+        setPreviewSrc(localUrl)
+        setSelectedTemplate("")
+      } catch {}
+      
       // Baca file sebagai base64 untuk disimpan di tabel
       const toBase64 = (f: File) => new Promise<string>((resolve, reject) => {
         const reader = new FileReader()
@@ -1008,7 +1071,7 @@ export default function AdminPage() {
                 setPreviewSrc(`/${path}`)
               }
               // Apply template configuration automatically
-              await applyTemplateConfig(path)
+              applyTemplateConfig(path)
             }}
           />
           <div className="text-center text-white/70 mb-1">{t('or')}</div>
@@ -1034,8 +1097,8 @@ export default function AdminPage() {
                 <button className={`rounded-md border border-white/10 px-3 py-2 text-sm ${activeElement==='title'?'bg-white/15':'bg-white/5'}`} onClick={()=>setActiveElement('title')}>{t('name')}</button>
                 <button className={`rounded-md border border-white/10 px-3 py-2 text-sm ${activeElement==='description'?'bg-white/15':'bg-white/5'}`} onClick={()=>setActiveElement('description')}>{t('description')}</button>
                 <button className={`rounded-md border border-white/10 px-3 py-2 text-sm ${activeElement==='date'?'bg-white/15':'bg-white/5'}`} onClick={()=>setActiveElement('date')}>{t('date')}</button>
-                <button className={`rounded-md border border-white/10 px-3 py-2 text-sm ${activeElement==='number'?'bg-white/15':'bg-white/5'}`} onClick={()=>setActiveElement('number')}>Number</button>
-                <button className={`rounded-md border border-white/10 px-3 py-2 text-sm ${activeElement==='expired'?'bg-white/15':'bg-white/5'}`} onClick={()=>setActiveElement('expired')}>Expired</button>
+                <button className={`rounded-md border border-white/10 px-3 py-2 text-sm ${activeElement==='number'?'bg-white/15':'bg-white/5'}`} onClick={()=>setActiveElement('number')}>{t('number')}</button>
+                <button className={`rounded-md border border-white/10 px-3 py-2 text-sm ${activeElement==='expired'?'bg-white/15':'bg-white/5'}`} onClick={()=>setActiveElement('expired')}>{t('expired')}</button>
               </div>
             </div>
             {activeElement === 'title' && (
@@ -1077,7 +1140,7 @@ export default function AdminPage() {
             )}
             {activeElement === 'number' && (
             <div>
-              <label className="block text-sm text-white/70 mb-1">Nomor Sertifikat</label>
+              <label className="block text-sm text-white/70 mb-1">{t('certificateNumber')}</label>
               <input
                 className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm"
                 value={numberText}
@@ -1096,7 +1159,6 @@ export default function AdminPage() {
                 <div className="space-y-3">
                   {/* Input tanggal manual */}
                   <div>
-                    <label className="block text-xs text-white/60 mb-1">Tanggal Sertifikat</label>
                     <input 
                       type="date" 
                       className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white" 
@@ -1142,31 +1204,14 @@ export default function AdminPage() {
                       }}
                     />
                   </div>
-                  
-                  {/* Status tanggal */}
-                  <div className="w-full rounded-md border border-blue-500/30 bg-blue-500/10 px-3 py-2 text-sm text-white/90 flex items-center justify-between">
-                    <span className="flex items-center gap-2">
-                      <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                      {issuedAt ? new Date(issuedAt).toLocaleDateString('id-ID') : t('noDateAvailable')}
-                    </span>
-                    <span className="text-xs text-blue-400/70 font-medium">
-                      {issuedAt ? 'Manual' : 'Belum diatur'}
-                    </span>
-                  </div>
-                  
-                  {/* Info tambahan */}
-                  <div className="text-xs text-white/60 bg-white/5 rounded px-2 py-1">
-                    <span className="text-blue-400">ℹ</span> Tanggal akan ditampilkan pada sertifikat sesuai format Indonesia
-                  </div>
                 </div>
               </div>
             )}
             {activeElement === 'expired' && (
               <div>
-                <label className="block text-sm text-white/70 mb-1">Expired Date</label>
+                <label className="block text-sm text-white/70 mb-1">{t('expiredDate')}</label>
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-xs text-white/60 mb-1">Tanggal Kedaluwarsa</label>
                     <input 
                       type="date" 
                       className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white" 
@@ -1221,7 +1266,7 @@ export default function AdminPage() {
             {activeElement === 'number' && (
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm text-white/70 mb-1">Justify Number</label>
+                  <label className="block text-sm text-white/70 mb-1">{t('justify')}</label>
                   <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={numberAlign}
                     onChange={(e)=>{ const v = e.target.value as "left"|"center"|"right"; setNumberAlign(v); saveToHistory(); queueSave({ number_align: v }) }}>
                     <option value="left">{t('left')}</option>
@@ -1230,7 +1275,7 @@ export default function AdminPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm text-white/70 mb-1">Font Number</label>
+                  <label className="block text-sm text-white/70 mb-1">{t('font')}</label>
                   <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={numberFont}
                     onChange={(e)=>{ const v=e.target.value; setNumberFont(v); saveToHistory(); queueSave({ number_font: v }) }}>
                     <option value="Inter, ui-sans-serif, system-ui">{t('inter')}</option>
@@ -1244,7 +1289,7 @@ export default function AdminPage() {
             {activeElement === 'expired' && (
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm text-white/70 mb-1">Justify Expired</label>
+                  <label className="block text-sm text-white/70 mb-1">{t('justify')}</label>
                   <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={expAlign}
                     onChange={(e)=>{ const v = e.target.value as "left"|"center"|"right"; setExpAlign(v); saveToHistory(); queueSave({ expires_align: v }) }}>
                     <option value="left">{t('left')}</option>
@@ -1253,7 +1298,7 @@ export default function AdminPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm text-white/70 mb-1">Font Expired</label>
+                  <label className="block text-sm text-white/70 mb-1">{t('font')}</label>
                   <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={expFont}
                     onChange={(e)=>{ const v=e.target.value; setExpFont(v); saveToHistory(); queueSave({ expires_font: v }) }}>
                     <option value="Inter, ui-sans-serif, system-ui">{t('inter')}</option>
@@ -1310,52 +1355,8 @@ export default function AdminPage() {
                 </div>
               </div>
             )}
-            {activeElement === 'number' && (
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm text-white/70 mb-1">Justify (Number)</label>
-                  <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={numberAlign}
-                    onChange={(e)=>{ const v = e.target.value as "left"|"center"|"right"; setNumberAlign(v); saveToHistory(); queueSave({ number_align: v }) }}>
-                    <option value="left">{t('left')}</option>
-                    <option value="center">{t('center')}</option>
-                    <option value="right">{t('right')}</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm text-white/70 mb-1">Font (Number)</label>
-                  <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={numberFont}
-                    onChange={(e)=>{ const v = e.target.value; setNumberFont(v); saveToHistory(); queueSave({ number_font: v }) }}>
-                    <option value="Inter, ui-sans-serif, system-ui">{t('inter')}</option>
-                    <option value="Arial, Helvetica, sans-serif">{t('arial')}</option>
-                    <option value="Times New Roman, Times, serif">{t('timesNewRoman')}</option>
-                    <option value="Georgia, serif">{t('georgia')}</option>
-                  </select>
-                </div>
-              </div>
-            )}
-            {activeElement === 'expired' && (
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm text-white/70 mb-1">Justify (Expired)</label>
-                  <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={expAlign}
-                    onChange={(e)=>{ const v = e.target.value as "left"|"center"|"right"; setExpAlign(v); saveToHistory(); queueSave({ expires_align: v }) }}>
-                    <option value="left">{t('left')}</option>
-                    <option value="center">{t('center')}</option>
-                    <option value="right">{t('right')}</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm text-white/70 mb-1">Font (Expired)</label>
-                  <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={expFont}
-                    onChange={(e)=>{ const v = e.target.value; setExpFont(v); saveToHistory(); queueSave({ expires_font: v }) }}>
-                    <option value="Inter, ui-sans-serif, system-ui">{t('inter')}</option>
-                    <option value="Arial, Helvetica, sans-serif">{t('arial')}</option>
-                    <option value="Times New Roman, Times, serif">{t('timesNewRoman')}</option>
-                    <option value="Georgia, serif">{t('georgia')}</option>
-                  </select>
-                </div>
-              </div>
-            )}
+            
+            
             <div className="grid grid-cols-2 gap-3">
             <div>
                 <label className="block text-sm text-white/70 mb-1">{t('fontSize')}</label>
@@ -1441,7 +1442,6 @@ export default function AdminPage() {
                     date_color: dateColor,
                     template_path: selectedTemplate || null,
                     // Number fields
-                    number: numberText || null,
                     number_align: numberAlign,
                     number_font: numberFont,
                     number_x: numberX,
@@ -1449,7 +1449,6 @@ export default function AdminPage() {
                     number_size: numberSize,
                     number_color: numberColor,
                     // Expired fields
-                    expires_at: expiresAt || null,
                     expires_align: expAlign,
                     expires_font: expFont,
                     expires_x: expX,
@@ -1826,7 +1825,8 @@ function PreviewPanel({ category, previewSrc, title, description, numberText, ti
             color: titlePos.color,
             position: 'absolute',
             zIndex: 10,
-            opacity: livePng ? 0 : 1
+            opacity: livePng ? 0 : 1,
+            transform: titleAlign === 'center' ? 'translateX(-50%)' : titleAlign === 'right' ? 'translateX(-100%)' : undefined
           }}
           data-overlay="text"
         >
@@ -1847,7 +1847,8 @@ function PreviewPanel({ category, previewSrc, title, description, numberText, ti
             whiteSpace: 'pre-line',
             position: 'absolute',
             zIndex: 10,
-            opacity: livePng ? 0 : 1
+            opacity: livePng ? 0 : 1,
+            transform: descAlign === 'center' ? 'translateX(-50%)' : descAlign === 'right' ? 'translateX(-100%)' : undefined
           }}
         >
           <div className="opacity-90">{description}</div>
@@ -1867,7 +1868,8 @@ function PreviewPanel({ category, previewSrc, title, description, numberText, ti
               color: numberPos.color,
               position: 'absolute',
               zIndex: 10,
-              opacity: livePng ? 0 : 1
+              opacity: livePng ? 0 : 1,
+              transform: numberAlign === 'center' ? 'translateX(-50%)' : numberAlign === 'right' ? 'translateX(-100%)' : undefined
             }}
           >
             <div>{numberText}</div>
@@ -1888,7 +1890,8 @@ function PreviewPanel({ category, previewSrc, title, description, numberText, ti
               color: datePos.color,
               position: 'absolute',
               zIndex: 10,
-              opacity: livePng ? 0 : 1
+              opacity: livePng ? 0 : 1,
+              transform: dateAlign === 'center' ? 'translateX(-50%)' : dateAlign === 'right' ? 'translateX(-100%)' : undefined
             }}
           >
              <div className="mt-1 opacity-80">
@@ -1915,7 +1918,8 @@ function PreviewPanel({ category, previewSrc, title, description, numberText, ti
               color: expiredPos.color,
               position: 'absolute',
               zIndex: 10,
-              opacity: livePng ? 0 : 1
+              opacity: livePng ? 0 : 1,
+              transform: expAlign === 'center' ? 'translateX(-50%)' : expAlign === 'right' ? 'translateX(-100%)' : undefined
             }}
           >
             <div className="mt-1 opacity-80">

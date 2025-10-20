@@ -11,6 +11,7 @@ import { useI18n } from "@/lib/i18n"
 export default function TeamPage() {
   const [query, setQuery] = useState("")
   const [isSearching, setIsSearching] = useState(false)
+  const [categoryFilter, setCategoryFilter] = useState<string>("")
   const [results, setResults] = useState<Array<{ id: string; name?: string | null; number?: string | null; category?: string | null }>>([])
   const router = useRouter()
   const { t } = useI18n()
@@ -23,19 +24,23 @@ export default function TeamPage() {
       let error: any = null
       if (query && query.trim().length > 0) {
         const orFilter = `name.ilike.%${query}%,number.ilike.%${query}%,category.ilike.%${query}%`
-        const res = await supabase
+        let rq = supabase
           .from("certificates")
           .select("id,name,number,category")
           .or(orFilter)
           .limit(10)
+        if (categoryFilter) rq = rq.eq('category', categoryFilter)
+        const res = await rq
         data = res.data
         error = res.error
       } else {
-        const res = await supabase
+        let rq = supabase
           .from("certificates")
           .select("id,name,number,category")
           .order('name', { ascending: true })
           .limit(10)
+        if (categoryFilter) rq = rq.eq('category', categoryFilter)
+        const res = await rq
         data = res.data
         error = res.error
       }
@@ -51,7 +56,7 @@ export default function TeamPage() {
     }
     const t = setTimeout(search, 300)
     return () => { ignore = true; clearTimeout(t) }
-  }, [query])
+  }, [query, categoryFilter])
 
   function goCreateNew() {
     router.push("/team/edit?new=1")
@@ -80,12 +85,25 @@ export default function TeamPage() {
         <aside className="rounded-xl border border-white/10 bg-[#0d172b] p-5 space-y-4">
           <div>
             <label className="block text-sm text-white/70 mb-2">{t('searchCertificate')}</label>
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder={t('searchPlaceholder')}
-              className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm placeholder:text-white/50"
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder={t('searchPlaceholder')}
+                className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm placeholder:text-white/50"
+              />
+              <select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500/60"
+              >
+                <option value="">Semua Kategori</option>
+                <option value="kunjungan industri">{t('industrialVisit')}</option>
+                <option value="magang">{t('internship')}</option>
+                <option value="mou">{t('mou')}</option>
+                <option value="pelatihan">{t('training')}</option>
+              </select>
+            </div>
             <div className="mt-2 max-h-64 overflow-auto rounded-md border border-white/10 bg-[#0f1c35]">
               {isSearching ? (
                 <div className="px-3 py-2 text-sm text-white/60">{t('loading')}</div>
@@ -115,6 +133,10 @@ export default function TeamPage() {
           </div>
         </aside>
         </main>
+        <style jsx global>{`
+          select option { background-color: #0f1c35; color: #ffffff; }
+          select { color-scheme: dark; }
+        `}</style>
       </div>
     </ProtectedRoute>
   )

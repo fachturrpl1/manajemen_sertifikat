@@ -9,6 +9,7 @@ import { supabase } from "@/lib/supabase"
 import { useEffect } from "react"
 import jsPDF from "jspdf"
 import { useToast } from "@/components/ui/toast"
+import { useI18n } from "@/lib/i18n"
 
 type CertificateRow = {
   id?: string
@@ -26,9 +27,11 @@ type ManageContentProps = {
 }
 
 export function ManageContent({ role = "admin" }: ManageContentProps) {
+  const { t } = useI18n()
   const router = useRouter()
   const [rows, setRows] = useState<CertificateRow[]>([])
   const [query, setQuery] = useState("")
+  const [categoryFilter, setCategoryFilter] = useState<string>("")
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const [draft, setDraft] = useState<CertificateRow | null>(null)
@@ -41,6 +44,9 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
   const [isUpdating, setIsUpdating] = useState(false)
   const [updateMessage, setUpdateMessage] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleteIndex, setDeleteIndex] = useState<number | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
   const itemsPerPage = 10
   const { showToast, ToastContainer } = useToast()
 
@@ -252,15 +258,26 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
     }
   }, [])
 
+  const categoryOptions = useMemo(() => {
+    return [
+      { value: "", label: t('allCategories') },
+      { value: "kunjungan industri", label: t('industrialVisit') },
+      { value: "magang", label: t('internship') },
+      { value: "mou", label: t('mou') },
+      { value: "pelatihan", label: t('training') },
+    ]
+  }, [t])
+
   const filteredRows = useMemo(() => {
-    if (!query) return rows
     const q = query.toLowerCase()
-    return rows.filter((r) =>
-      [r.name, r.number, r.category, r.recipientOrg, r.issuer]
+    return rows.filter((r) => {
+      const matchesQuery = !q ? true : [r.name, r.number, r.category, r.recipientOrg, r.issuer]
         .filter(Boolean)
         .some((v) => String(v).toLowerCase().includes(q))
-    )
-  }, [rows, query])
+      const matchesCategory = !categoryFilter || (r.category || "") === categoryFilter
+      return matchesQuery && matchesCategory
+    })
+  }, [rows, query, categoryFilter])
 
   // Pagination logic
   const totalPages = Math.ceil(filteredRows.length / itemsPerPage)
@@ -362,7 +379,7 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
   return (
     <main className="mx-auto max-w-7xl px-4 md:px-6 py-6 space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-extrabold tracking-tight">Member</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight">{t('certificates')}</h1>
       </div>
 
       <div className="flex items-center gap-3">
@@ -393,15 +410,26 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
           onChange={onFileChange}
           className="hidden"
         />
-        <div className="ml-2 flex-1">
+        <div className="ml-2 flex-1 grid grid-cols-1 md:grid-cols-2 gap-2">
           <div className="relative">
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Pencarian"
+              placeholder={t('searchPlaceholder')}
               className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2 text-sm placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-blue-500/60"
             />
             <div className="pointer-events-none absolute inset-0 rounded-md ring-1 ring-white/5" />
+          </div>
+          <div>
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500/60"
+            >
+              {categoryOptions.map((opt, i) => (
+                <option key={i} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
           </div>
         </div>
       </div>
@@ -411,14 +439,14 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
           <table className="w-full text-left text-sm">
             <thead>
               <tr className="text-white/70">
-                <th className="px-4 py-3 font-medium">NAMA</th>
-                <th className="px-4 py-3 font-medium">NOMOR</th>
-                <th className="px-4 py-3 font-medium">KATEGORI</th>
+                <th className="px-4 py-3 font-medium">{t('name')}</th>
+                <th className="px-4 py-3 font-medium">{t('number')}</th>
+                <th className="px-4 py-3 font-medium">{t('category')}</th>
                 {/* <th className="px-4 py-3 font-medium">INSTANSI PENERIMA</th> */}
                 {/* <th className="px-4 py-3 font-medium">PENERBIT</th> */}
-                <th className="px-4 py-3 font-medium">TANGGAL TERBIT</th>
-                <th className="px-4 py-3 font-medium">TANGGAL KADALUARSA</th>
-                <th className="px-4 py-3 font-medium">AKSI</th>
+                <th className="px-4 py-3 font-medium">{t('issuedDate')}</th>
+                <th className="px-4 py-3 font-medium">{t('expiredDate')}</th>
+                <th className="px-4 py-3 font-medium">{t('actions')}</th>
               </tr>
             </thead>
             <tbody>
@@ -489,21 +517,7 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                                   aria-label="Delete"
                                   title="Delete"
                                   className="rounded-md border border-red-500/30 bg-red-500/10 px-2 py-1 text-red-300"
-                                  onClick={() => {
-                                  const doDelete = async () => {
-                                    if (r.id) {
-                                      const { error } = await supabase.from("certificates").delete().eq("id", r.id)
-                                      if (error) {
-                                        console.error(error)
-                                        return
-                                      }
-                                    }
-                                    const copy = rows.slice()
-                                    copy.splice(idx, 1)
-                                    setRows(copy)
-                                  }
-                                  doDelete()
-                                  }}
+                                  onClick={() => { setDeleteIndex(idx); setShowDeleteConfirm(true) }}
                                 >
                                   <Trash2 className="h-4 w-4 text-white" />
                                 </button>
@@ -558,6 +572,51 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
           </div>
         </div>
       </section>
+
+      {showDeleteConfirm && (
+        <>
+          <ModalOverlay onClick={() => !isDeleting && setShowDeleteConfirm(false)} />
+          <ModalContent>
+            <div className="w-full max-w-sm rounded-xl border border-white/10 bg-[#0d1223] p-4 text-sm">
+              <div className="mb-3 text-base font-semibold">Konfirmasi Hapus</div>
+              <div className="mb-4 text-white/70">Apakah Anda yakin ingin menghapus sertifikat ini? Tindakan tidak dapat dibatalkan.</div>
+              <div className="flex justify-end gap-2">
+                <button
+                  className="rounded-md border border-white/10 bg-white/5 px-3 py-2 disabled:opacity-50"
+                  onClick={() => setShowDeleteConfirm(false)}
+                  disabled={isDeleting}
+                >Batal</button>
+                <button
+                  className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-red-300 disabled:opacity-50"
+                  onClick={async () => {
+                    if (deleteIndex == null) return
+                    try {
+                      setIsDeleting(true)
+                      const row = rows[deleteIndex]
+                      if (row?.id) {
+                        const { error } = await supabase.from('certificates').delete().eq('id', row.id)
+                        if (error) { console.error(error); setIsDeleting(false); return }
+                      }
+                      const copy = rows.slice()
+                      copy.splice(deleteIndex, 1)
+                      setRows(copy)
+                      setShowDeleteConfirm(false)
+                    } finally {
+                      setIsDeleting(false)
+                      setDeleteIndex(null)
+                    }
+                  }}
+                  disabled={isDeleting}
+                >{isDeleting ? 'Menghapus...' : 'Hapus'}</button>
+              </div>
+            </div>
+          </ModalContent>
+        </>
+      )}
+      <style jsx global>{`
+        select option { background-color: #0f1c35; color: #ffffff; }
+        select { color-scheme: dark; }
+      `}</style>
       {showModal && draft && (
         <>
           <ModalOverlay onClick={() => setShowModal(false)} />
@@ -596,7 +655,17 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                 </div>
                 <div className="md:col-span-2">
                   <div className="mb-2 text-white/70">Kategori</div>
-                  <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.category ?? ""} onChange={(e) => setDraft({ ...draft, category: e.target.value })} />
+                  <select
+                    className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2"
+                    value={draft.category ?? ""}
+                    onChange={(e) => setDraft({ ...draft, category: e.target.value })}
+                  >
+                    <option value="" disabled>Pilih kategori</option>
+                    <option value="kunjungan industri">kunjungan industri</option>
+                    <option value="magang">magang</option>
+                    <option value="mou">mou</option>
+                    <option value="pelatihan">pelatihan</option>
+                  </select>
                 </div>
               </div>
               {updateMessage && (
@@ -796,7 +865,17 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                 </div>
                 <div className="md:col-span-2">
                   <div className="mb-1 text-white/70">Kategori</div>
-                  <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.category ?? ""} onChange={(e) => setDraft({ ...draft, category: e.target.value })} />
+                  <select
+                    className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2"
+                    value={draft.category ?? ""}
+                    onChange={(e) => setDraft({ ...draft, category: e.target.value })}
+                  >
+                    <option value="" disabled>Pilih kategori</option>
+                    <option value="kunjungan industri">kunjungan industri</option>
+                    <option value="magang">magang</option>
+                    <option value="mou">mou</option>
+                    <option value="pelatihan">pelatihan</option>
+                  </select>
                 </div>
               </div>
               {updateMessage && (
@@ -887,6 +966,53 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                   <X className="h-4 w-4" />
                 </button>
               </div>
+              {/* Action Buttons */}
+              <div className="mb-4 flex flex-wrap gap-2">
+                <button
+                  className="rounded-md border border-white/10 bg-white/5 px-3 py-2 hover:bg-white/10"
+                  onClick={() => {
+                    try {
+                      if (!previewModalSrc) return
+                      const img = new Image()
+                      img.onload = () => {
+                        const W = img.naturalWidth || 1200
+                        const H = img.naturalHeight || 900
+                        const doc = new jsPDF({ orientation: W >= H ? 'landscape' : 'portrait', unit: 'pt', format: [W, H] })
+                        doc.addImage(previewModalSrc, 'PNG', 0, 0, W, H)
+                        const name = (certificateData?.name || certificateData?.title || 'certificate').toString().replace(/\s+/g,'_')
+                        doc.save(`${name}.pdf`)
+                      }
+                      img.src = previewModalSrc
+                    } catch (e) {
+                      console.error('download pdf failed:', e)
+                    }
+                  }}
+                >Download PDF</button>
+
+                <button
+                  className="rounded-md border border-white/10 bg-white/5 px-3 py-2 hover:bg-white/10"
+                  onClick={async () => {
+                    try {
+                      const link = (certificateData?.preview_image && String(certificateData.preview_image)) || ''
+                      if (link) await navigator.clipboard.writeText(link)
+                    } catch (e) { console.error('copy link failed:', e) }
+                  }}
+                >Copy Link</button>
+
+                <button
+                  className="rounded-md border border-white/10 bg-white/5 px-3 py-2 hover:bg-white/10"
+                  onClick={() => {
+                    try {
+                      const base = typeof window !== 'undefined' ? window.location.origin : ''
+                      const link = certificateData?.number ? `${base}/cek/${encodeURIComponent(certificateData.number)}` : (certificateData?.preview_image || '')
+                      const to = certificateData?.email || ''
+                      const subject = encodeURIComponent('Sertifikat Anda')
+                      const body = encodeURIComponent(`Halo${certificateData?.name ? ' ' + certificateData.name : ''},%0D%0A%0D%0ABerikut link sertifikat Anda:%0D%0A${link || ''}%0D%0A%0DTerima kasih.`)
+                      window.location.href = `mailto:${to}?subject=${subject}&body=${body}`
+                    } catch (e) { console.error('mailto failed:', e) }
+                  }}
+                >Kirim via Email</button>
+              </div>
               
               {certificateData ? (
                 <div className="space-y-4">
@@ -894,16 +1020,16 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                     <div className="space-y-4">
                       <div className="rounded-lg border border-white/10 bg-white/5 p-4">
                         <h3 className="mb-3 font-medium">Preview</h3>
-                        <div className="relative bg-white rounded-lg overflow-hidden flex items-center justify-center" style={{
-                          maxHeight: '360px',
-                          maxWidth: '600px'
-                        }}>
-                          {previewModalSrc ? (
-                            <img src={previewModalSrc} alt="Certificate Preview" className="w-full h-auto max-h-[360px] object-contain" />
-                          ) : (
-                            <div className="text-white/60 text-sm">Generating preview...</div>
-                          )}
-                        </div>
+                        {previewModalSrc ? (
+                          <img
+                            src={previewModalSrc}
+                            alt="Certificate Preview"
+                            className="mx-auto h-auto max-h-[360px] w-auto object-contain rounded-lg"
+                            style={{ maxWidth: '600px' }}
+                          />
+                        ) : (
+                          <div className="text-white/60 text-sm">Generating preview...</div>
+                        )}
                       </div>
                     </div>
                   ) : (

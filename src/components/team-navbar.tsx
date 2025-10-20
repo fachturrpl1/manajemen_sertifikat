@@ -4,17 +4,19 @@ import Link from "next/link"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useI18n } from "@/lib/i18n"
+import { useAuth } from "@/lib/useAuth"
 import { Globe } from "lucide-react"
 
 export function TeamNavbar() {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
   const router = useRouter()
   const { locale, setLocale, t } = useI18n()
+  const { user } = useAuth()
 
   return (
     <header className="flex items-center justify-between px-6 py-4 border-b border-white/10">
       <div className="flex items-center gap-8">
-      <Link href="/">
+      <Link href="/team">
       <div className="mx-auto m-1 inline-flex items-center gap-2">
         <div className="h-7 w-7 size-7 rounded-md bg-blue-600 text-white grid place-items-center font-bold">
           S
@@ -26,12 +28,14 @@ export function TeamNavbar() {
       </div>
       </Link>
         <nav className="hidden md:flex items-center gap-6 text-sm text-white/70">
-          <Link className="hover:text-white" href="/team">Home</Link>
+          <Link className="hover:text-white" href="/team">{t('dashboard')}</Link>
           <Link className="hover:text-white" href="/team/manage">{t('manage')}</Link>
           <Link className="hover:text-white" href="/team/faq">{t('faq')}</Link>
         </nav>
       </div>
       <div className="flex items-center gap-4 text-sm">
+        <span className="text-white/70">{t('welcome')}{user?.email ? `, ${user.email}` : ''}</span>
+        <button onClick={() => setShowLogoutConfirm(true)} className="text-sm text-blue-400 hover:text-white">{t('logout')}</button>
         {/* Language Toggle Button */}
         <button
           onClick={() => setLocale(locale === 'en' ? 'id' : 'en')}
@@ -41,8 +45,6 @@ export function TeamNavbar() {
           <Globe className="h-4 w-4" />
           <span className="font-medium">{locale === 'en' ? 'EN' : 'ID'}</span>
         </button>
-        
-        <button onClick={() => setShowLogoutConfirm(true)} className="text-sm text-blue-400 hover:text-white">{t('logout')}</button>
       </div>
       {showLogoutConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">

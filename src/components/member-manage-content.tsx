@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import * as XLSX from "xlsx"
 import { Pencil, Trash2, X } from "lucide-react"
 import { ModalOverlay, ModalContent } from "@/components/ui/separator"
+import { useI18n } from "@/lib/i18n"
 import { supabase } from "@/lib/supabase"
 
 type MemberRow = {
@@ -21,6 +22,7 @@ type MemberRow = {
 }
 
 export function MemberManageContent() {
+  const { t } = useI18n()
   const [rows, setRows] = useState<MemberRow[]>([])
   const [query, setQuery] = useState("")
   const fileInputRef = useRef<HTMLInputElement | null>(null)
@@ -31,6 +33,9 @@ export function MemberManageContent() {
   const [isLoading, setIsLoading] = useState(true)
   const [isUpdating, setIsUpdating] = useState(false)
   const [updateMessage, setUpdateMessage] = useState("")
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleteIndex, setDeleteIndex] = useState<number | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
     // Initial data fetch
@@ -240,7 +245,7 @@ export function MemberManageContent() {
   return (
     <main className="mx-auto max-w-7xl px-4 md:px-6 py-6 space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-extrabold tracking-tight text-white">Team</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight text-white">{t('members')}</h1>
       </div>
 
       <div className="flex items-center gap-3">
@@ -270,7 +275,7 @@ export function MemberManageContent() {
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Pencarian"
+              placeholder={t('searchPlaceholder')}
               className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-blue-500/60"
             />
             <div className="pointer-events-none absolute inset-0 rounded-md ring-1 ring-white/5" />
@@ -283,16 +288,16 @@ export function MemberManageContent() {
           <table className="w-full text-left text-sm">
             <thead>
               <tr className="text-white/70">
-                <th className="px-4 py-3 font-medium">NAME</th>
-                <th className="px-4 py-3 font-medium">ORGANIZATION</th>
-                <th className="px-4 py-3 font-medium">PHONE</th>
-                <th className="px-4 py-3 font-medium">EMAIL</th>
-                <th className="px-4 py-3 font-medium">JOB</th>
-                <th className="px-4 py-3 font-medium">DATE OF BIRTH</th>
-                <th className="px-4 py-3 font-medium">ADDRESS</th>
-                <th className="px-4 py-3 font-medium">CITY</th>
-                <th className="px-4 py-3 font-medium">PASSWORD</th>
-                <th className="px-4 py-3 font-medium">AKSI</th>
+                <th className="px-4 py-3 font-medium">{t('name')}</th>
+                <th className="px-4 py-3 font-medium">{t('organization')}</th>
+                <th className="px-4 py-3 font-medium">{t('phone')}</th>
+                <th className="px-4 py-3 font-medium">{t('email')}</th>
+                <th className="px-4 py-3 font-medium">{t('job')}</th>
+                <th className="px-4 py-3 font-medium">{t('dateOfBirth')}</th>
+                <th className="px-4 py-3 font-medium">{t('address')}</th>
+                <th className="px-4 py-3 font-medium">{t('city')}</th>
+                <th className="px-4 py-3 font-medium">{t('password')}</th>
+                <th className="px-4 py-3 font-medium">{t('actions')}</th>
               </tr>
             </thead>
             <tbody>
@@ -336,21 +341,7 @@ export function MemberManageContent() {
                                 aria-label="Delete"
                                 title="Delete"
                                 className="rounded-md border border-red-500/30 bg-red-500/10 px-2 py-1"
-                                onClick={() => {
-                                  const doDelete = async () => {
-                                    if (r.id) {
-                                      const { error } = await supabase.from("members").delete().eq("id", r.id)
-                                      if (error) {
-                                        console.error(error)
-                                        return
-                                      }
-                                    }
-                                  const copy = rows.slice()
-                                    copy.splice(idx, 1)
-                                  setRows(copy)
-                                  }
-                                  doDelete()
-                                }}
+                                onClick={() => { setDeleteIndex(idx); setShowDeleteConfirm(true) }}
                               >
                                 <Trash2 className="h-4 w-4 text-white" />
                               </button>
@@ -375,6 +366,47 @@ export function MemberManageContent() {
           </div>
         </div>
       </section>
+
+      {showDeleteConfirm && (
+        <>
+          <ModalOverlay onClick={() => !isDeleting && setShowDeleteConfirm(false)} />
+          <ModalContent>
+            <div className="w-full max-w-sm rounded-xl border border-white/10 bg-[#0d1223] p-4 text-sm">
+              <div className="mb-3 text-base font-semibold">Konfirmasi Hapus</div>
+              <div className="mb-4 text-white/70">Apakah Anda yakin ingin menghapus member ini? Tindakan tidak dapat dibatalkan.</div>
+              <div className="flex justify-end gap-2">
+                <button
+                  className="rounded-md border border-white/10 bg-white/5 px-3 py-2 disabled:opacity-50"
+                  onClick={() => setShowDeleteConfirm(false)}
+                  disabled={isDeleting}
+                >Batal</button>
+                <button
+                  className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-red-300 disabled:opacity-50"
+                  onClick={async () => {
+                    if (deleteIndex == null) return
+                    try {
+                      setIsDeleting(true)
+                      const row = rows[deleteIndex]
+                      if (row?.id) {
+                        const { error } = await supabase.from('members').delete().eq('id', row.id)
+                        if (error) { console.error(error); setIsDeleting(false); return }
+                      }
+                      const copy = rows.slice()
+                      copy.splice(deleteIndex, 1)
+                      setRows(copy)
+                      setShowDeleteConfirm(false)
+                    } finally {
+                      setIsDeleting(false)
+                      setDeleteIndex(null)
+                    }
+                  }}
+                  disabled={isDeleting}
+                >{isDeleting ? 'Menghapus...' : 'Hapus'}</button>
+              </div>
+            </div>
+          </ModalContent>
+        </>
+      )}
       {showModal && draft && (
         <>
           <ModalOverlay onClick={() => setShowModal(false)} />

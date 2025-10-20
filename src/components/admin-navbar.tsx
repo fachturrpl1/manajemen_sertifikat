@@ -16,7 +16,7 @@ export function AdminNavbar() {
   return (
     <header className="flex items-center justify-between px-6 py-4 border-b border-white/10">
       <div className="flex items-center gap-8">
-      <Link href="/">
+      <Link href="/admin">
       <div className="mx-auto m-1 inline-flex items-center gap-2">
         <div className="h-7 w-7 size-7 rounded-md bg-blue-600 text-white grid place-items-center font-bold">
           S
