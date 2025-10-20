@@ -18,18 +18,18 @@ export default function ManagePage() {
         <div className="mx-auto max-w-7xl px-4 pt-6">
         <div className="flex justify-center">
           <div className="inline-flex rounded-lg border border-white/10 bg-white/5 p-1">
-            <button
-              onClick={() => setTab("member")}
-              className={`${tab === "member" ? "bg-blue-600 text-white" : "text-white/80 hover:text-white"} rounded-md px-3 py-1.5 text-sm`}
-            >
-              Member
-            </button>
-            <button
-              onClick={() => setTab("team")}
-              className={`${tab === "team" ? "bg-blue-600 text-white" : "text-white/80 hover:text-white"} rounded-md px-3 py-1.5 text-sm`}
-            >
-              Team
-            </button>
+          <button
+            onClick={() => setTab("member")}
+            className={`${tab === "member" ? "bg-blue-600 text-white" : "text-white/80 hover:text-white"} rounded-md px-3 py-1.5 text-sm`}
+          >
+            {t('memberManagement')}
+          </button>
+          <button
+            onClick={() => setTab("team")}
+            className={`${tab === "team" ? "bg-blue-600 text-white" : "text-white/80 hover:text-white"} rounded-md px-3 py-1.5 text-sm`}
+          >
+            {"Team"}
+          </button>
           </div>
         </div>
         </div>

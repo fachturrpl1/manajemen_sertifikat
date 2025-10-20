@@ -2,11 +2,9 @@
 
 import { TeamNavbar } from "@/components/team-navbar"
 import { ManageContent } from "@/components/manage-content"
-import { MemberManageContent } from "@/components/member-manage-content"
-import { useState } from "react"
-import { useI18n } from "@/lib/i18n"
 
 export default function TeamManagePage() {
+<<<<<<< HEAD
   const [tab, setTab] = useState<"member" | "team">("team")
   const { t } = useI18n()
   return (
@@ -31,6 +29,12 @@ export default function TeamManagePage() {
         </div>
       </div>
       {tab === "member" ? <ManageContent role="team" /> : <MemberManageContent />}
+=======
+  return (
+    <div className="min-h-svh bg-gradient-to-b from-[#0b1220] to-[#0f1c35] text-white">
+      <TeamNavbar />
+      <ManageContent role="team" />
+>>>>>>> a164e9477b7c34cbdeae87f23ac7e0f08e66e32f
     </div>
   )
 }

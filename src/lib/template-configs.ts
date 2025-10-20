@@ -29,40 +29,40 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
     name: "Industrial Visit Template 1",
     defaultPositions: {
       title: { 
-        x: 615,
-        y: 609, 
-        size: 32, 
+        x: 667,
+        y: 625, 
+        size: 30, 
         color: "#000000", 
         align: "center", 
         font: "Times New Roman, Times, serif" 
       },
       description: { 
-        x: 651,
-        y: 785, 
-        size: 12, 
+        x: 665,
+        y: 861, 
+        size: 13, 
         color: "#000000", 
         align: "center", 
         font: "Inter, ui-sans-serif, system-ui" 
       },
       date: { 
-        x: 260, 
-        y: 310, 
+        x: 367, 
+        y: 1099, 
         size: 11, 
         color: "#000000", 
         align: "center", 
         font: "Inter, ui-sans-serif, system-ui" 
       },
       number: {
-        x: 260,
-        y: 280,
-        size: 12,
+        x: 1675,
+        y: 87,
+        size: 14,
         color: "#000000",
         align: "center",
         font: "Inter, ui-sans-serif, system-ui"
       },
       expired: {
-        x: 260,
-        y: 340,
+        x: 1371,
+        y: 1099,
         size: 12,
         color: "#000000",
         align: "center",
@@ -75,41 +75,41 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
     name: "Industrial Visit Template 2",
     defaultPositions: {
       title: { 
-        x: 220,
-        y: 166, 
-        size: 22, 
-        color: "#1a1a1a", 
+        x: 461,
+        y: 819, 
+        size: 29, 
+        color: "#259e8f", 
         align: "center", 
         font: "Georgia, serif" 
       },
       description: { 
-        x: 222, 
-        y: 212, 
-        size: 10, 
+        x: 406, 
+        y: 1052, 
+        size: 16, 
         color: "#333333", 
         align: "center", 
         font: "Inter, ui-sans-serif, system-ui" 
       },
       date: { 
-        x: 332, 
-        y: 344, 
-        size: 9, 
+        x: 904, 
+        y: 1682, 
+        size: 15, 
         color: "#666666", 
         align: "right", 
         font: "Arial, Helvetica, sans-serif" 
       },
       number: {
-        x: 222,
-        y: 280,
-        size: 11,
+        x: 1125,
+        y: 200,
+        size: 20,
         color: "#333333",
         align: "center",
         font: "Inter, ui-sans-serif, system-ui"
       },
       expired: {
-        x: 222,
-        y: 360,
-        size: 10,
+        x: 276,
+        y: 1682,
+        size: 15,
         color: "#333333",
         align: "center",
         font: "Inter, ui-sans-serif, system-ui"
