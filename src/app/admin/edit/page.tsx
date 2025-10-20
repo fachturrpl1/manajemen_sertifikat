@@ -670,7 +670,7 @@ export default function AdminPage() {
           setCurrentTemplateConfig(config)
           if (config && config.defaultPositions) {
             const dp = config.defaultPositions
-            const updates: Record<string, any> = {}
+            const updates: Record<string, unknown> = {}
             if (row.title_x == null) { setTitleX(dp.title.x); updates.title_x = dp.title.x }
             if (row.title_y == null) { setTitleY(dp.title.y); updates.title_y = dp.title.y }
             if (row.title_size == null) { setTitleSize(dp.title.size); updates.title_size = dp.title.size }
@@ -726,7 +726,7 @@ export default function AdminPage() {
             await supabase.from("certificates").update({ template_path: first }).eq("id", certificateId)
             if (config && config.defaultPositions) {
               const dp = config.defaultPositions
-              const updates: Record<string, any> = {}
+              const updates: Record<string, unknown> = {}
               if (row.title_x == null) { setTitleX(dp.title.x); updates.title_x = dp.title.x }
               if (row.title_y == null) { setTitleY(dp.title.y); updates.title_y = dp.title.y }
               if (row.title_size == null) { setTitleSize(dp.title.size); updates.title_size = dp.title.size }
@@ -788,19 +788,19 @@ export default function AdminPage() {
         try {
           const { data } = await supabase.from('certificates').select('*').eq('id', certificateId).single()
           if (!data) return
-          const row = data as Record<string, any>
-          setCategory(row.category || '')
-          const certificateTitle = row.name || row.title || ''
+          const row = data as Record<string, unknown>
+          setCategory((row.category as string) || '')
+          const certificateTitle = (row.name as string) || (row.title as string) || ''
           setTitle(certificateTitle)
-          setDescription(row.description || '')
-          setIssuedAt(row.issued_at || '')
-          setExpiresAt(row.expires_at || '')
-          setNumberText(row.number || '')
-          setTitleX(row.title_x ?? 370); setTitleY(row.title_y ?? 180); setTitleSize(row.title_size ?? 32); setTitleColor(row.title_color ?? '#000000'); setTitleAlign(row.title_align ?? 'center'); setTitleFont(row.title_font ?? 'Inter, ui-sans-serif, system-ui')
-          setDescX(row.desc_x ?? 360); setDescY(row.desc_y ?? 235); setDescSize(row.desc_size ?? 15); setDescColor(row.desc_color ?? '#000000'); setDescAlign(row.desc_align ?? 'center'); setDescFont(row.desc_font ?? 'Inter, ui-sans-serif, system-ui')
-          setDateX(row.date_x ?? 50); setDateY(row.date_y ?? 110); setDateSize(row.date_size ?? 14); setDateColor(row.date_color ?? '#000000'); setDateAlign(row.date_align ?? 'center'); setDateFont(row.date_font ?? 'Inter, ui-sans-serif, system-ui')
-          setNumberX(row.number_x ?? 370); setNumberY(row.number_y ?? 300); setNumberSize(row.number_size ?? 14); setNumberColor(row.number_color ?? '#000000'); setNumberAlign(row.number_align ?? 'center'); setNumberFont(row.number_font ?? 'Inter, ui-sans-serif, system-ui')
-          setExpX(row.expires_x ?? 370); setExpY(row.expires_y ?? 360); setExpSize(row.expires_size ?? 12); setExpColor(row.expires_color ?? '#000000'); setExpAlign(row.expires_align ?? 'center'); setExpFont(row.expires_font ?? 'Inter, ui-sans-serif, system-ui')
+          setDescription((row.description as string) || '')
+          setIssuedAt((row.issued_at as string) || '')
+          setExpiresAt((row.expires_at as string) || '')
+          setNumberText((row.number as string) || '')
+          setTitleX((row.title_x as number) ?? 370); setTitleY((row.title_y as number) ?? 180); setTitleSize((row.title_size as number) ?? 32); setTitleColor((row.title_color as string) ?? '#000000'); setTitleAlign((row.title_align as 'left' | 'center' | 'right') ?? 'center'); setTitleFont((row.title_font as string) ?? 'Inter, ui-sans-serif, system-ui')
+          setDescX((row.desc_x as number) ?? 360); setDescY((row.desc_y as number) ?? 235); setDescSize((row.desc_size as number) ?? 15); setDescColor((row.desc_color as string) ?? '#000000'); setDescAlign((row.desc_align as 'left' | 'center' | 'right') ?? 'center'); setDescFont((row.desc_font as string) ?? 'Inter, ui-sans-serif, system-ui')
+          setDateX((row.date_x as number) ?? 50); setDateY((row.date_y as number) ?? 110); setDateSize((row.date_size as number) ?? 14); setDateColor((row.date_color as string) ?? '#000000'); setDateAlign((row.date_align as 'left' | 'center' | 'right') ?? 'center'); setDateFont((row.date_font as string) ?? 'Inter, ui-sans-serif, system-ui')
+          setNumberX((row.number_x as number) ?? 370); setNumberY((row.number_y as number) ?? 300); setNumberSize((row.number_size as number) ?? 14); setNumberColor((row.number_color as string) ?? '#000000'); setNumberAlign((row.number_align as 'left' | 'center' | 'right') ?? 'center'); setNumberFont((row.number_font as string) ?? 'Inter, ui-sans-serif, system-ui')
+          setExpX((row.expires_x as number) ?? 370); setExpY((row.expires_y as number) ?? 360); setExpSize((row.expires_size as number) ?? 12); setExpColor((row.expires_color as string) ?? '#000000'); setExpAlign((row.expires_align as 'left' | 'center' | 'right') ?? 'center'); setExpFont((row.expires_font as string) ?? 'Inter, ui-sans-serif, system-ui')
           if (row.template_path) {
             const path = row.template_path as string
             setSelectedTemplate(path)
@@ -1585,10 +1585,14 @@ function PreviewPanel({ category, previewSrc, title, description, numberText, ti
         ctx.fillStyle = color
         const weight = bold ? '700' : '400'
         const baseFamily = (font || '').split(',')[0]?.replace(/['"]/g, '').trim() || 'Inter'
-        try { await (document as any).fonts?.load?.(`${weight} ${size}px '${baseFamily}'`) } catch {}
         try {
-          const ready: any = (document as any).fonts?.ready
-          if (ready && typeof ready.then === 'function') {
+          const fontsObj = (document as unknown as { fonts?: { load?: (arg: string) => Promise<unknown>; ready?: Promise<unknown> } }).fonts
+          await fontsObj?.load?.(`${weight} ${size}px '${baseFamily}'`)
+        } catch {}
+        try {
+          const fontsObj = (document as unknown as { fonts?: { load?: (arg: string) => Promise<unknown>; ready?: Promise<unknown> } }).fonts
+          const ready = fontsObj?.ready
+          if (ready && typeof (ready as Promise<unknown>).then === 'function') {
             await ready
           }
         } catch {}

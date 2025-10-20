@@ -10,6 +10,9 @@ import { useEffect } from "react"
 import jsPDF from "jspdf"
 import { useToast } from "@/components/ui/toast"
 import { useI18n } from "@/lib/i18n"
+import { DayPicker } from "react-day-picker"
+import { format as formatDateFn } from "date-fns"
+import { enUS, id as idLocale } from "date-fns/locale"
 
 type CertificateRow = {
   id?: string
@@ -27,16 +30,19 @@ type ManageContentProps = {
 }
 
 export function ManageContent({ role = "admin" }: ManageContentProps) {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const router = useRouter()
   const [rows, setRows] = useState<CertificateRow[]>([])
   const [query, setQuery] = useState("")
+  const [dateFormat, setDateFormat] = useState<string>("dd-MM-yyyy")
   const [categoryFilter, setCategoryFilter] = useState<string>("")
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const [draft, setDraft] = useState<CertificateRow | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [showAddModal, setShowAddModal] = useState(false)
+  const [showIssuedCalendar, setShowIssuedCalendar] = useState(false)
+  const [showExpiresCalendar, setShowExpiresCalendar] = useState(false)
   const [showViewModal, setShowViewModal] = useState(false)
   const [viewingCertificate, setViewingCertificate] = useState<CertificateRow | null>(null)
   const [certificateData, setCertificateData] = useState<any>(null)
@@ -49,6 +55,20 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
   const [isDeleting, setIsDeleting] = useState(false)
   const itemsPerPage = 10
   const { showToast, ToastContainer } = useToast()
+
+  const dfLocale = locale === 'id' ? idLocale : enUS
+  const toISO = (d: Date | null | undefined) => (d ? formatDateFn(d, 'yyyy-MM-dd') : "")
+  const fromISO = (s?: string) => {
+    if (!s) return null
+    const parts = s.split("-")
+    if (parts.length === 3) {
+      const y = Number(parts[0]), m = Number(parts[1]) - 1, d = Number(parts[2])
+      const dt = new Date(y, m, d)
+      return isNaN(dt.getTime()) ? null : dt
+    }
+    const dt = new Date(s)
+    return isNaN(dt.getTime()) ? null : dt
+  }
 
   // Preview helpers (samakan dengan editor)
   const previewContainerRef = useRef<HTMLDivElement | null>(null)
@@ -647,11 +667,70 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                 </div>
                 <div>
                   <div className="mb-2 text-white/70">Tanggal Terbit</div>
-                  <input type="date" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.issuedAt ?? ""} onChange={(e) => setDraft({ ...draft, issuedAt: e.target.value })} />
+                  <div className="relative">
+                    <input
+                      readOnly
+                      value={fromISO(draft.issuedAt || "") ? formatDateFn(fromISO(draft.issuedAt || "") as Date, dateFormat, { locale: dfLocale }) : ""}
+                      onClick={() => setShowIssuedCalendar(!showIssuedCalendar)}
+                      className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2 cursor-pointer"
+                    />
+                    {showIssuedCalendar && (
+                      <div className="absolute z-50 mt-2 rounded-md border border-white/10 bg-[#0d172b] p-2 shadow-xl">
+                        <DayPicker
+                          mode="single"
+                          selected={fromISO(draft.issuedAt || "") || undefined}
+                          onSelect={(d) => {
+                            setShowIssuedCalendar(false)
+                            if (d) setDraft({ ...draft, issuedAt: toISO(d) })
+                          }}
+                          locale={dfLocale}
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div>
                   <div className="mb-2 text-white/70">Tanggal Kadaluarsa</div>
-                  <input type="date" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.expiresAt ?? ""} onChange={(e) => setDraft({ ...draft, expiresAt: e.target.value })} />
+                  <div className="relative">
+                    <input
+                      readOnly
+                      value={fromISO(draft.expiresAt || "") ? formatDateFn(fromISO(draft.expiresAt || "") as Date, dateFormat, { locale: dfLocale }) : ""}
+                      onClick={() => setShowExpiresCalendar(!showExpiresCalendar)}
+                      className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2 cursor-pointer"
+                    />
+                    {showExpiresCalendar && (
+                      <div className="absolute z-50 mt-2 rounded-md border border-white/10 bg-[#0d172b] p-2 shadow-xl">
+                        <DayPicker
+                          mode="single"
+                          selected={fromISO(draft.expiresAt || "") || undefined}
+                          onSelect={(d) => {
+                            setShowExpiresCalendar(false)
+                            if (d) setDraft({ ...draft, expiresAt: toISO(d) })
+                          }}
+                          locale={dfLocale}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="md:col-span-2">
+                  <div className="mb-2 text-white/70">Format Tanggal</div>
+                  <select
+                    className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2"
+                    value={dateFormat}
+                    onChange={(e) => setDateFormat(e.target.value)}
+                  >
+                    <option value="dd-MM-yyyy">dd-MM-yyyy</option>
+                    <option value="MM-dd-yyyy">MM-dd-yyyy</option>
+                    <option value="yyyy-MM-dd">yyyy-MM-dd</option>
+                    <option value="dd MMM yyyy">dd MMM yyyy</option>
+                    <option value="dd MMMM yyyy">dd MMMM yyyy</option>
+                    <option value="MMM dd, yyyy">MMM dd, yyyy</option>
+                    <option value="MMMM dd, yyyy">MMMM dd, yyyy</option>
+                    <option value="dd/MM/yyyy">dd/MM/yyyy</option>
+                    <option value="MM/dd/yyyy">MM/dd/yyyy</option>
+                    <option value="yyyy/MM/dd">yyyy/MM/dd</option>
+                  </select>
                 </div>
                 <div className="md:col-span-2">
                   <div className="mb-2 text-white/70">Kategori</div>
@@ -857,11 +936,70 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                 </div>
                 <div>
                   <div className="mb-1 text-white/70">Tanggal Terbit</div>
-                  <input type="date" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.issuedAt ?? ""} onChange={(e) => setDraft({ ...draft, issuedAt: e.target.value })} />
+                  <div className="relative">
+                    <input
+                      readOnly
+                      value={fromISO(draft.issuedAt || "") ? formatDateFn(fromISO(draft.issuedAt || "") as Date, dateFormat, { locale: dfLocale }) : ""}
+                      onClick={() => setShowIssuedCalendar(!showIssuedCalendar)}
+                      className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2 cursor-pointer"
+                    />
+                    {showIssuedCalendar && (
+                      <div className="absolute z-50 mt-2 rounded-md border border-white/10 bg-[#0d172b] p-2 shadow-xl">
+                        <DayPicker
+                          mode="single"
+                          selected={fromISO(draft.issuedAt || "") || undefined}
+                          onSelect={(d) => {
+                            setShowIssuedCalendar(false)
+                            if (d) setDraft({ ...draft, issuedAt: toISO(d) })
+                          }}
+                          locale={dfLocale}
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div>
                   <div className="mb-1 text-white/70">Tanggal Kadaluarsa</div>
-                  <input type="date" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.expiresAt ?? ""} onChange={(e) => setDraft({ ...draft, expiresAt: e.target.value })} />
+                  <div className="relative">
+                    <input
+                      readOnly
+                      value={fromISO(draft.expiresAt || "") ? formatDateFn(fromISO(draft.expiresAt || "") as Date, dateFormat, { locale: dfLocale }) : ""}
+                      onClick={() => setShowExpiresCalendar(!showExpiresCalendar)}
+                      className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2 cursor-pointer"
+                    />
+                    {showExpiresCalendar && (
+                      <div className="absolute z-50 mt-2 rounded-md border border-white/10 bg-[#0d172b] p-2 shadow-xl">
+                        <DayPicker
+                          mode="single"
+                          selected={fromISO(draft.expiresAt || "") || undefined}
+                          onSelect={(d) => {
+                            setShowExpiresCalendar(false)
+                            if (d) setDraft({ ...draft, expiresAt: toISO(d) })
+                          }}
+                          locale={dfLocale}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="md:col-span-2">
+                  <div className="mb-1 text-white/70">Format Tanggal</div>
+                  <select
+                    className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2"
+                    value={dateFormat}
+                    onChange={(e) => setDateFormat(e.target.value)}
+                  >
+                    <option value="dd-MM-yyyy">dd-MM-yyyy</option>
+                    <option value="MM-dd-yyyy">MM-dd-yyyy</option>
+                    <option value="yyyy-MM-dd">yyyy-MM-dd</option>
+                    <option value="dd MMM yyyy">dd MMM yyyy</option>
+                    <option value="dd MMMM yyyy">dd MMMM yyyy</option>
+                    <option value="MMM dd, yyyy">MMM dd, yyyy</option>
+                    <option value="MMMM dd, yyyy">MMMM dd, yyyy</option>
+                    <option value="dd/MM/yyyy">dd/MM/yyyy</option>
+                    <option value="MM/dd/yyyy">MM/dd/yyyy</option>
+                    <option value="yyyy/MM/dd">yyyy/MM/dd</option>
+                  </select>
                 </div>
                 <div className="md:col-span-2">
                   <div className="mb-1 text-white/70">Kategori</div>

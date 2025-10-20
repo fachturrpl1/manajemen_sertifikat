@@ -66,6 +66,11 @@ const en: Dictionary = {
   category: "Category",
   tryPublicVerification: "Try Public Verification",
   publicVerification: "Public Verification",
+  // Navbar
+  confirmLogoutTitle: "Logout Confirmation",
+  confirmLogoutMessage: "Are you sure you want to logout?",
+  switchToIndonesian: "Switch to Indonesian",
+  switchToEnglish: "Switch to English",
   // Landing page content
   creatorAndManagement: "Creator & Online Member Management",
   designDescription: "Design, issue, and manage certificates for MoUs, Internships, Training, and Industrial Visits. Choose templates, dynamically set name/QR positions, download PDFs, and send via email—all in one place.",
@@ -237,6 +242,11 @@ const id: Dictionary = {
   category: "Kategori",
   tryPublicVerification: "Coba Verifikasi Publik",
   publicVerification: "Verifikasi Publik",
+  // Navbar
+  confirmLogoutTitle: "Konfirmasi Logout",
+  confirmLogoutMessage: "Anda yakin ingin keluar?",
+  switchToIndonesian: "Ganti ke Bahasa Indonesia",
+  switchToEnglish: "Ganti ke Bahasa Inggris",
   // Landing page content
   creatorAndManagement: "Pembuat & Manajemen Member Online",
   designDescription: "Rancang, terbitkan, dan kelola sertifikat untuk MoU, Magang, Pelatihan, dan Kunjungan Industri. Pilih template, atur posisi nama/QR secara dinamis, unduh PDF, dan kirim lewat email—semuanya dalam satu tempat.",

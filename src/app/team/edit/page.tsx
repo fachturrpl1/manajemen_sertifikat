@@ -345,7 +345,7 @@ export default function TeamEditPage() {
           const previewImage = await generatePreviewImage()
           if (previewImage) {
             const publicUrl = await uploadPreviewToStorage(previewImage, certificateId)
-            if (publicUrl) (cleanUpdate as any).preview_image = publicUrl
+            if (publicUrl) (cleanUpdate as { [key: string]: unknown }).preview_image = publicUrl
           }
         }
         await supabase.from("certificates").update(cleanUpdate).eq("id", certificateId)
@@ -378,20 +378,20 @@ export default function TeamEditPage() {
         const { data, error } = await supabase.from("certificates").select("*").eq("id", certificateId).single()
         if (error) { setMessage(t('failedToSave') + `Failed to load certificate: ${error.message}`); return }
         if (!data) { setMessage(t('failedToSave') + t('certificateNotFound')); return }
-        const row = data as Record<string, any>
-        setCategory(row.category || "")
-        const certificateTitle = row.name || row.title || ""
+        const row = data as Record<string, unknown>
+        setCategory((row.category as string) || "")
+        const certificateTitle = (row.name as string) || (row.title as string) || ""
         setTitle(certificateTitle)
         if (certificateTitle && certificateId) { await supabase.from("certificates").update({ title: certificateTitle, name: certificateTitle }).eq("id", certificateId) }
-        setDescription(row.description || "")
-        setIssuedAt(row.issued_at || "")
-        setExpiresAt(row.expires_at || "")
-        setNumberText(row.number || "")
-        setTitleX(row.title_x ?? 370); setTitleY(row.title_y ?? 180); setTitleSize(row.title_size ?? 32); setTitleColor(row.title_color ?? "#000000"); setTitleAlign(row.title_align ?? "center"); setTitleFont(row.title_font ?? "Inter, ui-sans-serif, system-ui")
-        setDescX(row.desc_x ?? 360); setDescY(row.desc_y ?? 235); setDescSize(row.desc_size ?? 15); setDescColor(row.desc_color ?? "#000000"); setDescAlign(row.desc_align ?? "center"); setDescFont(row.desc_font ?? "Inter, ui-sans-serif, system-ui")
-        setDateX(row.date_x ?? 50); setDateY(row.date_y ?? 110); setDateSize(row.date_size ?? 14); setDateColor(row.date_color ?? "#000000"); setDateAlign(row.date_align ?? "center"); setDateFont(row.date_font ?? "Inter, ui-sans-serif, system-ui")
-        setNumberX(row.number_x ?? 370); setNumberY(row.number_y ?? 300); setNumberSize(row.number_size ?? 14); setNumberColor(row.number_color ?? "#000000"); setNumberAlign(row.number_align ?? "center"); setNumberFont(row.number_font ?? "Inter, ui-sans-serif, system-ui")
-        setExpX(row.expires_x ?? 370); setExpY(row.expires_y ?? 360); setExpSize(row.expires_size ?? 12); setExpColor(row.expires_color ?? "#000000"); setExpAlign(row.expires_align ?? "center"); setExpFont(row.expires_font ?? "Inter, ui-sans-serif, system-ui")
+        setDescription((row.description as string) || "")
+        setIssuedAt((row.issued_at as string) || "")
+        setExpiresAt((row.expires_at as string) || "")
+        setNumberText((row.number as string) || "")
+        setTitleX((row.title_x as number) ?? 370); setTitleY((row.title_y as number) ?? 180); setTitleSize((row.title_size as number) ?? 32); setTitleColor((row.title_color as string) ?? "#000000"); setTitleAlign((row.title_align as "left" | "center" | "right") ?? "center"); setTitleFont((row.title_font as string) ?? "Inter, ui-sans-serif, system-ui")
+        setDescX((row.desc_x as number) ?? 360); setDescY((row.desc_y as number) ?? 235); setDescSize((row.desc_size as number) ?? 15); setDescColor((row.desc_color as string) ?? "#000000"); setDescAlign((row.desc_align as "left" | "center" | "right") ?? "center"); setDescFont((row.desc_font as string) ?? "Inter, ui-sans-serif, system-ui")
+        setDateX((row.date_x as number) ?? 50); setDateY((row.date_y as number) ?? 110); setDateSize((row.date_size as number) ?? 14); setDateColor((row.date_color as string) ?? "#000000"); setDateAlign((row.date_align as "left" | "center" | "right") ?? "center"); setDateFont((row.date_font as string) ?? "Inter, ui-sans-serif, system-ui")
+        setNumberX((row.number_x as number) ?? 370); setNumberY((row.number_y as number) ?? 300); setNumberSize((row.number_size as number) ?? 14); setNumberColor((row.number_color as string) ?? "#000000"); setNumberAlign((row.number_align as "left" | "center" | "right") ?? "center"); setNumberFont((row.number_font as string) ?? "Inter, ui-sans-serif, system-ui")
+        setExpX((row.expires_x as number) ?? 370); setExpY((row.expires_y as number) ?? 360); setExpSize((row.expires_size as number) ?? 12); setExpColor((row.expires_color as string) ?? "#000000"); setExpAlign((row.expires_align as "left" | "center" | "right") ?? "center"); setExpFont((row.expires_font as string) ?? "Inter, ui-sans-serif, system-ui")
         if (row.template_path) { const templatePath = row.template_path as string; setSelectedTemplate(templatePath); setPreviewSrc(`/${templatePath}`); const config = getTemplateConfig(templatePath); setCurrentTemplateConfig(config) }
         else if (row.category) { const first = getTemplates(row.category as string)[0]; if (first) { setSelectedTemplate(first); setPreviewSrc(`/${first}`); const config = getTemplateConfig(first); setCurrentTemplateConfig(config); await supabase.from("certificates").update({ template_path: first }).eq("id", certificateId) } }
       } finally { setMessage("") }
@@ -408,19 +408,19 @@ export default function TeamEditPage() {
         try {
           const { data } = await supabase.from('certificates').select('*').eq('id', certificateId).single()
           if (!data) return
-          const row = data as Record<string, any>
-          setCategory(row.category || '')
-          const certificateTitle = row.name || row.title || ''
+          const row = data as Record<string, unknown>
+          setCategory((row.category as string) || '')
+          const certificateTitle = (row.name as string) || (row.title as string) || ''
           setTitle(certificateTitle)
-          setDescription(row.description || '')
-          setIssuedAt(row.issued_at || '')
-          setExpiresAt(row.expires_at || '')
-          setNumberText(row.number || '')
-          setTitleX(row.title_x ?? 370); setTitleY(row.title_y ?? 180); setTitleSize(row.title_size ?? 32); setTitleColor(row.title_color ?? '#000000'); setTitleAlign(row.title_align ?? 'center'); setTitleFont(row.title_font ?? 'Inter, ui-sans-serif, system-ui')
-          setDescX(row.desc_x ?? 360); setDescY(row.desc_y ?? 235); setDescSize(row.desc_size ?? 15); setDescColor(row.desc_color ?? '#000000'); setDescAlign(row.desc_align ?? 'center'); setDescFont(row.desc_font ?? 'Inter, ui-sans-serif, system-ui')
-          setDateX(row.date_x ?? 50); setDateY(row.date_y ?? 110); setDateSize(row.date_size ?? 14); setDateColor(row.date_color ?? '#000000'); setDateAlign(row.date_align ?? 'center'); setDateFont(row.date_font ?? 'Inter, ui-sans-serif, system-ui')
-          setNumberX(row.number_x ?? 370); setNumberY(row.number_y ?? 300); setNumberSize(row.number_size ?? 14); setNumberColor(row.number_color ?? '#000000'); setNumberAlign(row.number_align ?? 'center'); setNumberFont(row.number_font ?? 'Inter, ui-sans-serif, system-ui')
-          setExpX(row.expires_x ?? 370); setExpY(row.expires_y ?? 360); setExpSize(row.expires_size ?? 12); setExpColor(row.expires_color ?? '#000000'); setExpAlign(row.expires_align ?? 'center'); setExpFont(row.expires_font ?? 'Inter, ui-sans-serif, system-ui')
+          setDescription((row.description as string) || '')
+          setIssuedAt((row.issued_at as string) || '')
+          setExpiresAt((row.expires_at as string) || '')
+          setNumberText((row.number as string) || '')
+          setTitleX((row.title_x as number) ?? 370); setTitleY((row.title_y as number) ?? 180); setTitleSize((row.title_size as number) ?? 32); setTitleColor((row.title_color as string) ?? '#000000'); setTitleAlign((row.title_align as 'left' | 'center' | 'right') ?? 'center'); setTitleFont((row.title_font as string) ?? 'Inter, ui-sans-serif, system-ui')
+          setDescX((row.desc_x as number) ?? 360); setDescY((row.desc_y as number) ?? 235); setDescSize((row.desc_size as number) ?? 15); setDescColor((row.desc_color as string) ?? '#000000'); setDescAlign((row.desc_align as 'left' | 'center' | 'right') ?? 'center'); setDescFont((row.desc_font as string) ?? 'Inter, ui-sans-serif, system-ui')
+          setDateX((row.date_x as number) ?? 50); setDateY((row.date_y as number) ?? 110); setDateSize((row.date_size as number) ?? 14); setDateColor((row.date_color as string) ?? '#000000'); setDateAlign((row.date_align as 'left' | 'center' | 'right') ?? 'center'); setDateFont((row.date_font as string) ?? 'Inter, ui-sans-serif, system-ui')
+          setNumberX((row.number_x as number) ?? 370); setNumberY((row.number_y as number) ?? 300); setNumberSize((row.number_size as number) ?? 14); setNumberColor((row.number_color as string) ?? '#000000'); setNumberAlign((row.number_align as 'left' | 'center' | 'right') ?? 'center'); setNumberFont((row.number_font as string) ?? 'Inter, ui-sans-serif, system-ui')
+          setExpX((row.expires_x as number) ?? 370); setExpY((row.expires_y as number) ?? 360); setExpSize((row.expires_size as number) ?? 12); setExpColor((row.expires_color as string) ?? '#000000'); setExpAlign((row.expires_align as 'left' | 'center' | 'right') ?? 'center'); setExpFont((row.expires_font as string) ?? 'Inter, ui-sans-serif, system-ui')
           if (row.template_path) { const path = row.template_path as string; setSelectedTemplate(path); setPreviewSrc(`/${path}`); setCurrentTemplateConfig(getTemplateConfig(path)) }
         } catch {}
       })

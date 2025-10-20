@@ -97,7 +97,7 @@ export default function TeamPage() {
                 onChange={(e) => setCategoryFilter(e.target.value)}
                 className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500/60"
               >
-                <option value="">Semua Kategori</option>
+                <option value="Semua Kategpori">{t('allCategories')}</option>
                 <option value="kunjungan industri">{t('industrialVisit')}</option>
                 <option value="magang">{t('internship')}</option>
                 <option value="mou">{t('mou')}</option>

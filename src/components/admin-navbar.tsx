@@ -40,7 +40,7 @@ export function AdminNavbar() {
         <button
           onClick={() => setLocale(locale === 'en' ? 'id' : 'en')}
           className="flex items-center gap-2 rounded-md border border-white/10 bg-white/5 px-3 py-1.5 text-sm hover:bg-white/10 transition-colors"
-          title={locale === 'en' ? 'Switch to Indonesian' : 'Switch to English'}
+          title={locale === 'en' ? t('switchToIndonesian') : t('switchToEnglish')}
         >
           <Globe className="h-4 w-4" />
           <span className="font-medium">{locale === 'en' ? 'EN' : 'ID'}</span>
@@ -53,11 +53,11 @@ export function AdminNavbar() {
             onClick={() => setShowLogoutConfirm(false)}
           />
           <div className="relative z-10 w-full max-w-sm rounded-xl border border-white/10 bg-[#0d172b] p-6 shadow-2xl animate-in zoom-in-95 fade-in duration-200">
-            <h3 className="text-lg font-semibold mb-1">Konfirmasi Logout</h3>
-            <p className="text-white/70 mb-4">Anda yakin ingin keluar?</p>
+            <h3 className="text-lg font-semibold mb-1">{t('confirmLogoutTitle')}</h3>
+            <p className="text-white/70 mb-4">{t('confirmLogoutMessage')}</p>
             <div className="flex justify-end gap-3">
-              <button onClick={() => setShowLogoutConfirm(false)} className="rounded-md border border-white/10 bg-white/5 px-4 py-2 text-sm hover:bg-white/10">Batal</button>
-              <button onClick={() => { setShowLogoutConfirm(false); router.push('/login') }} className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium hover:bg-blue-500">Logout</button>
+              <button onClick={() => setShowLogoutConfirm(false)} className="rounded-md border border-white/10 bg-white/5 px-4 py-2 text-sm hover:bg-white/10">{t('cancel')}</button>
+              <button onClick={() => { setShowLogoutConfirm(false); router.push('/login') }} className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium hover:bg-blue-500">{t('logout')}</button>
             </div>
           </div>
         </div>
