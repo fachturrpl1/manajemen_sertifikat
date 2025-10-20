@@ -664,8 +664,8 @@ export default function TeamEditPage() {
           dateFont={dateFont}
           numberFont={numberFont}
           expFont={expFont}
-          issuedAt={issuedAt}
-          expiresAt={expiresAt}
+          issuedAt={issuedAt ? formatDate(issuedAt, dateFormat) : ""}
+          expiresAt={expiresAt ? formatDate(expiresAt, expiredFormat) : ""}
           active={activeElement}
           onDragPosition={(nx, ny) => {
             if (activeElement === "title") { setTitleX(nx); setTitleY(ny) }
@@ -1045,9 +1045,9 @@ function PreviewPanel({ category, previewSrc, title, description, numberText, ti
       }
       if (title) { await drawText(title, titlePos.x, titlePos.y, titlePos.size, titlePos.color, titleAlign, titleFont, true, undefined, true) }
       if (description) { await drawText(description, descPos.x, descPos.y, descPos.size, descPos.color, descAlign, descFont, false, Math.max(0, natW - descPos.x - 40)) }
-      if (issuedAt) { const dateText = new Date(issuedAt).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }); await drawText(dateText, datePos.x, datePos.y, datePos.size, datePos.color, dateAlign, dateFont) }
+      if (issuedAt) { await drawText(issuedAt, datePos.x, datePos.y, datePos.size, datePos.color, dateAlign, dateFont) }
       if (numberText) { await drawText(numberText, numberPos.x, numberPos.y, numberPos.size, numberPos.color, numberAlign, numberFont) }
-      if (expiresAt) { const expText = new Date(expiresAt).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }); await drawText(expText, expiredPos.x, expiredPos.y, expiredPos.size, expiredPos.color, expAlign, expFont) }
+      if (expiresAt) { await drawText(expiresAt, expiredPos.x, expiredPos.y, expiredPos.size, expiredPos.color, expAlign, expFont) }
       const url = canvas.toDataURL('image/png', 1.0)
       setLivePng(url)
     } catch {}
@@ -1063,7 +1063,7 @@ function PreviewPanel({ category, previewSrc, title, description, numberText, ti
       {issuedAt && (
         <div className="text-green-400/80 text-xs mb-2 flex items-center justify-center gap-2">
           <span className="w-1.5 h-1.5 bg-green-400 rounded-full"></span>
-          {t('integratedDate')}: {new Date(issuedAt).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}
+          {t('integratedDate')}: {issuedAt}
         </div>
       )}
       <div className="flex justify-center items-center">
@@ -1103,12 +1103,12 @@ function PreviewPanel({ category, previewSrc, title, description, numberText, ti
           )}
           {issuedAt && (
             <div className="absolute" style={{ left: `${imgToScreen(datePos.x, datePos.y).x}px`, top: `${imgToScreen(datePos.x, datePos.y).y}px`, width: 'auto', maxWidth: 'calc(100% - 40px)', textAlign: dateAlign, fontFamily: dateFont, fontSize: `${datePos.size}px`, color: datePos.color, position: 'absolute', zIndex: 10, opacity: livePng ? 0 : 1 }}>
-              <div className="mt-1 opacity-80">{new Date(issuedAt).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+              <div className="mt-1 opacity-80">{issuedAt}</div>
             </div>
           )}
           {expiresAt && (
             <div className="absolute" style={{ left: `${imgToScreen(expiredPos.x, expiredPos.y).x}px`, top: `${imgToScreen(expiredPos.x, expiredPos.y).y}px`, width: 'auto', maxWidth: 'calc(100% - 40px)', textAlign: expAlign, fontFamily: expFont, fontSize: `${expiredPos.size}px`, color: expiredPos.color, position: 'absolute', zIndex: 10, opacity: livePng ? 0 : 1 }}>
-              <div className="mt-1 opacity-80">{new Date(expiresAt).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+              <div className="mt-1 opacity-80">{expiresAt}</div>
             </div>
           )}
           {!previewSrc && (<div className="absolute inset-0 grid place-items-center text-white/60">{t('selectTemplateOrUpload')}</div>)}

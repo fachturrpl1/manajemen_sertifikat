@@ -1044,8 +1044,8 @@ export default function AdminPage() {
           dateFont={dateFont}
           numberFont={numberFont}
           expFont={expFont}
-          issuedAt={issuedAt}
-          expiresAt={expiresAt}
+          issuedAt={issuedAt ? formatDate(issuedAt, dateFormat) : ""}
+          expiresAt={expiresAt ? formatDate(expiresAt, expiredFormat) : ""}
           active={activeElement}
           onDragPosition={(nx, ny) => {
             if (activeElement === "title") { setTitleX(nx); setTitleY(ny) }
@@ -1736,9 +1736,8 @@ function PreviewPanel({ category, previewSrc, title, description, numberText, ti
 
       // Date
       if (issuedAt) {
-        const dateText = new Date(issuedAt).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })
         await drawText(
-          dateText,
+          issuedAt,
           datePos.x,
           datePos.y,
           datePos.size,
@@ -1763,9 +1762,8 @@ function PreviewPanel({ category, previewSrc, title, description, numberText, ti
 
       // Expires
       if (expiresAt) {
-        const expText = new Date(expiresAt).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })
         await drawText(
-          expText,
+          expiresAt,
           expiredPos.x,
           expiredPos.y,
           expiredPos.size,
@@ -1797,11 +1795,7 @@ function PreviewPanel({ category, previewSrc, title, description, numberText, ti
        {issuedAt && (
          <div className="text-green-400/80 text-xs mb-2 flex items-center justify-center gap-2">
            <span className="w-1.5 h-1.5 bg-green-400 rounded-full"></span>
-           {t('integratedDate')}: {new Date(issuedAt).toLocaleDateString('id-ID', {
-             year: 'numeric',
-             month: 'long',
-             day: 'numeric'
-           })}
+           {t('integratedDate')}: {issuedAt}
          </div>
        )}
       <div className="flex justify-center items-center">
@@ -1953,11 +1947,7 @@ function PreviewPanel({ category, previewSrc, title, description, numberText, ti
             }}
           >
              <div className="mt-1 opacity-80">
-               {new Date(issuedAt).toLocaleDateString('id-ID', {
-                 year: 'numeric',
-                 month: 'long',
-                 day: 'numeric'
-               })}
+               {issuedAt}
              </div>
           </div>
         )}
@@ -1981,7 +1971,7 @@ function PreviewPanel({ category, previewSrc, title, description, numberText, ti
             }}
           >
             <div className="mt-1 opacity-80">
-              {new Date(expiresAt).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}
+              {expiresAt}
             </div>
           </div>
         )}
