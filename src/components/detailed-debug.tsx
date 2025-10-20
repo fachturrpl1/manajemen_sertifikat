@@ -4,12 +4,12 @@ import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
 
 export function DetailedDebug() {
-  const [debugResults, setDebugResults] = useState<any>(null)
+  const [debugResults, setDebugResults] = useState<Record<string, unknown> | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     const runDetailedDebug = async () => {
-      const results: any = {}
+      const results: Record<string, unknown> = {}
 
       try {
         console.log("=== DETAILED DEBUG START ===")
@@ -125,7 +125,7 @@ export function DetailedDebug() {
         </div>
 
         <div>
-          <h4 className="font-medium text-blue-400 mb-2">Full Query ({debugResults?.fullQuery?.count || 0}):</h4>
+          <h4 className="font-medium text-blue-400 mb-2">Full Query ({(debugResults?.fullQuery as { count?: number })?.count || 0}):</h4>
           <div className="bg-black/20 p-2 rounded text-xs max-h-40 overflow-auto">
             <pre>{JSON.stringify(debugResults?.fullQuery, null, 2)}</pre>
           </div>
@@ -139,7 +139,7 @@ export function DetailedDebug() {
         </div>
 
         <div>
-          <h4 className="font-medium text-blue-400 mb-2">Alternative Query ({debugResults?.alternativeQuery?.count || 0}):</h4>
+          <h4 className="font-medium text-blue-400 mb-2">Alternative Query ({(debugResults?.alternativeQuery as { count?: number })?.count || 0}):</h4>
           <div className="bg-black/20 p-2 rounded text-xs max-h-40 overflow-auto">
             <pre>{JSON.stringify(debugResults?.alternativeQuery, null, 2)}</pre>
           </div>
@@ -149,7 +149,7 @@ export function DetailedDebug() {
           <div>
             <h4 className="font-medium text-red-400 mb-2">Error:</h4>
             <div className="bg-red-500/10 p-2 rounded text-xs">
-              {debugResults.error}
+              {String(debugResults.error)}
             </div>
           </div>
         )}

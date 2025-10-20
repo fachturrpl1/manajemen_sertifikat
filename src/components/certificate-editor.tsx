@@ -77,7 +77,7 @@ export default function CertificateEditor() {
         .eq("id", certificateId)
         .single()
       if (!error && data) {
-        const row = data as any
+        const row = data as Record<string, unknown>
         setCategory(row.category || "")
         
         // Set title/name - prioritize 'name' field, fallback to 'title' field

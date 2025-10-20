@@ -15,15 +15,41 @@ export default function CheckCertificatePage({ params }: Props) {
   const { no } = use(params)
   const router = useRouter()
   const { t, locale, setLocale } = useI18n()
-  const [memberData, setMemberData] = useState<any>(null)
-  const [certificateData, setCertificateData] = useState<any>(null)
+  const [memberData, setMemberData] = useState<{
+    id: string;
+    name: string;
+    organization?: string;
+    phone?: string;
+    email?: string;
+    job?: string;
+    dob?: string;
+    address?: string;
+    city?: string;
+    notes?: string;
+  } | null>(null)
+  const [certificateData, setCertificateData] = useState<{
+    id: string;
+    name?: string;
+    title?: string;
+    description?: string;
+    number?: string;
+    category?: string;
+    issued_at?: string;
+    expires_at?: string;
+    updated_at?: string;
+    updatedAt?: string;
+    modified_at?: string;
+    modifiedAt?: string;
+    template_path?: string;
+    preview_image?: string;
+  } | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const { showToast, ToastContainer } = useToast()
   const [natW, setNatW] = useState<number>(0)
   const [natH, setNatH] = useState<number>(0)
   const cacheParam = (() => {
-    const c = certificateData as any
+    const c = certificateData
     const v = c?.updated_at || c?.updatedAt || c?.modified_at || c?.modifiedAt || c?.issued_at || c?.id
     return v ? String(v).replace(/\s+/g, '-') : String(Date.now())
   })()

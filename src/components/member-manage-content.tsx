@@ -77,7 +77,7 @@ export function MemberManageContent() {
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'members' },
         async () => {
-          // Refetch data when any change occurs
+          // Refetch data when changes occur
       const { data, error } = await supabase
         .from("members")
             .select("id,name,organization,phone,email,job,dob,address,city,notes,password")
@@ -85,7 +85,19 @@ export function MemberManageContent() {
         console.error("Supabase members fetch error:", error)
         return
       }
-      const mapped: MemberRow[] = (data ?? []).map((r: any) => ({
+      const mapped: MemberRow[] = (data ?? []).map((r: {
+        id: string;
+        name: string;
+        organization?: string;
+        phone?: string;
+        email?: string;
+        job?: string;
+        dob?: string;
+        address?: string;
+        city?: string;
+        notes?: string;
+        password?: string;
+      }) => ({
         id: r.id,
         name: r.name,
         organization: r.organization,
@@ -190,21 +202,22 @@ export function MemberManageContent() {
         }))
         // Insert per-row to menemukan baris yang gagal dengan jelas
         let successCount = 0
-        const failures: Array<{ row: any; error: any }> = []
+        const failures: Array<{ row: Record<string, unknown>; error: { message?: string; details?: string; hint?: string; code?: string; toString: string } }> = []
         for (const row of payload) {
           try {
             await supabase.from("members").insert(row).throwOnError()
             successCount++
-          } catch (err: any) {
+          } catch (err: unknown) {
             // Log raw error shapes for diagnostics
             console.error('members insert raw error object:', err)
             try { console.error('members insert error JSON:', JSON.stringify(err)) } catch {}
+            const errorObj = err as { message?: string; details?: string; hint?: string; code?: string }
             failures.push({ row, error: {
               toString: String(err),
-              message: err?.message,
-              details: err?.details,
-              hint: err?.hint,
-              code: err?.code,
+              message: errorObj?.message,
+              details: errorObj?.details,
+              hint: errorObj?.hint,
+              code: errorObj?.code,
             }})
           }
         }
@@ -216,7 +229,7 @@ export function MemberManageContent() {
           })
           try {
             const f = failures[0]
-            alert(`Import gagal pada baris pertama yang gagal. Kode: ${f?.error?.code || '-'}\nPesan: ${f?.error?.message || f?.error?.toString || 'Unknown'}\nHint: ${f?.error?.hint || '-'}\nSilakan cek Console untuk detail.`)
+            setMessage(`Berhasil import ${successCount} member. ${failures.length > 0 ? `Gagal: ${failures.length}. Error pertama: ${f.error.code} - ${f.error.hint || f.error.message}` : ''}`)
           } catch {}
           return
         }

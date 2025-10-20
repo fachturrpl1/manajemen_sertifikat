@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
 
 export function DebugMembers() {
-  const [debugInfo, setDebugInfo] = useState<any>(null)
+  const [debugInfo, setDebugInfo] = useState<Record<string, unknown> | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
@@ -39,7 +39,7 @@ export function DebugMembers() {
         })
       } catch (error) {
         console.error("Debug error:", error)
-        setDebugInfo({ error: error.message })
+        setDebugInfo({ error: error instanceof Error ? error.message : String(error) })
       } finally {
         setIsLoading(false)
       }

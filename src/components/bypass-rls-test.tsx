@@ -4,12 +4,12 @@ import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
 
 export function BypassRLSTest() {
-  const [testResults, setTestResults] = useState<any>(null)
+  const [testResults, setTestResults] = useState<Record<string, unknown> | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     const runBypassTest = async () => {
-      const results: any = {}
+      const results: Record<string, unknown> = {}
 
       try {
         console.log("=== BYPASS RLS TEST START ===")
@@ -52,7 +52,6 @@ export function BypassRLSTest() {
         try {
           const { data: rlsData, error: rlsError } = await supabase
             .rpc('check_rls_status', { table_name: 'members' })
-            .catch(() => ({ data: null, error: "RPC not available" }))
           
           results.rlsStatus = { data: rlsData, error: rlsError }
         } catch (e) {
@@ -63,7 +62,7 @@ export function BypassRLSTest() {
 
       } catch (error) {
         console.error("Bypass test error:", error)
-        results.error = error.message
+        results.error = error instanceof Error ? error.message : String(error)
       } finally {
         setIsLoading(false)
         setTestResults(results)
@@ -88,7 +87,7 @@ export function BypassRLSTest() {
       
       <div className="space-y-4">
         <div>
-          <h4 className="font-medium text-blue-400 mb-2">Direct Query ({testResults?.directQuery?.count || 0}):</h4>
+          <h4 className="font-medium text-blue-400 mb-2">Direct Query ({(testResults?.directQuery as { count?: number })?.count || 0}):</h4>
           <div className="bg-black/20 p-2 rounded text-xs max-h-40 overflow-auto">
             <pre>{JSON.stringify(testResults?.directQuery, null, 2)}</pre>
           </div>
@@ -102,7 +101,7 @@ export function BypassRLSTest() {
         </div>
 
         <div>
-          <h4 className="font-medium text-blue-400 mb-2">Minimal Query ({testResults?.minimalQuery?.count || 0}):</h4>
+          <h4 className="font-medium text-blue-400 mb-2">Minimal Query ({(testResults?.minimalQuery as { count?: number })?.count || 0}):</h4>
           <div className="bg-black/20 p-2 rounded text-xs max-h-40 overflow-auto">
             <pre>{JSON.stringify(testResults?.minimalQuery, null, 2)}</pre>
           </div>
@@ -119,7 +118,7 @@ export function BypassRLSTest() {
           <div>
             <h4 className="font-medium text-red-400 mb-2">Error:</h4>
             <div className="bg-red-500/10 p-2 rounded text-xs">
-              {testResults.error}
+              {String(testResults.error)}
             </div>
           </div>
         )}

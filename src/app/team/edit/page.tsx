@@ -461,11 +461,11 @@ export default function TeamEditPage() {
         setIssuedAt(row.issued_at || "")
         setExpiresAt(row.expires_at || "")
         setNumberText(row.number || "")
-        setTitleX(row.title_x ?? 370); setTitleY(row.title_y ?? 180); setTitleSize(row.title_size ?? 32); setTitleColor(row.title_color ?? "#000000"); setTitleAlign(row.title_align ?? "center"); setTitleFont(row.title_font ?? "Inter, ui-sans-serif, system-ui")
-        setDescX(row.desc_x ?? 360); setDescY(row.desc_y ?? 235); setDescSize(row.desc_size ?? 15); setDescColor(row.desc_color ?? "#000000"); setDescAlign(row.desc_align ?? "center"); setDescFont(row.desc_font ?? "Inter, ui-sans-serif, system-ui")
-        setDateX(row.date_x ?? 50); setDateY(row.date_y ?? 110); setDateSize(row.date_size ?? 14); setDateColor(row.date_color ?? "#000000"); setDateAlign(row.date_align ?? "center"); setDateFont(row.date_font ?? "Inter, ui-sans-serif, system-ui")
-        setNumberX(row.number_x ?? 370); setNumberY(row.number_y ?? 300); setNumberSize(row.number_size ?? 14); setNumberColor(row.number_color ?? "#000000"); setNumberAlign(row.number_align ?? "center"); setNumberFont(row.number_font ?? "Inter, ui-sans-serif, system-ui")
-        setExpX(row.expires_x ?? 370); setExpY(row.expires_y ?? 360); setExpSize(row.expires_size ?? 12); setExpColor(row.expires_color ?? "#000000"); setExpAlign(row.expires_align ?? "center"); setExpFont(row.expires_font ?? "Inter, ui-sans-serif, system-ui")
+        setTitleX(row.title_x ?? 370); setTitleY(row.title_y ?? 180); setTitleSize(row.title_size ?? 32); setTitleColor(row.title_color ?? "#000000"); setTitleAlign((row.title_align as "left" | "center" | "right") ?? "center"); setTitleFont(row.title_font ?? "Inter, ui-sans-serif, system-ui")
+        setDescX(row.desc_x ?? 360); setDescY(row.desc_y ?? 235); setDescSize(row.desc_size ?? 15); setDescColor(row.desc_color ?? "#000000"); setDescAlign((row.desc_align as "left" | "center" | "right") ?? "center"); setDescFont(row.desc_font ?? "Inter, ui-sans-serif, system-ui")
+        setDateX(row.date_x ?? 50); setDateY(row.date_y ?? 110); setDateSize(row.date_size ?? 14); setDateColor(row.date_color ?? "#000000"); setDateAlign((row.date_align as "left" | "center" | "right") ?? "center"); setDateFont(row.date_font ?? "Inter, ui-sans-serif, system-ui")
+        setNumberX(row.number_x ?? 370); setNumberY(row.number_y ?? 300); setNumberSize(row.number_size ?? 14); setNumberColor(row.number_color ?? "#000000"); setNumberAlign((row.number_align as "left" | "center" | "right") ?? "center"); setNumberFont(row.number_font ?? "Inter, ui-sans-serif, system-ui")
+        setExpX(row.expires_x ?? 370); setExpY(row.expires_y ?? 360); setExpSize(row.expires_size ?? 12); setExpColor(row.expires_color ?? "#000000"); setExpAlign((row.expires_align as "left" | "center" | "right") ?? "center"); setExpFont(row.expires_font ?? "Inter, ui-sans-serif, system-ui")
         if (row.template_path) {
           const templatePath = row.template_path as string
           setSelectedTemplate(templatePath)

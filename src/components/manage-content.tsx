@@ -290,7 +290,7 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'certificates' },
         async () => {
-          // Refetch data when any change occurs
+          // Refetch data when changes occur
           const { data, error } = await supabase
             .from("certificates")
             .select("id,name,number,category,recipient_org,issuer,issued_at,expires_at")

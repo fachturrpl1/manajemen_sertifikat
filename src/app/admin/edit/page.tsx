@@ -1656,7 +1656,7 @@ function PreviewPanel({ category, previewSrc, title, description, numberText, ti
             await ready
           }
         } catch {}
-        // if (ready && typeof (ready as any).then === 'function') {
+        // if (ready && typeof (ready as Promise<void>).then === 'function') {
         //   try { await Promise.race([ready, new Promise(res => setTimeout(res, 500))]) } catch {}
         // }
         ctx.font = `${weight} ${size}px ${font}`
