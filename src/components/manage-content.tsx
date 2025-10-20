@@ -24,6 +24,28 @@ type CertificateRow = {
   issuedAt?: string
   expiresAt?: string
 }
+type CertificatePreviewRow = {
+  id?: string
+  number?: string
+  category?: string
+  title?: string
+  name?: string
+  email?: string
+  description?: string
+  issued_at?: string
+  expires_at?: string
+  preview_image?: string
+  template_path?: string
+  updated_at?: string | number
+  updatedAt?: string | number
+  modified_at?: string | number
+  modifiedAt?: string | number
+  title_x?: number; title_y?: number; title_size?: number; title_color?: string; title_align?: string; title_font?: string
+  desc_x?: number; desc_y?: number; desc_size?: number; desc_color?: string; desc_align?: string; desc_font?: string
+  date_x?: number; date_y?: number; date_size?: number; date_color?: string; date_align?: string; date_font?: string
+  number_x?: number; number_y?: number; number_size?: number; number_color?: string; number_align?: string; number_font?: string
+  expires_x?: number; expires_y?: number; expires_size?: number; expires_color?: string; expires_align?: string; expires_font?: string
+}
 
 type ManageContentProps = {
   role?: "admin" | "team"
@@ -46,7 +68,7 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
   const [showExpiresCalendar, setShowExpiresCalendar] = useState(false)
   const [showViewModal, setShowViewModal] = useState(false)
   const [viewingCertificate, setViewingCertificate] = useState<CertificateRow | null>(null)
-  const [certificateData, setCertificateData] = useState<any>(null)
+  const [certificateData, setCertificateData] = useState<CertificatePreviewRow | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isUpdating, setIsUpdating] = useState(false)
   const [updateMessage, setUpdateMessage] = useState("")
@@ -104,7 +126,7 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
 
   // PNG preview untuk modal (render seperti editor -> ke canvas ukuran natural)
   const [previewModalSrc, setPreviewModalSrc] = useState<string>("")
-  async function generateModalPreview(row: any) {
+  async function generateModalPreview(row: CertificatePreviewRow) {
     try {
       if (!row) { setPreviewModalSrc(""); return }
       // Pakai preview_image jika sudah tersedia agar 100% sama dengan cek/edit
@@ -133,9 +155,10 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
         const baseFamily = (font || '').split(',')[0]?.replace(/['"]/g, '').trim() || 'Inter'
         try {
           // Muat font utama agar metrik sama seperti editor/cek
-          await (document as any).fonts?.load?.(`${weight} ${size}px '${baseFamily}'`)
-          const ready: any = (document as any).fonts?.ready
-          if (ready && typeof ready.then === 'function') { await ready }
+          const fonts = (document as unknown as { fonts?: { load?: (desc: string) => Promise<unknown>; ready?: Promise<unknown> } }).fonts
+          await fonts?.load?.(`${weight} ${size}px '${baseFamily}'`)
+          const ready = fonts?.ready
+          if (ready && typeof (ready as Promise<unknown>).then === 'function') { await ready }
         } catch {}
         // Pakai baseFamily dikutip + fallback persis seperti editor
         ctx.font = `${weight} ${size}px '${baseFamily}', ui-sans-serif, system-ui`
@@ -275,15 +298,15 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
             console.error("Supabase certificates fetch error:", error)
             return
           }
-          const mapped: CertificateRow[] = (data ?? []).map((r: any) => ({
-            id: r.id,
-            name: r.name,
-            number: r.number,
-            category: r.category,
-            recipientOrg: r.recipient_org,
-            issuer: r.issuer,
-            issuedAt: r.issued_at ?? undefined,
-            expiresAt: r.expires_at ?? undefined,
+          const mapped: CertificateRow[] = (data ?? []).map((r: Record<string, unknown>) => ({
+            id: r.id as string | undefined,
+            name: r.name as string | undefined,
+            number: r.number as string | undefined,
+            category: r.category as string | undefined,
+            recipientOrg: r.recipient_org as string | undefined,
+            issuer: r.issuer as string | undefined,
+            issuedAt: (r.issued_at as string | undefined) ?? undefined,
+            expiresAt: (r.expires_at as string | undefined) ?? undefined,
           }))
           setRows(mapped)
         }
@@ -529,8 +552,8 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                                     .eq("id", r.id)
                                     .single()
                                   if (!error) {
-                                    setCertificateData(data)
-                                    await generateModalPreview(data)
+                                    setCertificateData(data as CertificatePreviewRow)
+                                    await generateModalPreview(data as CertificatePreviewRow)
                                   } else {
                                     console.error('Load certificate failed:', error)
                                   }

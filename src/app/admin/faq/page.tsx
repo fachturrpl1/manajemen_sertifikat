@@ -13,7 +13,7 @@ export default function AdminFaqPage() {
         <section className="space-y-4">
           <details className="rounded-lg border border-white/10 bg-[#0d172b] p-4 open:shadow-md open:shadow-blue-500/10">
             <summary className="cursor-pointer select-none text-blue-400 font-medium">How do I add a new certificate?</summary>
-            <p className="mt-2 text-white/80">Open the Manage menu, click "+ New", fill out the form, and save.</p>
+            <p className="mt-2 text-white/80">Open the Manage menu, click &quot;+ New&quot;, fill out the form, and save.</p>
           </details>
           <details className="rounded-lg border border-white/10 bg-[#0d172b] p-4 open:shadow-md open:shadow-blue-500/10">
             <summary className="cursor-pointer select-none text-blue-400 font-medium">Can I import data in bulk from Excel?</summary>

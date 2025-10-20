@@ -100,6 +100,37 @@ export default function AdminPage() {
   const [expiresAt, setExpiresAt] = useState<string>("")
   const [numberText, setNumberText] = useState<string>("")
 
+  // Date format states
+  const [dateFormat, setDateFormat] = useState<string>("dd/mm/yyyy")
+  const [expiredFormat, setExpiredFormat] = useState<string>("dd/mm/yyyy")
+
+  // Helper: format date according to selected format
+  const formatDate = (dateStr: string, format: string) => {
+    if (!dateStr) return ""
+    const date = new Date(dateStr)
+    if (isNaN(date.getTime())) return ""
+    
+    const day = date.getDate().toString().padStart(2, '0')
+    const month = (date.getMonth() + 1).toString().padStart(2, '0')
+    const year = date.getFullYear().toString()
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    const monthNamesLong = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+    
+    switch (format) {
+      case 'dd-mm-yyyy': return `${day}-${month}-${year}`
+      case 'mm-dd-yyyy': return `${month}-${day}-${year}`
+      case 'yyyy-mm-dd': return `${year}-${month}-${day}`
+      case 'dd mmm yyyy': return `${day} ${monthNames[date.getMonth()]} ${year}`
+      case 'dd mmmm yyyy': return `${day} ${monthNamesLong[date.getMonth()]} ${year}`
+      case 'mmm dd, yyyy': return `${monthNames[date.getMonth()]} ${day}, ${year}`
+      case 'mmmm dd, yyyy': return `${monthNamesLong[date.getMonth()]} ${day}, ${year}`
+      case 'dd/mm/yyyy': return `${day}/${month}/${year}`
+      case 'mm/dd/yyyy': return `${month}/${day}/${year}`
+      case 'yyyy/mm/dd': return `${year}/${month}/${day}`
+      default: return `${day}/${month}/${year}`
+    }
+  }
+
   // Per-element styles & positions
   const [activeElement, setActiveElement] = useState<"title" | "description" | "date" | "number" | "expired">("title")
 
@@ -1146,6 +1177,7 @@ export default function AdminPage() {
                 <div className="space-y-3">
                   {/* Input tanggal manual */}
                   <div>
+                    <label className="block text-xs text-white/60 mb-1">Tanggal Sertifikat</label>
                     <input 
                       type="date" 
                       className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white" 
@@ -1182,6 +1214,26 @@ export default function AdminPage() {
                       }}
                     />
                   </div>
+                  <div>
+                    <label className="block text-xs text-white/60 mb-1">Format Tanggal</label>
+                    <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm text-white" value={dateFormat} onChange={(e) => { setDateFormat(e.target.value); saveToHistory(); if (certificateId) { queueSave({ date_format: e.target.value }) } }}>
+                      <option value="dd/mm/yyyy">dd/mm/yyyy (01/10/2025)</option>
+                      <option value="mm/dd/yyyy">mm/dd/yyyy (10/01/2025)</option>
+                      <option value="yyyy/mm/dd">yyyy/mm/dd (2025/10/01)</option>
+                      <option value="dd-mm-yyyy">dd-mm-yyyy (01-10-2025)</option>
+                      <option value="mm-dd-yyyy">mm-dd-yyyy (10-01-2025)</option>
+                      <option value="yyyy-mm-dd">yyyy-mm-dd (2025-10-01)</option>
+                      <option value="dd mmm yyyy">dd mmm yyyy (01 Oct 2025)</option>
+                      <option value="dd mmmm yyyy">dd mmmm yyyy (01 October 2025)</option>
+                      <option value="mmm dd, yyyy">mmm dd, yyyy (Oct 01, 2025)</option>
+                      <option value="mmmm dd, yyyy">mmmm dd, yyyy (October 01, 2025)</option>
+                    </select>
+                  </div>
+                  <div className="w-full rounded-md border border-blue-500/30 bg-blue-500/10 px-3 py-2 text-sm text-white/90 flex items-center justify-between">
+                    <span className="flex items-center gap-2"><span className="w-2 h-2 bg-blue-500 rounded-full"></span>{issuedAt ? formatDate(issuedAt, dateFormat) : t('noDateAvailable')}</span>
+                    <span className="text-xs text-blue-400/70 font-medium">{issuedAt ? 'Manual' : 'Belum diatur'}</span>
+                  </div>
+                  <div className="text-xs text-white/60 bg-white/5 rounded px-2 py-1"><span className="text-blue-400">ℹ</span> Tanggal akan ditampilkan pada sertifikat sesuai format yang dipilih</div>
                 </div>
               </div>
             )}
@@ -1190,6 +1242,7 @@ export default function AdminPage() {
                 <label className="block text-sm text-white/70 mb-1">{t('expiredDate')}</label>
                 <div className="space-y-3">
                   <div>
+                    <label className="block text-xs text-white/60 mb-1">Tanggal Kedaluwarsa</label>
                     <input 
                       type="date" 
                       className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white" 
@@ -1204,6 +1257,26 @@ export default function AdminPage() {
                       }}
                     />
                   </div>
+                  <div>
+                    <label className="block text-xs text-white/60 mb-1">Format Tanggal Kedaluwarsa</label>
+                    <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm text-white" value={expiredFormat} onChange={(e) => { setExpiredFormat(e.target.value); saveToHistory(); if (certificateId) { queueSave({ expired_format: e.target.value }) } }}>
+                      <option value="dd/mm/yyyy">dd/mm/yyyy (01/10/2025)</option>
+                      <option value="mm/dd/yyyy">mm/dd/yyyy (10/01/2025)</option>
+                      <option value="yyyy/mm/dd">yyyy/mm/dd (2025/10/01)</option>
+                      <option value="dd-mm-yyyy">dd-mm-yyyy (01-10-2025)</option>
+                      <option value="mm-dd-yyyy">mm-dd-yyyy (10-01-2025)</option>
+                      <option value="yyyy-mm-dd">yyyy-mm-dd (2025-10-01)</option>
+                      <option value="dd mmm yyyy">dd mmm yyyy (01 Oct 2025)</option>
+                      <option value="dd mmmm yyyy">dd mmmm yyyy (01 October 2025)</option>
+                      <option value="mmm dd, yyyy">mmm dd, yyyy (Oct 01, 2025)</option>
+                      <option value="mmmm dd, yyyy">mmmm dd, yyyy (October 01, 2025)</option>
+                    </select>
+                  </div>
+                  <div className="w-full rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-white/90 flex items-center justify-between">
+                    <span className="flex items-center gap-2"><span className="w-2 h-2 bg-red-500 rounded-full"></span>{expiresAt ? formatDate(expiresAt, expiredFormat) : 'Tidak ada tanggal kedaluwarsa'}</span>
+                    <span className="text-xs text-red-400/70 font-medium">{expiresAt ? 'Manual' : 'Belum diatur'}</span>
+                  </div>
+                  <div className="text-xs text-white/60 bg-white/5 rounded px-2 py-1"><span className="text-red-400">ℹ</span> Tanggal kedaluwarsa akan ditampilkan sesuai format yang dipilih</div>
                 </div>
               </div>
             )}

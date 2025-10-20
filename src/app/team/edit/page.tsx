@@ -93,6 +93,37 @@ export default function TeamEditPage() {
   const [expiresAt, setExpiresAt] = useState<string>("")
   const [numberText, setNumberText] = useState<string>("")
 
+  // Date format states
+  const [dateFormat, setDateFormat] = useState<string>("dd/mm/yyyy")
+  const [expiredFormat, setExpiredFormat] = useState<string>("dd/mm/yyyy")
+
+  // Helper: format date according to selected format
+  const formatDate = (dateStr: string, format: string) => {
+    if (!dateStr) return ""
+    const date = new Date(dateStr)
+    if (isNaN(date.getTime())) return ""
+    
+    const day = date.getDate().toString().padStart(2, '0')
+    const month = (date.getMonth() + 1).toString().padStart(2, '0')
+    const year = date.getFullYear().toString()
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    const monthNamesLong = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+    
+    switch (format) {
+      case 'dd-mm-yyyy': return `${day}-${month}-${year}`
+      case 'mm-dd-yyyy': return `${month}-${day}-${year}`
+      case 'yyyy-mm-dd': return `${year}-${month}-${day}`
+      case 'dd mmm yyyy': return `${day} ${monthNames[date.getMonth()]} ${year}`
+      case 'dd mmmm yyyy': return `${day} ${monthNamesLong[date.getMonth()]} ${year}`
+      case 'mmm dd, yyyy': return `${monthNames[date.getMonth()]} ${day}, ${year}`
+      case 'mmmm dd, yyyy': return `${monthNamesLong[date.getMonth()]} ${day}, ${year}`
+      case 'dd/mm/yyyy': return `${day}/${month}/${year}`
+      case 'mm/dd/yyyy': return `${month}/${day}/${year}`
+      case 'yyyy/mm/dd': return `${year}/${month}/${day}`
+      default: return `${day}/${month}/${year}`
+    }
+  }
+
   // Per-element styles & positions
   const [activeElement, setActiveElement] = useState<"title" | "description" | "date" | "number" | "expired">("title")
 
@@ -699,11 +730,26 @@ export default function TeamEditPage() {
                     <label className="block text-xs text-white/60 mb-1">Tanggal Sertifikat</label>
                     <input type="date" className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white" value={issuedAt || ""} onChange={async (e) => { const v = e.target.value; if (v) { const selectedDate = new Date(v); const today = new Date(); const tenYearsAgo = new Date(); tenYearsAgo.setFullYear(today.getFullYear() - 10); if (selectedDate > today) { alert('Tanggal tidak boleh lebih dari hari ini'); return } if (selectedDate < tenYearsAgo) { alert('Tanggal tidak boleh lebih dari 10 tahun yang lalu'); return } } setIssuedAt(v); saveToHistory(); if (certificateId) { queueSave({ issued_at: v || null }) } }} />
                   </div>
+                  <div>
+                    <label className="block text-xs text-white/60 mb-1">Format Tanggal</label>
+                    <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm text-white" value={dateFormat} onChange={(e) => { setDateFormat(e.target.value); saveToHistory(); if (certificateId) { queueSave({ date_format: e.target.value }) } }}>
+                      <option value="dd/mm/yyyy">dd/mm/yyyy (01/10/2025)</option>
+                      <option value="mm/dd/yyyy">mm/dd/yyyy (10/01/2025)</option>
+                      <option value="yyyy/mm/dd">yyyy/mm/dd (2025/10/01)</option>
+                      <option value="dd-mm-yyyy">dd-mm-yyyy (01-10-2025)</option>
+                      <option value="mm-dd-yyyy">mm-dd-yyyy (10-01-2025)</option>
+                      <option value="yyyy-mm-dd">yyyy-mm-dd (2025-10-01)</option>
+                      <option value="dd mmm yyyy">dd mmm yyyy (01 Oct 2025)</option>
+                      <option value="dd mmmm yyyy">dd mmmm yyyy (01 October 2025)</option>
+                      <option value="mmm dd, yyyy">mmm dd, yyyy (Oct 01, 2025)</option>
+                      <option value="mmmm dd, yyyy">mmmm dd, yyyy (October 01, 2025)</option>
+                    </select>
+                  </div>
                   <div className="w-full rounded-md border border-blue-500/30 bg-blue-500/10 px-3 py-2 text-sm text-white/90 flex items-center justify-between">
-                    <span className="flex items-center gap-2"><span className="w-2 h-2 bg-blue-500 rounded-full"></span>{issuedAt ? new Date(issuedAt).toLocaleDateString('id-ID') : t('noDateAvailable')}</span>
+                    <span className="flex items-center gap-2"><span className="w-2 h-2 bg-blue-500 rounded-full"></span>{issuedAt ? formatDate(issuedAt, dateFormat) : t('noDateAvailable')}</span>
                     <span className="text-xs text-blue-400/70 font-medium">{issuedAt ? 'Manual' : 'Belum diatur'}</span>
                   </div>
-                  <div className="text-xs text-white/60 bg-white/5 rounded px-2 py-1"><span className="text-blue-400">ℹ</span> Tanggal akan ditampilkan pada sertifikat sesuai format Indonesia</div>
+                  <div className="text-xs text-white/60 bg-white/5 rounded px-2 py-1"><span className="text-blue-400">ℹ</span> Tanggal akan ditampilkan pada sertifikat sesuai format yang dipilih</div>
                 </div>
               </div>
             )}
@@ -715,6 +761,26 @@ export default function TeamEditPage() {
                     <label className="block text-xs text-white/60 mb-1">Tanggal Kedaluwarsa</label>
                     <input type="date" className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white" value={expiresAt || ""} onChange={async (e) => { const v = e.target.value; setExpiresAt(v); saveToHistory(); if (certificateId) { queueSave({ expires_at: v }) } }} />
                   </div>
+                  <div>
+                    <label className="block text-xs text-white/60 mb-1">Format Tanggal Kedaluwarsa</label>
+                    <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm text-white" value={expiredFormat} onChange={(e) => { setExpiredFormat(e.target.value); saveToHistory(); if (certificateId) { queueSave({ expired_format: e.target.value }) } }}>
+                      <option value="dd/mm/yyyy">dd/mm/yyyy (01/10/2025)</option>
+                      <option value="mm/dd/yyyy">mm/dd/yyyy (10/01/2025)</option>
+                      <option value="yyyy/mm/dd">yyyy/mm/dd (2025/10/01)</option>
+                      <option value="dd-mm-yyyy">dd-mm-yyyy (01-10-2025)</option>
+                      <option value="mm-dd-yyyy">mm-dd-yyyy (10-01-2025)</option>
+                      <option value="yyyy-mm-dd">yyyy-mm-dd (2025-10-01)</option>
+                      <option value="dd mmm yyyy">dd mmm yyyy (01 Oct 2025)</option>
+                      <option value="dd mmmm yyyy">dd mmmm yyyy (01 October 2025)</option>
+                      <option value="mmm dd, yyyy">mmm dd, yyyy (Oct 01, 2025)</option>
+                      <option value="mmmm dd, yyyy">mmmm dd, yyyy (October 01, 2025)</option>
+                    </select>
+                  </div>
+                  <div className="w-full rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-white/90 flex items-center justify-between">
+                    <span className="flex items-center gap-2"><span className="w-2 h-2 bg-red-500 rounded-full"></span>{expiresAt ? formatDate(expiresAt, expiredFormat) : 'Tidak ada tanggal kedaluwarsa'}</span>
+                    <span className="text-xs text-red-400/70 font-medium">{expiresAt ? 'Manual' : 'Belum diatur'}</span>
+                  </div>
+                  <div className="text-xs text-white/60 bg-white/5 rounded px-2 py-1"><span className="text-red-400">ℹ</span> Tanggal kedaluwarsa akan ditampilkan sesuai format yang dipilih</div>
                 </div>
               </div>
             )}
@@ -894,7 +960,7 @@ export default function TeamEditPage() {
                   expires_color: expColor,
                 }
                 const previewImageDataUrl = await generatePreviewImage()
-                if (previewImageDataUrl) { const publicUrl = await uploadPreviewToStorage(previewImageDataUrl, certificateId); if (publicUrl) { (payload as any).preview_image = publicUrl } }
+                if (previewImageDataUrl) { const publicUrl = await uploadPreviewToStorage(previewImageDataUrl, certificateId); if (publicUrl) { (payload as Record<string, unknown>).preview_image = publicUrl } }
                 try { const { error } = await supabase.from('certificates').update(payload).eq('id', certificateId); if (error) { setMessage(t('failedToSave') + (error.message || 'Unknown error')) } else { setMessage(t('changesSaved')); setTimeout(() => setMessage(''), 1500) } }
                 catch (err) { setMessage(t('failedToSave') + (err instanceof Error ? err.message : 'Unknown error')) }
                 setSavingAll(false)
@@ -949,8 +1015,11 @@ function PreviewPanel({ category, previewSrc, title, description, numberText, ti
         ctx.fillStyle = color
         const weight = bold ? '700' : '400'
         const baseFamily = (font || '').split(',')[0]?.replace(/['"]/g, '').trim() || 'Inter'
-        try { await (document as any).fonts?.load?.(`${weight} ${size}px '${baseFamily}'`) } catch {}
-        await (document as any).fonts?.ready?.()
+        try {
+          const fonts = (document as unknown as { fonts?: { load?: (d: string) => Promise<unknown>; ready?: Promise<unknown> } }).fonts
+          await fonts?.load?.(`${weight} ${size}px '${baseFamily}'`)
+          await fonts?.ready
+        } catch {}
         ctx.font = `${weight} ${size}px ${font}`
         ctx.textBaseline = 'top'
         const singleLine = !maxWidth
