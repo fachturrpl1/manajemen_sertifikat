@@ -760,7 +760,7 @@ function normalizeCategory(raw: string): "mou"|"magang"|"pelatihan"|"kunjungan_i
   if (s.includes("magang")) return "magang"
   if (s.includes("latih")) return "pelatihan"
   if (s.includes("kunjungan") || s.includes("industri")) return "kunjungan_industri"
-  if (s === "mou" || s === "magang" || s === "pelatihan" || s === "kunjungan_industri") return s as any
+  if (s === "mou" || s === "magang" || s === "pelatihan" || s === "kunjungan_industri") return s as "mou"|"magang"|"pelatihan"|"kunjungan_industri"
   return "other"
 }
 

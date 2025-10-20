@@ -213,8 +213,8 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
     name: "MoU Template 1",
     defaultPositions: {
       title: { 
-        x: 621, 
-        y: 454, 
+        x: 777, 
+        y: 451, 
         size: 34, 
         color: "#000000", 
         align: "center", 
@@ -259,8 +259,8 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
     name: "MoU Template 2",
     defaultPositions: {
       title: { 
-        x: 383, 
-        y: 805, 
+        x: 489, 
+        y: 789, 
         size: 34, 
         color: "#000000", 
         align: "center", 

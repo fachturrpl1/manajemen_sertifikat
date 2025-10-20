@@ -3,13 +3,23 @@
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
 
+type TestBlock = { data: unknown; error: unknown }
+type CountBlock = TestBlock & { count: number }
+interface SupabaseTestResults {
+  connection?: TestBlock
+  allMembers?: CountBlock
+  specificMembers?: CountBlock
+  structure?: TestBlock
+  error?: string
+}
+
 export function SupabaseTest() {
-  const [testResults, setTestResults] = useState<any>(null)
+  const [testResults, setTestResults] = useState<SupabaseTestResults | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     const runTests = async () => {
-      const results: any = {}
+      const results: SupabaseTestResults = {}
 
       try {
         // Test 1: Basic connection
@@ -27,7 +37,7 @@ export function SupabaseTest() {
           .from("members")
           .select("*")
         
-        results.allMembers = { data: allMembers, error: allError, count: allMembers?.length || 0 }
+        results.allMembers = { data: allMembers, error: allError, count: Array.isArray(allMembers) ? allMembers.length : 0 }
 
         // Test 3: Get specific columns
         console.log("Testing specific columns...")
@@ -35,7 +45,7 @@ export function SupabaseTest() {
           .from("members")
           .select("id,name,organization,phone,email,job,dob,address,city,notes")
         
-        results.specificMembers = { data: specificMembers, error: specificError, count: specificMembers?.length || 0 }
+        results.specificMembers = { data: specificMembers, error: specificError, count: Array.isArray(specificMembers) ? specificMembers.length : 0 }
 
         // Test 4: Check table structure
         console.log("Testing table structure...")
@@ -48,7 +58,7 @@ export function SupabaseTest() {
 
       } catch (error) {
         console.error("Test error:", error)
-        results.error = error.message
+        results.error = error instanceof Error ? error.message : String(error)
       } finally {
         setIsLoading(false)
         setTestResults(results)

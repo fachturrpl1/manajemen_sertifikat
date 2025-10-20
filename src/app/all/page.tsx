@@ -5,15 +5,54 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useI18n } from "@/lib/i18n"
 import { Globe } from "lucide-react"
+import { supabase } from "@/lib/supabase"
 
 export default function PublicVerifyPage() {
   const [no, setNo] = useState("")
   const router = useRouter()
   const { t, locale, setLocale } = useI18n()
 
-  function submit() {
-    if (!no.trim()) return
-    router.push(`/cek/${encodeURIComponent(no.trim())}`)
+  async function submit() {
+    const raw = no.trim()
+    if (!raw) return
+    // If user pasted a URL (e.g., Supabase public preview_image), try to resolve to certificate number
+    if (/^https?:\/\//i.test(raw)) {
+      const url = raw
+      // First, exact/equivalent match
+      const { data: exactData } = await supabase
+        .from("certificates")
+        .select("number,preview_image")
+        .or(`preview_image.eq.${url},preview_image.ilike.%${url}%`)
+        .limit(1)
+        .maybeSingle()
+      if (exactData?.number) {
+        router.push(`/cek/${encodeURIComponent(String(exactData.number))}`)
+        return
+      }
+      // Fallback: match by filename segment (strip query)
+      try {
+        const u = new URL(url)
+        const file = u.pathname.split('/').pop() || ''
+        const fname = file.split('?')[0]
+        if (fname) {
+          const { data: byFile } = await supabase
+            .from("certificates")
+            .select("number,preview_image")
+            .ilike("preview_image", `%${fname}%`)
+            .limit(1)
+            .maybeSingle()
+          if (byFile?.number) {
+            router.push(`/cek/${encodeURIComponent(String(byFile.number))}`)
+            return
+          }
+        }
+      } catch {}
+      // As last resort, open the URL directly (keeps current behavior intuitive)
+      if (typeof window !== 'undefined') window.open(url, '_blank')
+      return
+    }
+    // Default: treat as certificate number
+    router.push(`/cek/${encodeURIComponent(raw)}`)
   }
 
   return (

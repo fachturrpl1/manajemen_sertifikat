@@ -670,7 +670,7 @@ export default function AdminPage() {
           setCurrentTemplateConfig(config)
           if (config && config.defaultPositions) {
             const dp = config.defaultPositions
-            const updates: Record<string, any> = {}
+            const updates: Record<string, unknown> = {}
             if (row.title_x == null) { setTitleX(dp.title.x); updates.title_x = dp.title.x }
             if (row.title_y == null) { setTitleY(dp.title.y); updates.title_y = dp.title.y }
             if (row.title_size == null) { setTitleSize(dp.title.size); updates.title_size = dp.title.size }
@@ -1074,20 +1074,7 @@ export default function AdminPage() {
               applyTemplateConfig(path)
             }}
           />
-          <div className="text-center text-white/70 mb-1">{t('or')}</div>
-          <div>
-            <label className="block text-sm text-white/70 mb-2">{t('uploadCertificate')}</label>
-            <input
-              type="file"
-              accept=".png,.jpg,.jpeg,.pdf"
-              onChange={handleFileUpload}
-              className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={uploading || applyingTemplate}
-            />
-            {uploading && (
-              <div className="mt-2 text-xs text-white/70">{t('uploading')}</div>
-            )}
-          </div>
+          <></>
           {/* Text controls */}
           <div className="grid grid-cols-1 gap-3 pt-2">
             {/* Pilih elemen yang sedang diedit */}
