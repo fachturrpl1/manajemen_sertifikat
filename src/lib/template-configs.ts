@@ -29,39 +29,39 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
     name: "Industrial Visit Template 1",
     defaultPositions: {
       title: { 
-        x: 667,
-        y: 625, 
+        x: 985,
+        y: 621, 
         size: 30, 
         color: "#000000", 
         align: "center", 
         font: "Times New Roman, Times, serif" 
       },
       description: { 
-        x: 665,
-        y: 861, 
+        x: 973,
+        y: 780, 
         size: 13, 
         color: "#000000", 
         align: "center", 
         font: "Inter, ui-sans-serif, system-ui" 
       },
       date: { 
-        x: 367, 
-        y: 1099, 
+        x: 541, 
+        y: 1112, 
         size: 11, 
         color: "#000000", 
         align: "center", 
         font: "Inter, ui-sans-serif, system-ui" 
       },
       number: {
-        x: 1675,
-        y: 87,
+        x: 1735,
+        y: 73,
         size: 14,
         color: "#000000",
         align: "center",
         font: "Inter, ui-sans-serif, system-ui"
       },
       expired: {
-        x: 1371,
+        x: 1391,
         y: 1099,
         size: 12,
         color: "#000000",
@@ -75,40 +75,40 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
     name: "Industrial Visit Template 2",
     defaultPositions: {
       title: { 
-        x: 461,
-        y: 819, 
+        x: 683,
+        y: 847, 
         size: 29, 
         color: "#259e8f", 
         align: "center", 
         font: "Georgia, serif" 
       },
       description: { 
-        x: 406, 
-        y: 1052, 
+        x: 682, 
+        y: 972, 
         size: 16, 
         color: "#333333", 
         align: "center", 
         font: "Inter, ui-sans-serif, system-ui" 
       },
       date: { 
-        x: 904, 
-        y: 1682, 
+        x: 413, 
+        y: 1620, 
         size: 15, 
         color: "#666666", 
         align: "right", 
         font: "Arial, Helvetica, sans-serif" 
       },
       number: {
-        x: 1125,
-        y: 200,
-        size: 20,
+        x: 1194,
+        y: 212,
+        size: 16,
         color: "#333333",
         align: "center",
         font: "Inter, ui-sans-serif, system-ui"
       },
       expired: {
-        x: 276,
-        y: 1682,
+        x: 1034,
+        y: 1656,
         size: 15,
         color: "#333333",
         align: "center",
@@ -121,41 +121,41 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
     name: "Internship Template 1",
     defaultPositions: {
       title: { 
-        x: 350, 
-        y: 190, 
+        x: 967, 
+        y: 679, 
         size: 30, 
         color: "#000000", 
         align: "center", 
         font: "Times New Roman, Times, serif" 
       },
       description: { 
-        x: 340, 
-        y: 240, 
-        size: 16, 
+        x: 999, 
+        y: 852, 
+        size: 14, 
         color: "#000000", 
         align: "center", 
         font: "Arial, Helvetica, sans-serif" 
       },
       date: { 
-        x: 60, 
-        y: 100, 
+        x: 241, 
+        y: 1243, 
         size: 13, 
         color: "#000000", 
         align: "left", 
         font: "Arial, Helvetica, sans-serif" 
       },
       number: {
-        x: 350,
-        y: 300,
+        x: 1685,
+        y: 140,
         size: 14,
         color: "#000000",
         align: "center",
         font: "Inter, ui-sans-serif, system-ui"
       },
       expired: {
-        x: 350,
-        y: 360,
-        size: 12,
+        x: 1531,
+        y: 1254,
+        size: 13,
         color: "#000000",
         align: "center",
         font: "Inter, ui-sans-serif, system-ui"
@@ -167,44 +167,44 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
     name: "Internship Template 2",
     defaultPositions: {
       title: { 
-        x: 350, 
-        y: 190, 
-        size: 30, 
+        x: 700, 
+        y: 936, 
+        size: 35, 
         color: "#000000", 
         align: "center", 
         font: "Times New Roman, Times, serif" 
       },
       description: { 
-        x: 340, 
-        y: 240, 
-        size: 16, 
+        x: 728, 
+        y: 1338, 
+        size: 15, 
         color: "#000000", 
         align: "center", 
         font: "Arial, Helvetica, sans-serif" 
       },
       date: { 
-        x: 60, 
-        y: 100, 
+        x: 161, 
+        y: 1694, 
         size: 13, 
         color: "#000000", 
         align: "left", 
         font: "Arial, Helvetica, sans-serif" 
       },
       number: {
-        x: 350,
-        y: 300,
+        x: 708,
+        y: 394,
         size: 14,
         color: "#000000",
         align: "center",
         font: "Inter, ui-sans-serif, system-ui"
       },
       expired: {
-        x: 350,
-        y: 360,
-        size: 12,
+        x: 1101,
+        y: 1695,
+        size: 13,
         color: "#000000",
         align: "center",
-        font: "Inter, ui-sans-serif, system-ui"
+        font: "Arial, Inter, ui-sans-serif, system-ui"
       }
     }
   },
@@ -213,40 +213,40 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
     name: "MoU Template 1",
     defaultPositions: {
       title: { 
-        x: 380, 
-        y: 170, 
+        x: 621, 
+        y: 454, 
         size: 34, 
         color: "#000000", 
         align: "center", 
         font: "Georgia, serif" 
       },
       description: { 
-        x: 370, 
-        y: 220, 
+        x: 289, 
+        y: 645, 
         size: 15, 
         color: "#000000", 
-        align: "center", 
+        align: "left", 
         font: "Times New Roman, Times, serif" 
       },
       date: { 
-        x: 80, 
-        y: 130, 
+        x: 428, 
+        y: 966, 
         size: 14, 
         color: "#000000", 
         align: "center", 
         font: "Times New Roman, Times, serif" 
       },
       number: {
-        x: 380,
-        y: 300,
+        x: 360,
+        y: 82,
         size: 14,
         color: "#000000",
         align: "center",
         font: "Inter, ui-sans-serif, system-ui"
       },
       expired: {
-        x: 380,
-        y: 360,
+        x: 1650,
+        y: 1279,
         size: 12,
         color: "#000000",
         align: "center",
@@ -259,41 +259,41 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
     name: "MoU Template 2",
     defaultPositions: {
       title: { 
-        x: 380, 
-        y: 170, 
+        x: 383, 
+        y: 805, 
         size: 34, 
         color: "#000000", 
         align: "center", 
         font: "Georgia, serif" 
       },
       description: { 
-        x: 370, 
-        y: 220, 
-        size: 15, 
+        x: 148, 
+        y: 984, 
+        size: 17, 
         color: "#000000", 
-        align: "center", 
+        align: "left", 
         font: "Times New Roman, Times, serif" 
       },
       date: { 
-        x: 80, 
-        y: 130, 
+        x: 283, 
+        y: 1754, 
         size: 14, 
         color: "#000000", 
         align: "center", 
         font: "Times New Roman, Times, serif" 
       },
       number: {
-        x: 380,
-        y: 300,
+        x: 213,
+        y: 543,
         size: 14,
         color: "#000000",
         align: "center",
         font: "Inter, ui-sans-serif, system-ui"
       },
       expired: {
-        x: 380,
-        y: 360,
-        size: 12,
+        x: 1053,
+        y: 1833,
+        size: 14,
         color: "#000000",
         align: "center",
         font: "Inter, ui-sans-serif, system-ui"
@@ -305,44 +305,44 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
     name: "Training Template 1",
     defaultPositions: {
       title: { 
-        x: 715, 
-        y: 562, 
+        x: 956, 
+        y: 568, 
         size: 31, 
         color: "#26786e", 
         align: "center", 
-        font: "Arial, ui-sans-serif, system-ui" 
+        font: "Inter, Arial, ui-sans-serif, system-ui" 
       },
       description: { 
-        x: 862, 
-        y: 747, 
+        x: 969, 
+        y: 750, 
         size: 15, 
         color: "#26786e", 
         align: "center", 
-        font: "Arial, ui-sans-serif, system-ui" 
+        font: "Inter, Arial, ui-sans-serif, system-ui" 
       },
       date: { 
-        x: 855, 
-        y: 1203, 
+        x: 501, 
+        y: 1213, 
         size: 13, 
         color: "#26786e", 
         align: "center", 
-        font: "Arial, ui-sans-serif, system-ui" 
+        font: "Inter, Arial, ui-sans-serif, system-ui" 
       },
       number: {
-        x: 908,
-        y: 26,
+        x: 975,
+        y: 267,
         size: 14,
         color: "#26786e",
         align: "center",
-        font: "Arial, ui-sans-serif, system-ui"
+        font: "Inter, Arial, ui-sans-serif, system-ui"
       },
       expired: {
-        x: 862,
-        y: 1269,
-        size: 12,
+        x: 1471,
+        y: 1216,
+        size: 1,
         color: "#26786e",
         align: "center",
-        font: "Arial, ui-sans-serif, system-ui"
+        font: "Inter, Arial, ui-sans-serif, system-ui"
       }
     }
   },
@@ -351,44 +351,44 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
     name: "Training Template 2",
     defaultPositions: {
       title: { 
-        x: 397,
-        y: 1098, 
+        x: 700,
+        y: 1077, 
         size: 38, 
         color: "#c9ac17", 
         align: "center", 
-        font: "Times New Roman, ui-sans-serif, system-ui" 
+        font: "Inter, Times New Roman, ui-sans-serif, system-ui" 
       },
       description: { 
-        x: 414, 
-        y: 1258, 
+        x: 712, 
+        y: 1282, 
         size: 15, 
         color: "#868dad", 
         align: "center", 
         font: "Inter, ui-sans-serif, system-ui" 
       },
       date: { 
-        x: 583,
-        y: 1682, 
+        x: 333,
+        y: 1687, 
         size: 13, 
         color: "#868dad", 
         align: "center", 
-        font: "Arial, ui-sans-serif, system-ui" 
+        font: "Inter, Arial, ui-sans-serif, system-ui" 
       },
       number: {
-        x: 1162,
-        y: 93,
-        size: 13,
+        x: 1154,
+        y: 131,
+        size: 16,
         color: "#c9ac17",
         align: "center",
         font: "Inter, ui-sans-serif, system-ui"
       },
       expired: {
-        x: 592,
-        y: 1733,
-        size: 12,
+        x: 330,
+        y: 1768,
+        size: 13,
         color: "#868dad",
         align: "center",
-        font: "Arial, ui-sans-serif, system-ui"
+        font: "Inter, Arial, ui-sans-serif, system-ui"
       }
     }
   },

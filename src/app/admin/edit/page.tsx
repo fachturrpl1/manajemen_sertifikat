@@ -1111,11 +1111,7 @@ export default function AdminPage() {
                   const v = e.target.value; setTitle(v)
                    saveToHistory()
                   if (certificateId) {
-                    // Update both title and name fields to ensure consistency
-                    await supabase.from("certificates").update({ 
-                      title: v,
-                      name: v 
-                    }).eq("id", certificateId)
+                    queueSave({ title: v, name: v })
                   }
                 }}
                 placeholder={t('certificateTitle')}
@@ -1132,7 +1128,9 @@ export default function AdminPage() {
                 onChange={async (e) => {
                   const v = e.target.value; setDescription(v)
                    saveToHistory()
-                  if (certificateId) await supabase.from("certificates").update({ description: v }).eq("id", certificateId)
+                  if (certificateId) {
+                    queueSave({ description: v })
+                  }
                 }}
                 placeholder={t('briefDescription')}
               />
@@ -1147,7 +1145,9 @@ export default function AdminPage() {
                 onChange={async (e) => {
                   const v = e.target.value; setNumberText(v)
                    saveToHistory()
-                  if (certificateId) await supabase.from("certificates").update({ number: v }).eq("id", certificateId)
+                  if (certificateId) {
+                    queueSave({ number: v })
+                  }
                 }}
                 placeholder="Nomor sertifikat"
               />
@@ -1190,16 +1190,7 @@ export default function AdminPage() {
                         setIssuedAt(v)
                         saveToHistory()
                         if (certificateId) {
-                          try {
-                            const { error } = await supabase.from("certificates").update({ issued_at: v || null }).eq("id", certificateId)
-                            if (error) {
-                              console.error('Error updating date:', error)
-                              alert('Gagal menyimpan tanggal: ' + error.message)
-                            }
-                          } catch (err) {
-                            console.error('Unexpected error:', err)
-                            alert('Terjadi kesalahan saat menyimpan tanggal')
-                          }
+                          queueSave({ issued_at: v || null })
                         }
                       }}
                     />
@@ -1220,7 +1211,9 @@ export default function AdminPage() {
                         const v = e.target.value
                         setExpiresAt(v)
                          saveToHistory()
-                        if (certificateId) await supabase.from("certificates").update({ expires_at: v }).eq("id", certificateId)
+                        if (certificateId) {
+                          queueSave({ expires_at: v })
+                        }
                       }}
                     />
                   </div>
@@ -1771,20 +1764,21 @@ function PreviewPanel({ category, previewSrc, title, description, numberText, ti
           const ox = base.x - start.x
           const oy = base.y - start.y
           setDragging(true)
+          let lastX = base.x
+          let lastY = base.y
           const onMove = (ev: MouseEvent) => {
             const pos = screenToImg(Math.round(ev.clientX - rect.left), Math.round(ev.clientY - rect.top))
             const nx = pos.x + ox
             const ny = pos.y + oy
-            onDragPosition?.(clampX(nx), clampY(ny))
+            lastX = clampX(nx)
+            lastY = clampY(ny)
+            onDragPosition?.(lastX, lastY)
           }
           const onUp = () => {
             setDragging(false)
             window.removeEventListener('mousemove', onMove)
             window.removeEventListener('mouseup', onUp)
-            const baseNow = active === 'title' ? titlePos : active === 'description' ? descPos : active === 'date' ? datePos : active === 'number' ? numberPos : expiredPos
-            const nx = clampX(baseNow.x)
-            const ny = clampY(baseNow.y)
-            onCommitPosition?.(nx, ny)
+            onCommitPosition?.(lastX, lastY)
           }
           window.addEventListener('mousemove', onMove)
           window.addEventListener('mouseup', onUp)
