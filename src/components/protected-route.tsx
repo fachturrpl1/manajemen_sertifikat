@@ -3,10 +3,11 @@
 import { useAuth } from "@/lib/useAuth"
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
+import type { Role } from "@/lib/supabase"
 
 interface ProtectedRouteProps {
   children: React.ReactNode
-  allowedRoles?: ('admin' | 'team')[]
+  allowedRoles?: Role[]
 }
 
 export function ProtectedRoute({ children, allowedRoles = ['admin', 'team'] }: ProtectedRouteProps) {
