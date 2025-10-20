@@ -104,7 +104,7 @@ export function RLSTest() {
           </div>
         </div>
 
-        {testResults?.error && (
+        {testResults?.error != null && (
           <div>
             <h4 className="font-medium text-red-400 mb-2">Error:</h4>
             <div className="bg-red-500/10 p-2 rounded text-xs">
