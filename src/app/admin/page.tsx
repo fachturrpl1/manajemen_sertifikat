@@ -5,7 +5,8 @@ import { ProtectedRoute } from "@/components/protected-route"
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
 import { useRouter } from "next/navigation"
-import { Pencil } from "lucide-react"
+import { Pencil, X } from "lucide-react"
+import { ModalOverlay, ModalContent } from "@/components/ui/separator"
 import { useI18n } from "@/lib/i18n"
 
 export default function AdminPage() {
@@ -15,13 +16,21 @@ export default function AdminPage() {
   const [results, setResults] = useState<Array<{ id: string; name?: string | null; number?: string | null; category?: string | null }>>([])
   const router = useRouter()
   const { t } = useI18n()
+  type Draft = { name?: string; number?: string; category?: string; recipientOrg?: string; issuer?: string; issuedAt?: string; expiresAt?: string }
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [draft, setDraft] = useState<Draft | null>(null)
+  const [isUpdating, setIsUpdating] = useState(false)
+  const [updateMessage, setUpdateMessage] = useState("")
+
+  const [refreshTick, setRefreshTick] = useState(0)
 
   useEffect(() => {
     let ignore = false
     const search = async () => {
       setIsSearching(true)
-      let data: any[] | null = null
-      let error: any = null
+      type CertRow = { id: string; name?: string | null; number?: string | null; category?: string | null }
+      let data: CertRow[] | null = null
+      let error: unknown = null
       if (query && query.trim().length > 0) {
         const orFilter = `name.ilike.%${query}%,number.ilike.%${query}%,category.ilike.%${query}%`
         let rq = supabase
@@ -31,8 +40,8 @@ export default function AdminPage() {
           .limit(10)
         if (categoryFilter) rq = rq.eq('category', categoryFilter)
         const res = await rq
-        data = res.data
-        error = res.error
+        data = res.data as unknown as CertRow[] | null
+        error = res.error as unknown
       } else {
         let rq = supabase
           .from("certificates")
@@ -41,25 +50,36 @@ export default function AdminPage() {
           .limit(10)
         if (categoryFilter) rq = rq.eq('category', categoryFilter)
         const res = await rq
-        data = res.data
-        error = res.error
+        data = res.data as unknown as CertRow[] | null
+        error = res.error as unknown
       }
       if (!ignore) {
         if (error) {
           console.error("certificates search error:", error)
           setResults([])
         } else {
-          setResults((data ?? []).map(r => ({ id: r.id as string, name: (r as any).name ?? null, number: (r as any).number ?? null, category: (r as any).category ?? null })))
+          setResults((data ?? []).map((r) => ({ id: r.id, name: r.name ?? null, number: r.number ?? null, category: r.category ?? null })))
         }
         setIsSearching(false)
       }
     }
     const t = setTimeout(search, 300)
     return () => { ignore = true; clearTimeout(t) }
-  }, [query, categoryFilter])
+  }, [query, categoryFilter, refreshTick])
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('certificates-changes-admin')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'certificates' }, () => {
+        setRefreshTick((x) => x + 1)
+      })
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  }, [])
 
   function goCreateNew() {
-    router.push("/admin/edit?new=1")
+    setDraft({ name: "", number: "", category: "", recipientOrg: "", issuer: "", issuedAt: "", expiresAt: "" })
+    setShowAddModal(true)
   }
 
   function goEdit(id: string) {
@@ -133,6 +153,107 @@ export default function AdminPage() {
           </div>
         </aside>
         </main>
+        {showAddModal && draft && (
+          <>
+            <ModalOverlay onClick={() => setShowAddModal(false)} />
+            <ModalContent>
+              <div className="w-full max-w-2xl rounded-xl border border-white/10 bg-[#0d1223] p-4 text-sm">
+                <div className="mb-3 flex items-center justify-between">
+                  <div className="font-semibold">{t('addNewCertificate')}</div>
+                  <button onClick={() => setShowAddModal(false)} className="rounded-md border border-white/10 bg-white/5 p-1" aria-label="Close">
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <div className="mb-1 text-white/70">{t('name')}</div>
+                    <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.name ?? ""} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
+                  </div>
+                  <div>
+                    <div className="mb-1 text-white/70">{t('number')}</div>
+                    <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.number ?? ""} onChange={(e) => setDraft({ ...draft, number: e.target.value })} />
+                  </div>
+                  <div>
+                    <div className="mb-1 text-white/70">{t('issuer')}</div>
+                    <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.issuer ?? ""} onChange={(e) => setDraft({ ...draft, issuer: e.target.value })} />
+                  </div>
+                  <div>
+                    <div className="mb-1 text-white/70">{t('recipientOrganization')}</div>
+                    <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.recipientOrg ?? ""} onChange={(e) => setDraft({ ...draft, recipientOrg: e.target.value })} />
+                  </div>
+                  <div>
+                    <div className="mb-1 text-white/70">{t('issuedDate')}</div>
+                    <input type="date" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.issuedAt ?? ""} onChange={(e) => setDraft({ ...draft, issuedAt: e.target.value })} />
+                  </div>
+                  <div>
+                    <div className="mb-1 text-white/70">{t('expiredDate')}</div>
+                    <input type="date" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.expiresAt ?? ""} onChange={(e) => setDraft({ ...draft, expiresAt: e.target.value })} />
+                  </div>
+                  <div className="md:col-span-2">
+                    <div className="mb-1 text-white/70">{t('category')}</div>
+                    <select
+                      className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2"
+                      value={draft.category ?? ""}
+                      onChange={(e) => setDraft({ ...draft, category: e.target.value })}
+                    >
+                      <option value="" disabled>{t('selectCategory')}</option>
+                      <option value="kunjungan industri">{t('industrialVisit')}</option>
+                      <option value="magang">{t('internship')}</option>
+                      <option value="mou">{t('mou')}</option>
+                      <option value="pelatihan">{t('training')}</option>
+                    </select>
+                  </div>
+                </div>
+                {updateMessage && (
+                  <div className={`mb-6 mt-6 rounded-md p-4 text-sm ${
+                    updateMessage.includes('berhasil') 
+                      ? 'bg-green-500/10 border border-green-500/20 text-green-400' 
+                      : 'bg-red-500/10 border border-red-500/20 text-red-400'
+                  }`}>
+                    {updateMessage}
+                  </div>
+                )}
+                <div className="mt-4 flex justify-end gap-2">
+                  <button className="rounded-md border border-white/10 bg-white/5 px-3 py-2" onClick={() => setShowAddModal(false)}>{t('cancel')}</button>
+                  <button
+                    className="rounded-md border border-green-500/30 bg-green-500/10 px-3 py-2 text-green-300"
+                    onClick={async () => {
+                      if (!draft) return
+                      setIsUpdating(true)
+                      setUpdateMessage("")
+                      try {
+                        const { error } = await supabase
+                          .from("certificates")
+                          .insert({
+                            name: draft.name ?? null,
+                            number: draft.number ?? null,
+                            category: draft.category ?? null,
+                            recipient_org: draft.recipientOrg ?? null,
+                            issuer: draft.issuer ?? null,
+                            issued_at: draft.issuedAt ?? null,
+                            expires_at: draft.expiresAt ?? null,
+                          })
+                        if (error) {
+                          setUpdateMessage("Gagal menambahkan data: " + (error.message || ''))
+                          return
+                        }
+                        setUpdateMessage("Sertifikat berhasil ditambahkan!")
+                        setTimeout(() => { setShowAddModal(false); setUpdateMessage(""); setIsUpdating(false) }, 1200)
+                      } catch (e) {
+                        setUpdateMessage("Terjadi kesalahan yang tidak terduga")
+                      } finally {
+                        setIsUpdating(false)
+                      }
+                    }}
+                    disabled={isUpdating}
+                  >
+                    {isUpdating ? t('saving') : t('add')}
+                  </button>
+                </div>
+              </div>
+            </ModalContent>
+          </>
+        )}
         <style jsx global>{`
           select option { background-color: #0f1c35; color: #ffffff; }
           select { color-scheme: dark; }

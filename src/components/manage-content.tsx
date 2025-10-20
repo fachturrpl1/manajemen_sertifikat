@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useRef, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import * as XLSX from "xlsx"
 import { Eye, Pencil, Trash2, X } from "lucide-react"
 import { ModalOverlay, ModalContent } from "@/components/ui/separator"
@@ -32,6 +32,7 @@ type ManageContentProps = {
 export function ManageContent({ role = "admin" }: ManageContentProps) {
   const { t, locale } = useI18n()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [rows, setRows] = useState<CertificateRow[]>([])
   const [query, setQuery] = useState("")
   const [dateFormat, setDateFormat] = useState<string>("dd-MM-yyyy")
@@ -213,6 +214,23 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
       y: Math.max(margin, Math.min(y, maxY))
     }
   }
+
+  useEffect(() => {
+    // Auto-open Add modal if ?add=1 in URL
+    const add = searchParams?.get('add')
+    if (add === '1' && !showAddModal) {
+      setDraft({
+        name: "",
+        number: "",
+        category: "",
+        recipientOrg: "",
+        issuer: "",
+        issuedAt: "",
+        expiresAt: "",
+      })
+      setShowAddModal(true)
+    }
+  }, [searchParams, showAddModal])
 
   useEffect(() => {
     // Initial data fetch
@@ -912,107 +930,48 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
           <ModalContent>
             <div className="w-full max-w-2xl rounded-xl border border-white/10 bg-[#0d1223] p-4 text-sm">
               <div className="mb-3 flex items-center justify-between">
-                <div className="font-semibold">Tambah Sertifikat Baru</div>
+                <div className="font-semibold">{t('addNewCertificate')}</div>
                 <button onClick={() => setShowAddModal(false)} className="rounded-md border border-white/10 bg-white/5 p-1" aria-label="Close">
                   <X className="h-4 w-4" />
                 </button>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <div className="mb-1 text-white/70">Nama</div>
+                  <div className="mb-1 text-white/70">{t('name')}</div>
                   <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.name ?? ""} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
                 </div>
                 <div>
-                  <div className="mb-1 text-white/70">Nomor</div>
+                  <div className="mb-1 text-white/70">{t('number')}</div>
                   <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.number ?? ""} onChange={(e) => setDraft({ ...draft, number: e.target.value })} />
                 </div>
                 <div>
-                  <div className="mb-1 text-white/70">Penerbit</div>
+                  <div className="mb-1 text-white/70">{t('issuer')}</div>
                   <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.issuer ?? ""} onChange={(e) => setDraft({ ...draft, issuer: e.target.value })} />
                 </div>
                 <div>
-                  <div className="mb-1 text-white/70">Instansi Penerima</div>
+                  <div className="mb-1 text-white/70">{t('recipientOrganization')}</div>
                   <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.recipientOrg ?? ""} onChange={(e) => setDraft({ ...draft, recipientOrg: e.target.value })} />
                 </div>
                 <div>
-                  <div className="mb-1 text-white/70">Tanggal Terbit</div>
-                  <div className="relative">
-                    <input
-                      readOnly
-                      value={fromISO(draft.issuedAt || "") ? formatDateFn(fromISO(draft.issuedAt || "") as Date, dateFormat, { locale: dfLocale }) : ""}
-                      onClick={() => setShowIssuedCalendar(!showIssuedCalendar)}
-                      className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2 cursor-pointer"
-                    />
-                    {showIssuedCalendar && (
-                      <div className="absolute z-50 mt-2 rounded-md border border-white/10 bg-[#0d172b] p-2 shadow-xl">
-                        <DayPicker
-                          mode="single"
-                          selected={fromISO(draft.issuedAt || "") || undefined}
-                          onSelect={(d) => {
-                            setShowIssuedCalendar(false)
-                            if (d) setDraft({ ...draft, issuedAt: toISO(d) })
-                          }}
-                          locale={dfLocale}
-                        />
-                      </div>
-                    )}
-                  </div>
+                  <div className="mb-1 text-white/70">{t('issuedDate')}</div>
+                  <input type="date" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.issuedAt ?? ""} onChange={(e) => setDraft({ ...draft, issuedAt: e.target.value })} />
                 </div>
                 <div>
-                  <div className="mb-1 text-white/70">Tanggal Kadaluarsa</div>
-                  <div className="relative">
-                    <input
-                      readOnly
-                      value={fromISO(draft.expiresAt || "") ? formatDateFn(fromISO(draft.expiresAt || "") as Date, dateFormat, { locale: dfLocale }) : ""}
-                      onClick={() => setShowExpiresCalendar(!showExpiresCalendar)}
-                      className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2 cursor-pointer"
-                    />
-                    {showExpiresCalendar && (
-                      <div className="absolute z-50 mt-2 rounded-md border border-white/10 bg-[#0d172b] p-2 shadow-xl">
-                        <DayPicker
-                          mode="single"
-                          selected={fromISO(draft.expiresAt || "") || undefined}
-                          onSelect={(d) => {
-                            setShowExpiresCalendar(false)
-                            if (d) setDraft({ ...draft, expiresAt: toISO(d) })
-                          }}
-                          locale={dfLocale}
-                        />
-                      </div>
-                    )}
-                  </div>
+                  <div className="mb-1 text-white/70">{t('expiredDate')}</div>
+                  <input type="date" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.expiresAt ?? ""} onChange={(e) => setDraft({ ...draft, expiresAt: e.target.value })} />
                 </div>
                 <div className="md:col-span-2">
-                  <div className="mb-1 text-white/70">Format Tanggal</div>
-                  <select
-                    className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2"
-                    value={dateFormat}
-                    onChange={(e) => setDateFormat(e.target.value)}
-                  >
-                    <option value="dd-MM-yyyy">dd-MM-yyyy</option>
-                    <option value="MM-dd-yyyy">MM-dd-yyyy</option>
-                    <option value="yyyy-MM-dd">yyyy-MM-dd</option>
-                    <option value="dd MMM yyyy">dd MMM yyyy</option>
-                    <option value="dd MMMM yyyy">dd MMMM yyyy</option>
-                    <option value="MMM dd, yyyy">MMM dd, yyyy</option>
-                    <option value="MMMM dd, yyyy">MMMM dd, yyyy</option>
-                    <option value="dd/MM/yyyy">dd/MM/yyyy</option>
-                    <option value="MM/dd/yyyy">MM/dd/yyyy</option>
-                    <option value="yyyy/MM/dd">yyyy/MM/dd</option>
-                  </select>
-                </div>
-                <div className="md:col-span-2">
-                  <div className="mb-1 text-white/70">Kategori</div>
+                  <div className="mb-1 text-white/70">{t('category')}</div>
                   <select
                     className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2"
                     value={draft.category ?? ""}
                     onChange={(e) => setDraft({ ...draft, category: e.target.value })}
                   >
-                    <option value="" disabled>Pilih kategori</option>
-                    <option value="kunjungan industri">kunjungan industri</option>
-                    <option value="magang">magang</option>
-                    <option value="mou">mou</option>
-                    <option value="pelatihan">pelatihan</option>
+                    <option value="" disabled>{t('selectCategory')}</option>
+                    <option value="kunjungan industri">{t('industrialVisit')}</option>
+                    <option value="magang">{t('internship')}</option>
+                    <option value="mou">{t('mou')}</option>
+                    <option value="pelatihan">{t('training')}</option>
                   </select>
                 </div>
               </div>
@@ -1026,7 +985,7 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                 </div>
               )}
               <div className="mt-4 flex justify-end gap-2">
-                <button className="rounded-md border border-white/10 bg-white/5 px-3 py-2" onClick={() => setShowAddModal(false)}>Batal</button>
+                <button className="rounded-md border border-white/10 bg-white/5 px-3 py-2" onClick={() => setShowAddModal(false)}>{t('cancel')}</button>
                 <button
                   className="rounded-md border border-green-500/30 bg-green-500/10 px-3 py-2 text-green-300"
                   onClick={() => {
@@ -1080,7 +1039,7 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                     doAdd()
                   }}
                 >
-                  {isUpdating ? "Memproses..." : "Tambah"}
+                  {isUpdating ? t('saving') : t('add')}
                 </button>
               </div>
             </div>
@@ -1132,7 +1091,12 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                   onClick={async () => {
                     try {
                       const link = (certificateData?.preview_image && String(certificateData.preview_image)) || ''
-                      if (link) await navigator.clipboard.writeText(link)
+                      if (link) {
+                        await navigator.clipboard.writeText(link)
+                        showToast('Link gambar pratinjau berhasil disalin!', 'success')
+                      } else {
+                        showToast('Link pratinjau tidak tersedia', 'error')
+                      }
                     } catch (e) { console.error('copy link failed:', e) }
                   }}
                 >Copy Link</button>

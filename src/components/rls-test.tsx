@@ -4,12 +4,12 @@ import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
 
 export function RLSTest() {
-  const [testResults, setTestResults] = useState<any>(null)
+  const [testResults, setTestResults] = useState<Record<string, unknown> | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     const runRLSTests = async () => {
-      const results: any = {}
+      const results: Record<string, unknown> = {}
 
       try {
         // Test 1: Check authentication status

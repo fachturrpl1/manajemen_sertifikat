@@ -274,7 +274,7 @@ export default function TeamEditPage() {
     }
   }, [historyIndex, history])
 
-  // Terapkan template config
+  // Terapkan template config (selaraskan dengan Admin Edit)
   async function applyTemplateConfig(templatePath: string) {
     if (!templatePath) { setMessage(t('failedToSave') + t('templatePathRequired')); return }
     setApplyingTemplate(true)
@@ -283,11 +283,54 @@ export default function TeamEditPage() {
       const config = getTemplateConfig(templatePath)
       if (!config) { setMessage(t('failedToSave') + t('templateConfigNotFound')); return }
       const { defaultPositions } = config
-      if (!defaultPositions || !defaultPositions.title || !defaultPositions.description || !defaultPositions.date) { setMessage(t('failedToSave') + t('invalidTemplateConfig')); return }
+      if (!defaultPositions || !defaultPositions.title || !defaultPositions.description || !defaultPositions.date || !defaultPositions.number || !defaultPositions.expired) {
+        setMessage(t('failedToSave') + t('invalidTemplateConfig'))
+        return
+      }
+
+      // Update semua posisi/style di UI
       setTitleX(defaultPositions.title.x); setTitleY(defaultPositions.title.y); setTitleSize(defaultPositions.title.size); setTitleColor(defaultPositions.title.color); setTitleAlign(defaultPositions.title.align); setTitleFont(defaultPositions.title.font)
       setDescX(defaultPositions.description.x); setDescY(defaultPositions.description.y); setDescSize(defaultPositions.description.size); setDescColor(defaultPositions.description.color); setDescAlign(defaultPositions.description.align); setDescFont(defaultPositions.description.font)
       setDateX(defaultPositions.date.x); setDateY(defaultPositions.date.y); setDateSize(defaultPositions.date.size); setDateColor(defaultPositions.date.color); setDateAlign(defaultPositions.date.align); setDateFont(defaultPositions.date.font)
+      setNumberX(defaultPositions.number.x); setNumberY(defaultPositions.number.y); setNumberSize(defaultPositions.number.size); setNumberColor(defaultPositions.number.color); setNumberAlign(defaultPositions.number.align); setNumberFont(defaultPositions.number.font)
+      setExpX(defaultPositions.expired.x); setExpY(defaultPositions.expired.y); setExpSize(defaultPositions.expired.size); setExpColor(defaultPositions.expired.color); setExpAlign(defaultPositions.expired.align); setExpFont(defaultPositions.expired.font)
+
       setCurrentTemplateConfig(config)
+
+      // Simpan ke DB agar konsisten tanpa menunggu realtime
+      queueSave({
+        template_path: templatePath,
+        title_x: defaultPositions.title.x,
+        title_y: defaultPositions.title.y,
+        title_size: defaultPositions.title.size,
+        title_color: defaultPositions.title.color,
+        title_align: defaultPositions.title.align,
+        title_font: defaultPositions.title.font,
+        desc_x: defaultPositions.description.x,
+        desc_y: defaultPositions.description.y,
+        desc_size: defaultPositions.description.size,
+        desc_color: defaultPositions.description.color,
+        desc_align: defaultPositions.description.align,
+        desc_font: defaultPositions.description.font,
+        date_x: defaultPositions.date.x,
+        date_y: defaultPositions.date.y,
+        date_size: defaultPositions.date.size,
+        date_color: defaultPositions.date.color,
+        date_align: defaultPositions.date.align,
+        date_font: defaultPositions.date.font,
+        number_x: defaultPositions.number.x,
+        number_y: defaultPositions.number.y,
+        number_size: defaultPositions.number.size,
+        number_color: defaultPositions.number.color,
+        number_align: defaultPositions.number.align,
+        number_font: defaultPositions.number.font,
+        expires_x: defaultPositions.expired.x,
+        expires_y: defaultPositions.expired.y,
+        expires_size: defaultPositions.expired.size,
+        expires_color: defaultPositions.expired.color,
+        expires_align: defaultPositions.expired.align,
+        expires_font: defaultPositions.expired.font,
+      })
     } catch (error) { setMessage(t('failedToSave') + (error instanceof Error ? error.message : 'Unknown error')) }
     finally { setApplyingTemplate(false) }
   }
@@ -383,17 +426,111 @@ export default function TeamEditPage() {
         const certificateTitle = (row.name as string) || (row.title as string) || ""
         setTitle(certificateTitle)
         if (certificateTitle && certificateId) { await supabase.from("certificates").update({ title: certificateTitle, name: certificateTitle }).eq("id", certificateId) }
-        setDescription((row.description as string) || "")
-        setIssuedAt((row.issued_at as string) || "")
-        setExpiresAt((row.expires_at as string) || "")
-        setNumberText((row.number as string) || "")
-        setTitleX((row.title_x as number) ?? 370); setTitleY((row.title_y as number) ?? 180); setTitleSize((row.title_size as number) ?? 32); setTitleColor((row.title_color as string) ?? "#000000"); setTitleAlign((row.title_align as "left" | "center" | "right") ?? "center"); setTitleFont((row.title_font as string) ?? "Inter, ui-sans-serif, system-ui")
-        setDescX((row.desc_x as number) ?? 360); setDescY((row.desc_y as number) ?? 235); setDescSize((row.desc_size as number) ?? 15); setDescColor((row.desc_color as string) ?? "#000000"); setDescAlign((row.desc_align as "left" | "center" | "right") ?? "center"); setDescFont((row.desc_font as string) ?? "Inter, ui-sans-serif, system-ui")
-        setDateX((row.date_x as number) ?? 50); setDateY((row.date_y as number) ?? 110); setDateSize((row.date_size as number) ?? 14); setDateColor((row.date_color as string) ?? "#000000"); setDateAlign((row.date_align as "left" | "center" | "right") ?? "center"); setDateFont((row.date_font as string) ?? "Inter, ui-sans-serif, system-ui")
-        setNumberX((row.number_x as number) ?? 370); setNumberY((row.number_y as number) ?? 300); setNumberSize((row.number_size as number) ?? 14); setNumberColor((row.number_color as string) ?? "#000000"); setNumberAlign((row.number_align as "left" | "center" | "right") ?? "center"); setNumberFont((row.number_font as string) ?? "Inter, ui-sans-serif, system-ui")
-        setExpX((row.expires_x as number) ?? 370); setExpY((row.expires_y as number) ?? 360); setExpSize((row.expires_size as number) ?? 12); setExpColor((row.expires_color as string) ?? "#000000"); setExpAlign((row.expires_align as "left" | "center" | "right") ?? "center"); setExpFont((row.expires_font as string) ?? "Inter, ui-sans-serif, system-ui")
-        if (row.template_path) { const templatePath = row.template_path as string; setSelectedTemplate(templatePath); setPreviewSrc(`/${templatePath}`); const config = getTemplateConfig(templatePath); setCurrentTemplateConfig(config) }
-        else if (row.category) { const first = getTemplates(row.category as string)[0]; if (first) { setSelectedTemplate(first); setPreviewSrc(`/${first}`); const config = getTemplateConfig(first); setCurrentTemplateConfig(config); await supabase.from("certificates").update({ template_path: first }).eq("id", certificateId) } }
+        setDescription(row.description || "")
+        setIssuedAt(row.issued_at || "")
+        setExpiresAt(row.expires_at || "")
+        setNumberText(row.number || "")
+        setTitleX(row.title_x ?? 370); setTitleY(row.title_y ?? 180); setTitleSize(row.title_size ?? 32); setTitleColor(row.title_color ?? "#000000"); setTitleAlign(row.title_align ?? "center"); setTitleFont(row.title_font ?? "Inter, ui-sans-serif, system-ui")
+        setDescX(row.desc_x ?? 360); setDescY(row.desc_y ?? 235); setDescSize(row.desc_size ?? 15); setDescColor(row.desc_color ?? "#000000"); setDescAlign(row.desc_align ?? "center"); setDescFont(row.desc_font ?? "Inter, ui-sans-serif, system-ui")
+        setDateX(row.date_x ?? 50); setDateY(row.date_y ?? 110); setDateSize(row.date_size ?? 14); setDateColor(row.date_color ?? "#000000"); setDateAlign(row.date_align ?? "center"); setDateFont(row.date_font ?? "Inter, ui-sans-serif, system-ui")
+        setNumberX(row.number_x ?? 370); setNumberY(row.number_y ?? 300); setNumberSize(row.number_size ?? 14); setNumberColor(row.number_color ?? "#000000"); setNumberAlign(row.number_align ?? "center"); setNumberFont(row.number_font ?? "Inter, ui-sans-serif, system-ui")
+        setExpX(row.expires_x ?? 370); setExpY(row.expires_y ?? 360); setExpSize(row.expires_size ?? 12); setExpColor(row.expires_color ?? "#000000"); setExpAlign(row.expires_align ?? "center"); setExpFont(row.expires_font ?? "Inter, ui-sans-serif, system-ui")
+        if (row.template_path) {
+          const templatePath = row.template_path as string
+          setSelectedTemplate(templatePath)
+          setPreviewSrc(`/${templatePath}`)
+          const config = getTemplateConfig(templatePath)
+          setCurrentTemplateConfig(config)
+          if (config && config.defaultPositions) {
+            const dp = config.defaultPositions
+            const updates: Record<string, unknown> = {}
+            if (row.title_x == null) { setTitleX(dp.title.x); updates.title_x = dp.title.x }
+            if (row.title_y == null) { setTitleY(dp.title.y); updates.title_y = dp.title.y }
+            if (row.title_size == null) { setTitleSize(dp.title.size); updates.title_size = dp.title.size }
+            if (row.title_color == null) { setTitleColor(dp.title.color); updates.title_color = dp.title.color }
+            if (row.title_align == null) { setTitleAlign(dp.title.align); updates.title_align = dp.title.align }
+            if (row.title_font == null) { setTitleFont(dp.title.font); updates.title_font = dp.title.font }
+
+            if (row.desc_x == null) { setDescX(dp.description.x); updates.desc_x = dp.description.x }
+            if (row.desc_y == null) { setDescY(dp.description.y); updates.desc_y = dp.description.y }
+            if (row.desc_size == null) { setDescSize(dp.description.size); updates.desc_size = dp.description.size }
+            if (row.desc_color == null) { setDescColor(dp.description.color); updates.desc_color = dp.description.color }
+            if (row.desc_align == null) { setDescAlign(dp.description.align); updates.desc_align = dp.description.align }
+            if (row.desc_font == null) { setDescFont(dp.description.font); updates.desc_font = dp.description.font }
+
+            if (row.date_x == null) { setDateX(dp.date.x); updates.date_x = dp.date.x }
+            if (row.date_y == null) { setDateY(dp.date.y); updates.date_y = dp.date.y }
+            if (row.date_size == null) { setDateSize(dp.date.size); updates.date_size = dp.date.size }
+            if (row.date_color == null) { setDateColor(dp.date.color); updates.date_color = dp.date.color }
+            if (row.date_align == null) { setDateAlign(dp.date.align); updates.date_align = dp.date.align }
+            if (row.date_font == null) { setDateFont(dp.date.font); updates.date_font = dp.date.font }
+
+            if (row.number_x == null) { setNumberX(dp.number.x); updates.number_x = dp.number.x }
+            if (row.number_y == null) { setNumberY(dp.number.y); updates.number_y = dp.number.y }
+            if (row.number_size == null) { setNumberSize(dp.number.size); updates.number_size = dp.number.size }
+            if (row.number_color == null) { setNumberColor(dp.number.color); updates.number_color = dp.number.color }
+            if (row.number_align == null) { setNumberAlign(dp.number.align); updates.number_align = dp.number.align }
+            if (row.number_font == null) { setNumberFont(dp.number.font); updates.number_font = dp.number.font }
+
+            if (row.expires_x == null) { setExpX(dp.expired.x); updates.expires_x = dp.expired.x }
+            if (row.expires_y == null) { setExpY(dp.expired.y); updates.expires_y = dp.expired.y }
+            if (row.expires_size == null) { setExpSize(dp.expired.size); updates.expires_size = dp.expired.size }
+            if (row.expires_color == null) { setExpColor(dp.expired.color); updates.expires_color = dp.expired.color }
+            if (row.expires_align == null) { setExpAlign(dp.expired.align); updates.expires_align = dp.expired.align }
+            if (row.expires_font == null) { setExpFont(dp.expired.font); updates.expires_font = dp.expired.font }
+
+            if (Object.keys(updates).length > 0) { queueSave(updates) }
+          }
+        } else if (row.category) {
+          const first = getTemplates(row.category as string)[0]
+          if (first) {
+            setSelectedTemplate(first)
+            setPreviewSrc(`/${first}`)
+            const config = getTemplateConfig(first)
+            setCurrentTemplateConfig(config)
+            await supabase.from("certificates").update({ template_path: first }).eq("id", certificateId)
+            if (config && config.defaultPositions) {
+              const dp = config.defaultPositions
+              const updates: Record<string, unknown> = {}
+              if (row.title_x == null) { setTitleX(dp.title.x); updates.title_x = dp.title.x }
+              if (row.title_y == null) { setTitleY(dp.title.y); updates.title_y = dp.title.y }
+              if (row.title_size == null) { setTitleSize(dp.title.size); updates.title_size = dp.title.size }
+              if (row.title_color == null) { setTitleColor(dp.title.color); updates.title_color = dp.title.color }
+              if (row.title_align == null) { setTitleAlign(dp.title.align); updates.title_align = dp.title.align }
+              if (row.title_font == null) { setTitleFont(dp.title.font); updates.title_font = dp.title.font }
+
+              if (row.desc_x == null) { setDescX(dp.description.x); updates.desc_x = dp.description.x }
+              if (row.desc_y == null) { setDescY(dp.description.y); updates.desc_y = dp.description.y }
+              if (row.desc_size == null) { setDescSize(dp.description.size); updates.desc_size = dp.description.size }
+              if (row.desc_color == null) { setDescColor(dp.description.color); updates.desc_color = dp.description.color }
+              if (row.desc_align == null) { setDescAlign(dp.description.align); updates.desc_align = dp.description.align }
+              if (row.desc_font == null) { setDescFont(dp.description.font); updates.desc_font = dp.description.font }
+
+              if (row.date_x == null) { setDateX(dp.date.x); updates.date_x = dp.date.x }
+              if (row.date_y == null) { setDateY(dp.date.y); updates.date_y = dp.date.y }
+              if (row.date_size == null) { setDateSize(dp.date.size); updates.date_size = dp.date.size }
+              if (row.date_color == null) { setDateColor(dp.date.color); updates.date_color = dp.date.color }
+              if (row.date_align == null) { setDateAlign(dp.date.align); updates.date_align = dp.date.align }
+              if (row.date_font == null) { setDateFont(dp.date.font); updates.date_font = dp.date.font }
+
+              if (row.number_x == null) { setNumberX(dp.number.x); updates.number_x = dp.number.x }
+              if (row.number_y == null) { setNumberY(dp.number.y); updates.number_y = dp.number.y }
+              if (row.number_size == null) { setNumberSize(dp.number.size); updates.number_size = dp.number.size }
+              if (row.number_color == null) { setNumberColor(dp.number.color); updates.number_color = dp.number.color }
+              if (row.number_align == null) { setNumberAlign(dp.number.align); updates.number_align = dp.number.align }
+              if (row.number_font == null) { setNumberFont(dp.number.font); updates.number_font = dp.number.font }
+
+              if (row.expires_x == null) { setExpX(dp.expired.x); updates.expires_x = dp.expired.x }
+              if (row.expires_y == null) { setExpY(dp.expired.y); updates.expires_y = dp.expired.y }
+              if (row.expires_size == null) { setExpSize(dp.expired.size); updates.expires_size = dp.expired.size }
+              if (row.expires_color == null) { setExpColor(dp.expired.color); updates.expires_color = dp.expired.color }
+              if (row.expires_align == null) { setExpAlign(dp.expired.align); updates.expires_align = dp.expired.align }
+              if (row.expires_font == null) { setExpFont(dp.expired.font); updates.expires_font = dp.expired.font }
+
+              if (Object.keys(updates).length > 0) { queueSave(updates) }
+            }
+          }
+        }
       } finally { setMessage("") }
     }
     load()
@@ -525,12 +662,6 @@ export default function TeamEditPage() {
             {message && (<div className="mt-2 text-xs text-white/70">{message}</div>)}
           </div>
           <TemplateChooser category={category} onChoose={async (path) => { setSelectedTemplate(path); setPreviewSrc(`/${path}`); await applyTemplateConfig(path) }} />
-          <div className="text-center text-white/70 mb-1">{t('or')}</div>
-          <div>
-            <label className="block text-sm text-white/70 mb-2">{t('uploadCertificate')}</label>
-            <input type="file" accept=".png,.jpg,.jpeg,.pdf" onChange={handleFileUpload} className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed" disabled={uploading || applyingTemplate} />
-            {uploading && (<div className="mt-2 text-xs text-white/70">{t('uploading')}</div>)}
-          </div>
           <div className="grid grid-cols-1 gap-3 pt-2">
             <div>
               <label className="block text-sm text-white/70 mb-1">{t('editElements')}</label>

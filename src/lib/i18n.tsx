@@ -77,7 +77,7 @@ const en: Dictionary = {
   // Verification page
   certificateVerification: "Certificate Verification",
   enterCertificateNumber: "Enter Your Certificate Number",
-  typeCertificateNumber: "Type Certificate Number",
+  typeCertificateNumber: "Type Certificate Number or URL",
   verify: "Verify",
   // Login form
   loginToAccount: "Login to your account",
@@ -127,6 +127,8 @@ const en: Dictionary = {
   certificateTitle: "Certificate title",
   briefDescription: "Brief description",
   number: "Number",
+  issuer: "Issuer",
+  recipientOrganization: "Recipient Organization",
   actions: "Actions",
   issuedDate: "Issued Date",
   organization: "Organization",
@@ -180,6 +182,7 @@ const en: Dictionary = {
   dateFromDatabase: "Date from database",
   previewCertificate: "Preview Certificate",
   certificateDetails: "Certificate Details",
+  addNewCertificate: "Add New Certificate",
 }
 
 const id: Dictionary = {
@@ -253,7 +256,7 @@ const id: Dictionary = {
   // Verification page
   certificateVerification: "Verifikasi Sertifikat",
   enterCertificateNumber: "Masukkan Nomor Sertifikat Anda",
-  typeCertificateNumber: "Ketikkan Nomor Sertifikat",
+  typeCertificateNumber: "Ketikkan Nomor Sertifikat atau URL",
   verify: "Verifikasi",
   // Login form
   loginToAccount: "Masuk ke akun Anda",
@@ -302,6 +305,8 @@ const id: Dictionary = {
   certificateTitle: "Judul sertifikat",
   briefDescription: "Deskripsi singkat",
   number: "Nomor",
+  issuer: "Penerbit",
+  recipientOrganization: "Instansi Penerima",
   actions: "Aksi",
   issuedDate: "Tanggal Terbit",
   organization: "Organisasi",
@@ -355,6 +360,7 @@ const id: Dictionary = {
   dateFromDatabase: "Tanggal dari database",
   previewCertificate: "Pratinjau Sertifikat",
   certificateDetails: "Detail Sertifikat",
+  addNewCertificate: "Tambah Sertifikat Baru",
 }
 
 const dictionaries: Record<Locale, Dictionary> = { en, id }
