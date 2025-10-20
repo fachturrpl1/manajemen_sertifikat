@@ -3,7 +3,8 @@
 import { AdminNavbar } from "@/components/admin-navbar"
 import { ProtectedRoute } from "@/components/protected-route"
 import { useEffect, useMemo, useState, useRef, useCallback } from "react"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
+
 import { supabase } from "@/lib/supabase"
 import { useI18n } from "@/lib/i18n"
 import { getTemplateConfig, TemplateConfig } from "@/lib/template-configs"
@@ -11,6 +12,8 @@ import { getTemplateConfig, TemplateConfig } from "@/lib/template-configs"
 export default function AdminPage() {
   const params = useSearchParams()
   const certificateId = params.get("id") || undefined
+  const router = useRouter()
+
   const { t } = useI18n()
   const [category, setCategory] = useState("")
   const [saving, setSaving] = useState(false)
@@ -24,6 +27,27 @@ export default function AdminPage() {
   const [currentTemplateConfig, setCurrentTemplateConfig] = useState<TemplateConfig | null>(null)
   const [applyingTemplate, setApplyingTemplate] = useState(false)
   
+  // Restore last edited ID on refresh if URL has no id
+  useEffect(() => {
+    if (!certificateId && typeof window !== 'undefined') {
+      const last = window.localStorage.getItem('lastEditId')
+      if (last) {
+        try {
+          const url = new URL(window.location.href)
+          url.searchParams.set('id', last)
+          router.replace(url.pathname + url.search)
+        } catch {}
+      }
+    }
+  }, [certificateId, router])
+
+  // Save last edited ID on load/save
+  useEffect(() => {
+    if (certificateId && typeof window !== 'undefined') {
+      window.localStorage.setItem('lastEditId', certificateId)
+    }
+  }, [certificateId])
+
   // Undo/Redo state management
   const [history, setHistory] = useState<Array<{
     title: string
@@ -633,7 +657,12 @@ export default function AdminPage() {
         if (row.template_path) {
           const templatePath = row.template_path as string
           setSelectedTemplate(templatePath)
-          setPreviewSrc(`/${templatePath}`)
+          try {
+            const abs = typeof window !== 'undefined' ? new URL(`/${templatePath}`, window.location.origin).toString() : `/${templatePath}`
+            setPreviewSrc(abs)
+          } catch {
+            setPreviewSrc(`/${templatePath}`)
+          }
           // Load template config
           const config = getTemplateConfig(templatePath)
           setCurrentTemplateConfig(config)
@@ -641,7 +670,12 @@ export default function AdminPage() {
           const first = getTemplates(row.category as string)[0]
           if (first) {
             setSelectedTemplate(first)
-            setPreviewSrc(`/${first}`)
+            try {
+              const abs = typeof window !== 'undefined' ? new URL(`/${first}`, window.location.origin).toString() : `/${first}`
+              setPreviewSrc(abs)
+            } catch {
+              setPreviewSrc(`/${first}`)
+            }
             // Load template config
             const config = getTemplateConfig(first)
             setCurrentTemplateConfig(config)
@@ -658,6 +692,41 @@ export default function AdminPage() {
     
     loadCertificateData()
   }, [certificateId, t])
+
+  // Realtime: auto-refresh state ketika record certificates ini berubah
+  useEffect(() => {
+    if (!certificateId) return
+    const channel = supabase
+      .channel(`cert-${certificateId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'certificates', filter: `id=eq.${certificateId}` }, async () => {
+        try {
+          const { data } = await supabase.from('certificates').select('*').eq('id', certificateId).single()
+          if (!data) return
+          const row = data as Record<string, any>
+          setCategory(row.category || '')
+          const certificateTitle = row.name || row.title || ''
+          setTitle(certificateTitle)
+          setDescription(row.description || '')
+          setIssuedAt(row.issued_at || '')
+          setExpiresAt(row.expires_at || '')
+          setNumberText(row.number || '')
+          setTitleX(row.title_x ?? 370); setTitleY(row.title_y ?? 180); setTitleSize(row.title_size ?? 32); setTitleColor(row.title_color ?? '#000000'); setTitleAlign(row.title_align ?? 'center'); setTitleFont(row.title_font ?? 'Inter, ui-sans-serif, system-ui')
+          setDescX(row.desc_x ?? 360); setDescY(row.desc_y ?? 235); setDescSize(row.desc_size ?? 15); setDescColor(row.desc_color ?? '#000000'); setDescAlign(row.desc_align ?? 'center'); setDescFont(row.desc_font ?? 'Inter, ui-sans-serif, system-ui')
+          setDateX(row.date_x ?? 50); setDateY(row.date_y ?? 110); setDateSize(row.date_size ?? 14); setDateColor(row.date_color ?? '#000000'); setDateAlign(row.date_align ?? 'center'); setDateFont(row.date_font ?? 'Inter, ui-sans-serif, system-ui')
+          setNumberX(row.number_x ?? 370); setNumberY(row.number_y ?? 300); setNumberSize(row.number_size ?? 14); setNumberColor(row.number_color ?? '#000000'); setNumberAlign(row.number_align ?? 'center'); setNumberFont(row.number_font ?? 'Inter, ui-sans-serif, system-ui')
+          setExpX(row.expires_x ?? 370); setExpY(row.expires_y ?? 360); setExpSize(row.expires_size ?? 12); setExpColor(row.expires_color ?? '#000000'); setExpAlign(row.expires_align ?? 'center'); setExpFont(row.expires_font ?? 'Inter, ui-sans-serif, system-ui')
+          if (row.template_path) {
+            const path = row.template_path as string
+            setSelectedTemplate(path)
+            try { const abs = typeof window !== 'undefined' ? new URL(`/${path}`, window.location.origin).toString() : `/${path}`; setPreviewSrc(abs) } catch { setPreviewSrc(`/${path}`) }
+            setCurrentTemplateConfig(getTemplateConfig(path))
+          }
+        } catch {}
+      })
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
+  }, [certificateId])
 
   // Inisialisasi history saat data dimuat
   useEffect(() => {
@@ -829,6 +898,7 @@ export default function AdminPage() {
         <AdminNavbar />
          <main className="mx-auto max-w-7xl px-4 md:px-6 py-6 grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-6 items-start">
         <PreviewPanel
+          key={(previewSrc || selectedTemplate) as string}
           category={category}
           previewSrc={previewSrc}
           title={title}
@@ -900,7 +970,12 @@ export default function AdminPage() {
             category={category}
             onChoose={async (path) => {
               setSelectedTemplate(path)
-              setPreviewSrc(`/${path}`)
+              try {
+                const abs = typeof window !== 'undefined' ? new URL(`/${path}`, window.location.origin).toString() : `/${path}`
+                setPreviewSrc(abs)
+              } catch {
+                setPreviewSrc(`/${path}`)
+              }
               // Apply template configuration automatically
               await applyTemplateConfig(path)
             }}
@@ -1079,13 +1154,13 @@ export default function AdminPage() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm text-white/70 mb-1">{t('positionX')}</label>
-                <input type="number" className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm" value={activeElement==='title'?titleX:activeElement==='description'?descX:dateX}
-                  onChange={(e) => { const n = Math.max(0, Number(e.target.value)||0); if(activeElement==='title'){ setTitleX(n); saveToHistory(); queueSave({ title_x: n }) } else if(activeElement==='description'){ setDescX(n); saveToHistory(); queueSave({ desc_x: n }) } else { setDateX(n); saveToHistory(); queueSave({ date_x: n }) } }} />
-            </div>
-            <div>
+                <input type="number" className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm" value={activeElement==='title'?titleX:activeElement==='description'?descX:activeElement==='date'?dateX:activeElement==='number'?numberX:expX}
+                  onChange={(e) => { const n = Math.max(0, Number(e.target.value)||0); if(activeElement==='title'){ setTitleX(n); saveToHistory(); queueSave({ title_x: n }) } else if(activeElement==='description'){ setDescX(n); saveToHistory(); queueSave({ desc_x: n }) } else if(activeElement==='date'){ setDateX(n); saveToHistory(); queueSave({ date_x: n }) } else if(activeElement==='number'){ setNumberX(n); saveToHistory(); queueSave({ number_x: n }) } else { setExpX(n); saveToHistory(); queueSave({ expires_x: n }) } }} />
+              </div>
+              <div>
                 <label className="block text-sm text-white/70 mb-1">{t('positionY')}</label>
-                <input type="number" className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm" value={activeElement==='title'?titleY:activeElement==='description'?descY:dateY}
-                  onChange={(e) => { const n = Math.max(0, Number(e.target.value)||0); if(activeElement==='title'){ setTitleY(n); saveToHistory(); queueSave({ title_y: n }) } else if(activeElement==='description'){ setDescY(n); saveToHistory(); queueSave({ desc_y: n }) } else { setDateY(n); saveToHistory(); queueSave({ date_y: n }) } }} />
+                <input type="number" className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm" value={activeElement==='title'?titleY:activeElement==='description'?descY:activeElement==='date'?dateY:activeElement==='number'?numberY:expY}
+                  onChange={(e) => { const n = Math.max(0, Number(e.target.value)||0); if(activeElement==='title'){ setTitleY(n); saveToHistory(); queueSave({ title_y: n }) } else if(activeElement==='description'){ setDescY(n); saveToHistory(); queueSave({ desc_y: n }) } else if(activeElement==='date'){ setDateY(n); saveToHistory(); queueSave({ date_y: n }) } else if(activeElement==='number'){ setNumberY(n); saveToHistory(); queueSave({ number_y: n }) } else { setExpY(n); saveToHistory(); queueSave({ expires_y: n }) } }} />
               </div>
             </div>
             {/* Justify & Font per elemen */}
@@ -1158,16 +1233,62 @@ export default function AdminPage() {
                 </div>
               </div>
             )}
+            {activeElement === 'number' && (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm text-white/70 mb-1">Justify (Number)</label>
+                  <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={numberAlign}
+                    onChange={(e)=>{ const v = e.target.value as "left"|"center"|"right"; setNumberAlign(v); saveToHistory(); queueSave({ number_align: v }) }}>
+                    <option value="left">{t('left')}</option>
+                    <option value="center">{t('center')}</option>
+                    <option value="right">{t('right')}</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm text-white/70 mb-1">Font (Number)</label>
+                  <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={numberFont}
+                    onChange={(e)=>{ const v = e.target.value; setNumberFont(v); saveToHistory(); queueSave({ number_font: v }) }}>
+                    <option value="Inter, ui-sans-serif, system-ui">{t('inter')}</option>
+                    <option value="Arial, Helvetica, sans-serif">{t('arial')}</option>
+                    <option value="Times New Roman, Times, serif">{t('timesNewRoman')}</option>
+                    <option value="Georgia, serif">{t('georgia')}</option>
+                  </select>
+                </div>
+              </div>
+            )}
+            {activeElement === 'expired' && (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm text-white/70 mb-1">Justify (Expired)</label>
+                  <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={expAlign}
+                    onChange={(e)=>{ const v = e.target.value as "left"|"center"|"right"; setExpAlign(v); saveToHistory(); queueSave({ expires_align: v }) }}>
+                    <option value="left">{t('left')}</option>
+                    <option value="center">{t('center')}</option>
+                    <option value="right">{t('right')}</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm text-white/70 mb-1">Font (Expired)</label>
+                  <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={expFont}
+                    onChange={(e)=>{ const v = e.target.value; setExpFont(v); saveToHistory(); queueSave({ expires_font: v }) }}>
+                    <option value="Inter, ui-sans-serif, system-ui">{t('inter')}</option>
+                    <option value="Arial, Helvetica, sans-serif">{t('arial')}</option>
+                    <option value="Times New Roman, Times, serif">{t('timesNewRoman')}</option>
+                    <option value="Georgia, serif">{t('georgia')}</option>
+                  </select>
+                </div>
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-3">
             <div>
                 <label className="block text-sm text-white/70 mb-1">{t('fontSize')}</label>
-                <input type="number" className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm" value={activeElement==='title'?titleSize:activeElement==='description'?descSize:dateSize}
-                   onChange={(e)=>{ const n=Number(e.target.value)||12; if(activeElement==='title'){ setTitleSize(n); saveToHistory(); queueSave({ title_size: n }) } else if(activeElement==='description'){ setDescSize(n); saveToHistory(); queueSave({ desc_size: n }) } else { setDateSize(n); saveToHistory(); queueSave({ date_size: n }) } }} />
+                <input type="number" className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm" value={activeElement==='title'?titleSize:activeElement==='description'?descSize:activeElement==='date'?dateSize:activeElement==='number'?numberSize:expSize}
+                   onChange={(e)=>{ const n=Number(e.target.value)||12; if(activeElement==='title'){ setTitleSize(n); saveToHistory(); queueSave({ title_size: n }) } else if(activeElement==='description'){ setDescSize(n); saveToHistory(); queueSave({ desc_size: n }) } else if(activeElement==='date'){ setDateSize(n); saveToHistory(); queueSave({ date_size: n }) } else if(activeElement==='number'){ setNumberSize(n); saveToHistory(); queueSave({ number_size: n }) } else { setExpSize(n); saveToHistory(); queueSave({ expires_size: n }) } }} />
             </div>
             <div>
                 <label className="block text-sm text-white/70 mb-1">{t('color')}</label>
-                <input type="color" className="h-10 w-full rounded-md border border-white/10 bg-white/5 p-1" value={activeElement==='title'?titleColor:activeElement==='description'?descColor:dateColor}
-                  onChange={(e)=>{ const v=e.target.value; if(activeElement==='title'){ setTitleColor(v); saveToHistory(); queueSave({ title_color: v }) } else if(activeElement==='description'){ setDescColor(v); saveToHistory(); queueSave({ desc_color: v }) } else { setDateColor(v); saveToHistory(); queueSave({ date_color: v }) } }} />
+                <input type="color" className="h-10 w-full rounded-md border border-white/10 bg-white/5 p-1" value={activeElement==='title'?titleColor:activeElement==='description'?descColor:activeElement==='date'?dateColor:activeElement==='number'?numberColor:expColor}
+                  onChange={(e)=>{ const v=e.target.value; if(activeElement==='title'){ setTitleColor(v); saveToHistory(); queueSave({ title_color: v }) } else if(activeElement==='description'){ setDescColor(v); saveToHistory(); queueSave({ desc_color: v }) } else if(activeElement==='date'){ setDateColor(v); saveToHistory(); queueSave({ date_color: v }) } else if(activeElement==='number'){ setNumberColor(v); saveToHistory(); queueSave({ number_color: v }) } else { setExpColor(v); saveToHistory(); queueSave({ expires_color: v }) } }} />
               </div>
             </div>
              <div className="text-right text-xs text-white/50 h-4">
@@ -1197,6 +1318,7 @@ export default function AdminPage() {
              <div className="flex justify-between items-center gap-2">
               {currentTemplateConfig && (
                 <button
+                  type="button"
                   className="rounded-md border border-orange-500/40 bg-orange-500/10 px-3 py-2 text-sm hover:bg-orange-500/20 disabled:opacity-50"
                   onClick={() => applyTemplateConfig(selectedTemplate)}
                   disabled={applyingTemplate || !selectedTemplate}
@@ -1207,6 +1329,7 @@ export default function AdminPage() {
               )}
               <div className="flex gap-2">
               <button
+                type="button"
                 className="rounded-md border border-blue-500/40 bg-blue-500/10 px-3 py-2 text-sm hover:bg-blue-500/20 disabled:opacity-50"
                 onClick={async () => {
                   if (!certificateId) return
@@ -1237,6 +1360,22 @@ export default function AdminPage() {
                     date_y: dateY,
                     date_size: dateSize,
                     date_color: dateColor,
+                    // Number fields
+                    number: numberText || null,
+                    number_align: numberAlign,
+                    number_font: numberFont,
+                    number_x: numberX,
+                    number_y: numberY,
+                    number_size: numberSize,
+                    number_color: numberColor,
+                    // Expired fields
+                    expires_at: expiresAt || null,
+                    expires_align: expAlign,
+                    expires_font: expFont,
+                    expires_x: expX,
+                    expires_y: expY,
+                    expires_size: expSize,
+                    expires_color: expColor,
                   }
 
                   // Generate and upload preview PNG
@@ -1375,12 +1514,12 @@ function PreviewPanel({ category, previewSrc, title, description, numberText, ti
         const weight = bold ? '700' : '400'
         const baseFamily = (font || '').split(',')[0]?.replace(/['"]/g, '').trim() || 'Inter'
         try { await (document as any).fonts?.load?.(`${weight} ${size}px '${baseFamily}'`) } catch {}
-        await document.fonts.ready?.()
-
-
-        
-        // const fontsAny = (document as any).fonts
-        // const ready = fontsAny?.ready
+        try {
+          const ready: any = (document as any).fonts?.ready
+          if (ready && typeof ready.then === 'function') {
+            await ready
+          }
+        } catch {}
         // if (ready && typeof (ready as any).then === 'function') {
         //   try { await Promise.race([ready, new Promise(res => setTimeout(res, 500))]) } catch {}
         // }
@@ -1579,7 +1718,18 @@ function PreviewPanel({ category, previewSrc, title, description, numberText, ti
           previewSrc.endsWith('.pdf') ? (
             <object data={previewSrc} type="application/pdf" className="w-full h-full" />
           ) : (
-            <img src={previewSrc} alt="Template" className="absolute inset-0 w-full h-full object-contain" onLoad={(e)=>{ setNatW(e.currentTarget.naturalWidth); setNatH(e.currentTarget.naturalHeight); setTimeout(()=>{renderLivePng()},0) }} />
+            <img
+              src={previewSrc}
+              alt="Template"
+              className="absolute inset-0 w-full h-full object-contain"
+              crossOrigin="anonymous"
+              onLoad={(e)=>{ setNatW(e.currentTarget.naturalWidth); setNatH(e.currentTarget.naturalHeight); setTimeout(()=>{renderLivePng()},0) }}
+              onError={(e)=>{
+                const img = e.currentTarget as HTMLImageElement
+                if (img.src.endsWith('/root.jpg')) return
+                img.src = '/root.jpg'
+              }}
+            />
           )
         ) : null}
         {/* Overlay text - title */}
@@ -1703,19 +1853,28 @@ function PreviewPanel({ category, previewSrc, title, description, numberText, ti
 }
 
 // Peta template per kategori (public/certificate/<kategori>/...)
+// Tambahkan alias dengan underscore untuk kompatibilitas data lama di DB
 const TEMPLATE_MAP: Record<string, string[]> = {
+  // Kunjungan Industri
   "kunjungan industri": [
     "certificate/kunjungan_industri/industri1.png",
     "certificate/kunjungan_industri/industri2.png",
   ],
+  "kunjungan_industri": [
+    "certificate/kunjungan_industri/industri1.png",
+    "certificate/kunjungan_industri/industri2.png",
+  ],
+  // Magang
   magang: [
     "certificate/magang/magang1.png",
     "certificate/magang/magang2.png",
   ],
+  // MoU
   mou: [
     "certificate/mou/mou1.png",
     "certificate/mou/mou2.png",
   ],
+  // Pelatihan
   pelatihan: [
     "certificate/pelatihan/pelatihan1.png",
     "certificate/pelatihan/pelatihan2.png",
@@ -1744,8 +1903,9 @@ function TemplateChooser({ category, onChoose }: { category: string; onChoose?: 
             return (
               <button
                 key={path}
+                type="button"
                 onClick={onChoose ? () => onChoose(path, url) : undefined}
-                className="rounded-md border border-white/10 bg-white/5 hover:bg-white/10 p-1"
+                className="rounded-md border border-white/10 bg-white/5 hover:bg-white/10 p-1 cursor-pointer"
                 title={path}
               >
                 <img src={url} alt={path} className="aspect-video object-cover rounded" />

@@ -191,6 +191,7 @@ export default function CheckCertificatePage({ params }: Props) {
                       src={`${certificateData.preview_image}${certificateData.preview_image.includes('?') ? '&' : '?'}v=${cacheParam}`}
                       alt="Certificate Preview"
                       className="absolute inset-0 w-full h-full object-contain"
+                      crossOrigin="anonymous"
                       data-preview-image
                       onLoad={(e)=>{ setNatW(e.currentTarget.naturalWidth); setNatH(e.currentTarget.naturalHeight) }}
                     />
@@ -199,6 +200,7 @@ export default function CheckCertificatePage({ params }: Props) {
                       src={`/${certificateData.template_path}`}
                       alt="Certificate Template"
                       className="absolute inset-0 w-full h-full object-contain"
+                      crossOrigin="anonymous"
                       data-preview-image
                       onLoad={(e)=>{ setNatW(e.currentTarget.naturalWidth); setNatH(e.currentTarget.naturalHeight) }}
                     />
@@ -267,6 +269,54 @@ export default function CheckCertificatePage({ params }: Props) {
                     >
                       <div className="mt-1 opacity-80">
                         {new Date(certificateData.issued_at).toLocaleDateString('id-ID', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Number Overlay */}
+                  {!certificateData.preview_image && certificateData.number && (
+                    <div
+                      className="absolute"
+                      style={{
+                        left: `${certificateData.number_x || 370}px`,
+                        top: `${certificateData.number_y || 300}px`,
+                        width: 'auto',
+                        maxWidth: 'calc(100% - 40px)',
+                        textAlign: certificateData.number_align || 'center',
+                        fontFamily: certificateData.number_font || 'Inter',
+                        fontSize: `${certificateData.number_size || 14}px`,
+                        color: certificateData.number_color || '#000000',
+                        position: 'absolute',
+                        zIndex: 10
+                      }}
+                    >
+                      <div className="opacity-90">{certificateData.number}</div>
+                    </div>
+                  )}
+
+                  {/* Expired Overlay */}
+                  {!certificateData.preview_image && certificateData.expires_at && (
+                    <div
+                      className="absolute"
+                      style={{
+                        left: `${certificateData.expires_x || 370}px`,
+                        top: `${certificateData.expires_y || 360}px`,
+                        width: 'auto',
+                        maxWidth: 'calc(100% - 40px)',
+                        textAlign: certificateData.expires_align || 'center',
+                        fontFamily: certificateData.expires_font || 'Inter',
+                        fontSize: `${certificateData.expires_size || 12}px`,
+                        color: certificateData.expires_color || '#000000',
+                        position: 'absolute',
+                        zIndex: 10
+                      }}
+                    >
+                      <div className="mt-1 opacity-80">
+                        {new Date(certificateData.expires_at).toLocaleDateString('id-ID', {
                           year: 'numeric',
                           month: 'long',
                           day: 'numeric'
@@ -447,9 +497,13 @@ export default function CheckCertificatePage({ params }: Props) {
                   canvas.width = templateImg.naturalWidth
                   canvas.height = templateImg.naturalHeight
 
-                  // Draw the template image
+                  // Draw the base image (template or preview)
                   ctx.drawImage(templateImg, 0, 0, canvas.width, canvas.height)
 
+                  const isPreviewPng = Boolean(certificateData.preview_image)
+
+                  // If preview_image already exists, it already contains all texts; skip manual overlays
+                  if (!isPreviewPng) {
                   // Helper function to draw text
                   const drawText = (text: string, x: number, y: number, size: number, color: string, align: string, font: string, bold = false) => {
                     if (!text) return
@@ -477,12 +531,12 @@ export default function CheckCertificatePage({ params }: Props) {
                     )
                   }
 
-                  // Draw description
+                  // Draw description (match preview defaults)
                   if (certificateData.description) {
                     drawText(
                       certificateData.description,
-                    certificateData.desc_x || 50,
-                    certificateData.desc_y || 200,
+                      certificateData.desc_x || 50,
+                      certificateData.desc_y || 80,
                       certificateData.desc_size || 15,
                       certificateData.desc_color || "#000000",
                       certificateData.desc_align || "left",
@@ -490,7 +544,7 @@ export default function CheckCertificatePage({ params }: Props) {
                     )
                   }
 
-                  // Draw date
+                  // Draw date (match preview defaults)
                   if (certificateData.issued_at) {
                     const dateText = new Date(certificateData.issued_at).toLocaleDateString('id-ID', {
                       year: 'numeric',
@@ -499,14 +553,46 @@ export default function CheckCertificatePage({ params }: Props) {
                     })
                     drawText(
                       dateText,
-                    certificateData.date_x || 50,
-                    certificateData.date_y || 80,
+                      certificateData.date_x || 50,
+                      certificateData.date_y || 110,
                       certificateData.date_size || 14,
                       certificateData.date_color || "#000000",
                       certificateData.date_align || "left",
                       certificateData.date_font || "Inter, ui-sans-serif, system-ui"
                     )
                   }
+
+                  // Draw number
+                  if (certificateData.number) {
+                    drawText(
+                      certificateData.number,
+                      certificateData.number_x || 370,
+                      certificateData.number_y || 300,
+                      certificateData.number_size || 14,
+                      certificateData.number_color || "#000000",
+                      certificateData.number_align || "center",
+                      certificateData.number_font || "Inter, ui-sans-serif, system-ui"
+                    )
+                  }
+
+                  // Draw expired
+                  if (certificateData.expires_at) {
+                    const expText = new Date(certificateData.expires_at).toLocaleDateString('id-ID', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })
+                    drawText(
+                      expText,
+                      certificateData.expires_x || 370,
+                      certificateData.expires_y || 360,
+                      certificateData.expires_size || 12,
+                      certificateData.expires_color || "#000000",
+                      certificateData.expires_align || "center",
+                      certificateData.expires_font || "Inter, ui-sans-serif, system-ui"
+                    )
+                  }
+                  } // end if !isPreviewPng
                 }
 
                 // Convert canvas to blob
@@ -577,6 +663,22 @@ Terima kasih.`
           <button 
             onClick={async () => {
               try {
+                // Prefer using the saved preview PNG to avoid duplicate text
+                if (certificateData?.id) {
+                  const { data: latest, error: latestErr } = await supabase
+                    .from('certificates')
+                    .select('preview_image')
+                    .eq('id', certificateData.id)
+                    .single()
+                  if (!latestErr && latest?.preview_image) {
+                    // Copy the preview image public URL directly
+                    await navigator.clipboard.writeText(latest.preview_image)
+                    showToast('Link gambar pratinjau berhasil disalin!', 'success')
+                    return
+                  }
+                }
+
+                // Fallback: render from DOM
                 // Get the preview container
                 const previewContainer = document.querySelector('[data-preview-container="check"]') as HTMLElement
                 if (!previewContainer) {

@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo, useRef, useState } from "react"
+import { useRouter } from "next/navigation"
 import * as XLSX from "xlsx"
 import { Eye, Pencil, Trash2, X } from "lucide-react"
 import { ModalOverlay, ModalContent } from "@/components/ui/separator"
@@ -25,6 +26,7 @@ type ManageContentProps = {
 }
 
 export function ManageContent({ role = "admin" }: ManageContentProps) {
+  const router = useRouter()
   const [rows, setRows] = useState<CertificateRow[]>([])
   const [query, setQuery] = useState("")
   const fileInputRef = useRef<HTMLInputElement | null>(null)
@@ -41,6 +43,139 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
   const { showToast, ToastContainer } = useToast()
+
+  // Preview helpers (samakan dengan editor)
+  const previewContainerRef = useRef<HTMLDivElement | null>(null)
+  const previewImgRef = useRef<HTMLImageElement | null>(null)
+  const [natW, setNatW] = useState<number>(0)
+  const [natH, setNatH] = useState<number>(0)
+
+  function getMetrics() {
+    const cont = previewContainerRef.current
+    if (!cont || !natW || !natH) return { offX: 0, offY: 0, dispW: 0, dispH: 0, scaleX: 1, scaleY: 1 }
+    const cW = cont.clientWidth
+    const cH = cont.clientHeight
+    const ratioImg = natW / natH
+    const ratioCont = cW / cH
+    let dispW = cW, dispH = cH
+    if (ratioCont > ratioImg) {
+      dispH = cH
+      dispW = Math.round(cH * ratioImg)
+    } else {
+      dispW = cW
+      dispH = Math.round(cW / ratioImg)
+    }
+    const offX = Math.round((cW - dispW) / 2)
+    const offY = Math.round((cH - dispH) / 2)
+    return { offX, offY, dispW, dispH, scaleX: dispW / natW, scaleY: dispH / natH }
+  }
+
+  function imgToScreen(x: number, y: number) {
+    const m = getMetrics()
+    return { x: Math.round(m.offX + x * m.scaleX), y: Math.round(m.offY + y * m.scaleY) }
+  }
+
+  // PNG preview untuk modal (render seperti editor -> ke canvas ukuran natural)
+  const [previewModalSrc, setPreviewModalSrc] = useState<string>("")
+  async function generateModalPreview(row: any) {
+    try {
+      if (!row) { setPreviewModalSrc(""); return }
+      // Pakai preview_image jika sudah tersedia agar 100% sama dengan cek/edit
+      if (row.preview_image) {
+        const url: string = String(row.preview_image)
+        const v = (row.updated_at || row.modified_at || row.issued_at || row.id || Date.now()).toString().replace(/\s+/g,'-')
+        setPreviewModalSrc(url + (url.includes('?') ? '&' : '?') + 'v=' + v)
+        return
+      }
+      if (!row.template_path) { setPreviewModalSrc(""); return }
+      const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+        const im = new Image(); im.crossOrigin = 'anonymous';
+        im.onload = () => resolve(im); im.onerror = reject; im.src = `/${row.template_path}`
+      })
+      const W = img.naturalWidth || 1200
+      const H = img.naturalHeight || 900
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')!
+      canvas.width = W; canvas.height = H
+      ctx.drawImage(img, 0, 0, W, H)
+
+      const drawText = async (text: string, x: number, y: number, size: number, color: string, align: string, font: string, bold = false, maxWidth?: number, forceLeftAnchor = false) => {
+        if (!text) return
+        ctx.fillStyle = color || '#000'
+        const weight = bold ? '700' : '400'
+        const baseFamily = (font || '').split(',')[0]?.replace(/['"]/g, '').trim() || 'Inter'
+        try {
+          // Muat font utama agar metrik sama seperti editor/cek
+          await (document as any).fonts?.load?.(`${weight} ${size}px '${baseFamily}'`)
+          const ready: any = (document as any).fonts?.ready
+          if (ready && typeof ready.then === 'function') { await ready }
+        } catch {}
+        // Pakai baseFamily dikutip + fallback persis seperti editor
+        ctx.font = `${weight} ${size}px '${baseFamily}', ui-sans-serif, system-ui`
+        ctx.textBaseline = 'top'
+        const singleLine = !maxWidth
+        const blockWidth = maxWidth ?? Math.max(0, W - x - 20)
+        let anchorX = x
+        if (forceLeftAnchor) {
+          ctx.textAlign = 'left'
+        } else if (align === 'center') {
+          ctx.textAlign = 'center'
+          anchorX = Math.round(x + blockWidth / 2)
+        } else if (align === 'right') {
+          ctx.textAlign = 'right'
+          anchorX = Math.round(x + blockWidth)
+        } else {
+          ctx.textAlign = 'left'
+        }
+
+        const dx = anchorX
+        const dy = y
+        if (!singleLine) {
+          const words = String(text).split(/\s+/)
+          let line = ''
+          let yy = dy
+          for (let i = 0; i < words.length; i++) {
+            const test = line ? line + ' ' + words[i] : words[i]
+            const w = ctx.measureText(test).width
+            if (w > blockWidth && i > 0) {
+              ctx.fillText(line, dx, yy)
+              yy += Math.round(size * 1.4)
+              line = words[i]
+            } else {
+              line = test
+            }
+          }
+          if (line) ctx.fillText(line, dx, yy)
+        } else {
+          ctx.fillText(text, dx, dy)
+        }
+      }
+
+      // Title / Name
+      await drawText(row.title || row.name || '', row.title_x ?? 370, row.title_y ?? 180, row.title_size ?? 32, row.title_color || '#000000', row.title_align || 'center', row.title_font || 'Inter, ui-sans-serif, system-ui', true, undefined, true)
+      // Description
+      await drawText(row.description || '', row.desc_x ?? 360, row.desc_y ?? 235, row.desc_size ?? 15, row.desc_color || '#000000', row.desc_align || 'center', row.desc_font || 'Inter, ui-sans-serif, system-ui', false, Math.max(0, W - (row.desc_x ?? 360) - 40))
+      // Date
+      if (row.issued_at) {
+        const text = new Date(row.issued_at).toLocaleDateString('id-ID')
+        await drawText(text, row.date_x ?? 50, row.date_y ?? 110, row.date_size ?? 14, row.date_color || '#000000', row.date_align || 'center', row.date_font || 'Inter, ui-sans-serif, system-ui')
+      }
+      // Number
+      if (row.number) {
+        await drawText(row.number, row.number_x ?? 370, row.number_y ?? 300, row.number_size ?? 14, row.number_color || '#000000', row.number_align || 'center', row.number_font || 'Inter, ui-sans-serif, system-ui')
+      }
+      // Expired
+      if (row.expires_at) {
+        const text = new Date(row.expires_at).toLocaleDateString('id-ID')
+        await drawText(text, row.expires_x ?? 370, row.expires_y ?? 360, row.expires_size ?? 12, row.expires_color || '#000000', row.expires_align || 'center', row.expires_font || 'Inter, ui-sans-serif, system-ui')
+      }
+
+      setPreviewModalSrc(canvas.toDataURL('image/png', 1.0))
+    } catch (e) {
+      console.error('generateModalPreview failed:', e)
+      setPreviewModalSrc("")
+    }
+  }
 
   // Helper function untuk menghitung posisi yang sama dengan halaman edit
   const calculatePosition = (x: number, y: number, containerWidth: number, containerHeight: number) => {
@@ -279,8 +414,8 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                 <th className="px-4 py-3 font-medium">NAMA</th>
                 <th className="px-4 py-3 font-medium">NOMOR</th>
                 <th className="px-4 py-3 font-medium">KATEGORI</th>
-                <th className="px-4 py-3 font-medium">INSTANSI PENERIMA</th>
-                <th className="px-4 py-3 font-medium">PENERBIT</th>
+                {/* <th className="px-4 py-3 font-medium">INSTANSI PENERIMA</th> */}
+                {/* <th className="px-4 py-3 font-medium">PENERBIT</th> */}
                 <th className="px-4 py-3 font-medium">TANGGAL TERBIT</th>
                 <th className="px-4 py-3 font-medium">TANGGAL KADALUARSA</th>
                 <th className="px-4 py-3 font-medium">AKSI</th>
@@ -307,8 +442,8 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                       <td className="px-4 py-2">{r.name}</td>
                       <td className="px-4 py-2">{r.number}</td>
                       <td className="px-4 py-2">{r.category}</td>
-                      <td className="px-4 py-2">{r.recipientOrg}</td>
-                      <td className="px-4 py-2">{r.issuer}</td>
+                      {/* <td className="px-4 py-2">{r.recipientOrg}</td> */}
+                      {/* <td className="px-4 py-2">{r.issuer}</td> */}
                       <td className="px-4 py-2">{r.issuedAt}</td>
                       <td className="px-4 py-2">{r.expiresAt}</td>
                       <td className="px-4 py-2">
@@ -316,8 +451,24 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                               <button 
                                 aria-label="View" 
                                 title="View" 
-                                 className="rounded-md border border-white/10 bg-white/5 px-2 py-1 opacity-50 cursor-not-allowed"
-                                 disabled
+                                className="rounded-md border border-white/10 bg-white/5 px-2 py-1 hover:bg-white/10"
+                                onClick={async () => {
+                                  if (!r.id) return
+                                  setViewingCertificate(r)
+                                  setShowViewModal(true)
+                                  // Fetch full certificate row for preview
+                                  const { data, error } = await supabase
+                                    .from("certificates")
+                                    .select("*")
+                                    .eq("id", r.id)
+                                    .single()
+                                  if (!error) {
+                                    setCertificateData(data)
+                                    await generateModalPreview(data)
+                                  } else {
+                                    console.error('Load certificate failed:', error)
+                                  }
+                                }}
                               >
                                 <Eye className="h-4 w-4 text-white" />
                               </button>
@@ -325,9 +476,10 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                                 aria-label="Edit"
                                 title="Edit"
                                 className="rounded-md border border-white/10 bg-white/5 px-2 py-1"
-                                onClick={() => { 
-                                  // Redirect ke halaman edit sertifikat
-                                  window.location.href = `/admin/edit?id=${r.id}`
+                                onClick={() => {
+                                  if (!r.id) return
+                                  const target = role === 'team' ? '/team/edit' : '/admin/edit'
+                                  router.push(`${target}?id=${r.id}`)
                                 }}
                               >
                                 <Pencil className="h-4 w-4 text-white" />
@@ -738,487 +890,27 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
               
               {certificateData ? (
                 <div className="space-y-4">
-                  {/* Cek apakah sertifikat sudah diedit atau ada data dasar */}
-                  {(certificateData.title || certificateData.name) || certificateData.description || certificateData.template_path || certificateData.issued_at ? (
+                  {(certificateData.title || certificateData.name) || certificateData.template_path || certificateData.issued_at ? (
                     <div className="space-y-4">
-                      {/* Pratinjau Visual Sertifikat */}
                       <div className="rounded-lg border border-white/10 bg-white/5 p-4">
-                        <h3 className="mb-3 font-medium">Pratinjau Sertifikat</h3>
-                        <div className="relative bg-white rounded-lg overflow-hidden" style={{ 
-                          aspectRatio: '4/3', 
-                           maxHeight: '300px',
-                           maxWidth: '450px',
-                          position: 'relative',
-                          contain: 'layout style paint',
-                          willChange: 'transform'
-                        }} data-preview-container="modal">
-                          {/* Template Background */}
-                          {certificateData.template_path ? (
-                            <img 
-                              src={`/${certificateData.template_path}`} 
-                              alt="Certificate Template" 
-                              className="absolute inset-0 w-full h-full object-contain"
-                              data-preview-image
-                            />
+                        <h3 className="mb-3 font-medium">Preview</h3>
+                        <div className="relative bg-white rounded-lg overflow-hidden flex items-center justify-center" style={{
+                          maxHeight: '360px',
+                          maxWidth: '600px'
+                        }}>
+                          {previewModalSrc ? (
+                            <img src={previewModalSrc} alt="Certificate Preview" className="w-full h-auto max-h-[360px] object-contain" />
                           ) : (
-                            <div className="absolute inset-0 bg-gradient-to-b from-blue-50 to-blue-100 flex items-center justify-center">
-                              <div className="text-center">
-                                <div className="text-gray-600 text-lg font-semibold mb-2">SERTIFIKAT</div>
-                                <div className="text-gray-500 text-sm">Template tidak tersedia</div>
-                              </div>
-                            </div>
+                            <div className="text-white/60 text-sm">Generating preview...</div>
                           )}
-                          
-                          {/* Overlay Text Container - Menggunakan posisi yang sama dengan halaman edit */}
-                          <div className="absolute inset-0" style={{ position: 'relative' }}>
-                            {/* Title */}
-                            {(certificateData.title || certificateData.name) && (
-                              <div 
-                                className="absolute font-bold text-black"
-                                style={{
-                                  left: `${certificateData.title_x || 370}px`, 
-                                  top: `${certificateData.title_y || 180}px`, 
-                                  width: "calc(100% - 40px)", 
-                                  transform: certificateData.title_align === "center" ? "translateX(-50%)" : certificateData.title_align === "right" ? "translateX(-100%)" : undefined, 
-                                  textAlign: certificateData.title_align as "left"|"center"|"right" || "center", 
-                                  fontFamily: certificateData.title_font || "Inter, ui-sans-serif, system-ui", 
-                                  fontSize: `${certificateData.title_size || 32}px`, 
-                                  color: certificateData.title_color || "#000000",
-                                  position: 'absolute',
-                                  zIndex: 10,
-                                  willChange: 'transform',
-                                  backfaceVisibility: 'hidden',
-                                  WebkitBackfaceVisibility: 'hidden',
-                                  pointerEvents: 'none',
-                                  whiteSpace: 'nowrap'
-                                }}
-                                data-overlay="text"
-                              >
-                                {certificateData.title || certificateData.name}
-                              </div>
-                            )}
-                            
-                            {/* Description */}
-                            {certificateData.description && (
-                              <div 
-                                className="absolute text-black"
-                                style={{
-                                  left: `${certificateData.desc_x || 360}px`, 
-                                  top: `${certificateData.desc_y || 235}px`, 
-                                  width: "calc(100% - 40px)", 
-                                  transform: certificateData.desc_align === "center" ? "translateX(-50%)" : certificateData.desc_align === "right" ? "translateX(-100%)" : undefined, 
-                                  textAlign: certificateData.desc_align as "left"|"center"|"right" || "center", 
-                                  fontFamily: certificateData.desc_font || "Inter, ui-sans-serif, system-ui", 
-                                  fontSize: `${certificateData.desc_size || 15}px`, 
-                                  color: certificateData.desc_color || "#000000",
-                                  whiteSpace: 'pre-line',
-                                  position: 'absolute',
-                                  zIndex: 10,
-                                  willChange: 'transform',
-                                  backfaceVisibility: 'hidden',
-                                  WebkitBackfaceVisibility: 'hidden',
-                                  pointerEvents: 'none',
-                                  maxWidth: '300px'
-                                }}
-                              >
-                                {certificateData.description}
-                              </div>
-                            )}
-                            
-                            {/* Date */}
-                            {certificateData.issued_at && (
-                              <div 
-                                className="absolute text-black"
-                                style={{
-                                  left: `${certificateData.date_x || 50}px`, 
-                                  top: `${certificateData.date_y || 110}px`, 
-                                  width: "calc(100% - 40px)", 
-                                  transform: certificateData.title_align === "center" ? "translateX(-50%)" : certificateData.title_align === "right" ? "translateX(-100%)" : undefined, 
-                                  textAlign: certificateData.title_align as "left"|"center"|"right" || "center", 
-                                  fontFamily: certificateData.date_font || "Inter, ui-sans-serif, system-ui", 
-                                  fontSize: `${certificateData.date_size || 14}px`, 
-                                  color: certificateData.date_color || "#000000",
-                                  position: 'absolute',
-                                  zIndex: 10,
-                                  willChange: 'transform',
-                                  backfaceVisibility: 'hidden',
-                                  WebkitBackfaceVisibility: 'hidden',
-                                  pointerEvents: 'none',
-                                  whiteSpace: 'nowrap'
-                                }}
-                              >
-                                {certificateData.issued_at}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Detail Info */}
-                      <div className="rounded-lg border border-white/10 bg-white/5 p-4 relative">
-                        <div className="flex justify-between items-start mb-3">
-                          <h3 className="font-medium">Detail Sertifikat</h3>
-                          <button
-                            onClick={async () => {
-                              try {
-                                // Get the preview container
-                                const previewContainer = document.querySelector('[data-preview-container="modal"]') as HTMLElement
-                                if (!previewContainer) {
-                                  alert('Preview container not found')
-                                  return
-                                }
-
-                                // Get the template image
-                                const templateImg = document.querySelector('[data-preview-image]') as HTMLImageElement
-                                if (!templateImg) {
-                                  alert('Template image not found')
-                                  return
-                                }
-
-                                // Wait for image to load
-                                await new Promise((resolve) => {
-                                  if (templateImg.complete) {
-                                    resolve(true)
-                                  } else {
-                                    templateImg.onload = () => resolve(true)
-                                  }
-                                })
-
-                                // Get container dimensions
-                                const containerRect = previewContainer.getBoundingClientRect()
-                                
-                                // Calculate image dimensions and position within container
-                                const imageRatio = templateImg.naturalWidth / templateImg.naturalHeight
-                                const containerRatio = containerRect.width / containerRect.height
-                                
-                                let imageWidth, imageHeight, imageX, imageY
-                                
-                                if (containerRatio > imageRatio) {
-                                  // Container is wider, image is constrained by height
-                                  imageHeight = containerRect.height
-                                  imageWidth = imageHeight * imageRatio
-                                  imageX = (containerRect.width - imageWidth) / 2
-                                  imageY = 0
-                                } else {
-                                  // Container is taller, image is constrained by width
-                                  imageWidth = containerRect.width
-                                  imageHeight = imageWidth / imageRatio
-                                  imageX = 0
-                                  imageY = (containerRect.height - imageHeight) / 2
-                                }
-
-                                // Create canvas with original image dimensions
-                                const canvas = document.createElement('canvas')
-                                const ctx = canvas.getContext('2d')
-                                if (!ctx) return
-
-                                canvas.width = templateImg.naturalWidth
-                                canvas.height = templateImg.naturalHeight
-
-                                // Draw the template image
-                                ctx.drawImage(templateImg, 0, 0, canvas.width, canvas.height)
-
-                                // Calculate scale factors for text positioning
-                                const scaleX = canvas.width / imageWidth
-                                const scaleY = canvas.height / imageHeight
-
-                                // Helper function to draw text
-                                const drawText = (text: string, x: number, y: number, size: number, color: string, align: string, font: string, bold = false) => {
-                                  if (!text) return
-                                  
-                                  ctx.fillStyle = color
-                                  ctx.font = `${bold ? 'bold ' : ''}${size * scaleX}px ${font}`
-                                  ctx.textAlign = align as CanvasTextAlign
-                                  ctx.textBaseline = 'top'
-                                  
-                                  // Convert preview coordinates to canvas coordinates
-                                  const canvasX = (x - imageX) * scaleX
-                                  const canvasY = (y - imageY) * scaleY
-                                  
-                                  ctx.fillText(text, canvasX, canvasY)
-                                }
-
-                                // Draw title
-                                if (certificateData.title || certificateData.name) {
-                                  drawText(
-                                    certificateData.title || certificateData.name,
-                                    certificateData.title_x || 370,
-                                    certificateData.title_y || 180,
-                                    certificateData.title_size || 32,
-                                    certificateData.title_color || "#000000",
-                                    certificateData.title_align || "center",
-                                    certificateData.title_font || "Inter, ui-sans-serif, system-ui",
-                                    true
-                                  )
-                                }
-
-                                // Draw description
-                                if (certificateData.description) {
-                                  drawText(
-                                    certificateData.description,
-                                    certificateData.desc_x || 360,
-                                    certificateData.desc_y || 235,
-                                    certificateData.desc_size || 15,
-                                    certificateData.desc_color || "#000000",
-                                    certificateData.desc_align || "center",
-                                    certificateData.desc_font || "Inter, ui-sans-serif, system-ui"
-                                  )
-                                }
-
-                                // Draw date
-                                if (certificateData.issued_at) {
-                                  drawText(
-                                    certificateData.issued_at,
-                                    certificateData.date_x || 50,
-                                    certificateData.date_y || 110,
-                                    certificateData.date_size || 14,
-                                    certificateData.date_color || "#000000",
-                                    certificateData.title_align || "center",
-                                    certificateData.date_font || "Inter, ui-sans-serif, system-ui"
-                                  )
-                                }
-
-                                // Convert canvas to blob
-                                const blob = await new Promise<Blob>((resolve) => {
-                                  canvas.toBlob((blob) => {
-                                    if (blob) resolve(blob)
-                                  }, 'image/jpeg', 0.8)
-                                })
-                                
-                                // Convert blob to base64
-                                const base64 = await new Promise<string>((resolve) => {
-                                  const reader = new FileReader()
-                                  reader.onload = () => {
-                                    const result = String(reader.result || "")
-                                    const comma = result.indexOf(",")
-                                    resolve(comma >= 0 ? result.slice(comma + 1) : result)
-                                  }
-                                  reader.readAsDataURL(blob)
-                                })
-                                
-                                // Upload to Supabase Storage
-                                const fileName = `certificate_${viewingCertificate.id}_${Date.now()}.jpg`
-                                const { data: uploadData, error: uploadError } = await supabase.storage
-                                  .from('sertifikat')
-                                  .upload(fileName, blob, {
-                                    contentType: 'image/jpeg',
-                                    upsert: false
-                                  })
-                                
-                                if (uploadError) {
-                                  throw new Error('Failed to upload to storage: ' + uploadError.message)
-                                }
-                                
-                                // Get public URL
-                                const { data: publicUrlData } = supabase.storage
-                                  .from('sertifikat')
-                                  .getPublicUrl(fileName)
-                                
-                                const publicUrl = publicUrlData.publicUrl
-                                
-                                // Copy the public URL to clipboard
-                                await navigator.clipboard.writeText(publicUrl)
-                                
-                                // Show success toast
-                                showToast('Gambar sertifikat berhasil disimpan dan link disalin ke clipboard!', 'success')
-                                
-                              } catch (error) {
-                                console.error('Copy failed:', error)
-                                showToast('Gagal menyalin gambar: ' + (error instanceof Error ? error.message : 'Unknown error'), 'error')
-                              }
-                            }}
-                            className="p-1 rounded-md hover:bg-white/10 transition-colors"
-                            title="Copy certificate image with text"
-                          >
-                            <svg className="w-4 h-4 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                            </svg>
-                          </button>
-                        </div>
-                        <div className="space-y-2">
-                          {(certificateData.title || certificateData.name) && (
-                            <div>
-                              <span className="text-white/70">Title:</span> {certificateData.title || certificateData.name}
-                            </div>
-                          )}
-                          {certificateData.description && (
-                            <div>
-                              <span className="text-white/70">Description:</span> {certificateData.description}
-                            </div>
-                          )}
-                          {certificateData.issued_at && (
-                            <div>
-                              <span className="text-white/70">Tanggal:</span> {certificateData.issued_at}
-                            </div>
-                          )}
-                        </div>
-                        <div className="mt-4 flex gap-2">
-                          <a 
-                            href={`/admin/edit?id=${viewingCertificate.id}`}
-                            className="inline-block rounded-md bg-blue-600 hover:bg-blue-500 px-4 py-2 text-sm"
-                          >
-                            Edit Sertifikat
-                          </a>
-                          <button
-                            onClick={async () => {
-                              try {
-                                // Get the preview container
-                                const previewContainer = document.querySelector('[data-preview-container="modal"]') as HTMLElement
-                                if (!previewContainer) {
-                                  alert('Preview container not found')
-                                  return
-                                }
-
-                                // Get the template image
-                                const templateImg = document.querySelector('[data-preview-image]') as HTMLImageElement
-                                if (!templateImg) {
-                                  alert('Template image not found')
-                                  return
-                                }
-
-                                // Wait for image to load
-                                await new Promise((resolve) => {
-                                  if (templateImg.complete) {
-                                    resolve(true)
-                                  } else {
-                                    templateImg.onload = () => resolve(true)
-                                  }
-                                })
-
-                                // Get container dimensions
-                                const containerRect = previewContainer.getBoundingClientRect()
-                                
-                                // Calculate image dimensions and position within container
-                                const imageRatio = templateImg.naturalWidth / templateImg.naturalHeight
-                                const containerRatio = containerRect.width / containerRect.height
-                                
-                                let imageWidth, imageHeight, imageX, imageY
-                                
-                                if (containerRatio > imageRatio) {
-                                  // Container is wider, image is constrained by height
-                                  imageHeight = containerRect.height
-                                  imageWidth = imageHeight * imageRatio
-                                  imageX = (containerRect.width - imageWidth) / 2
-                                  imageY = 0
-                                } else {
-                                  // Container is taller, image is constrained by width
-                                  imageWidth = containerRect.width
-                                  imageHeight = imageWidth / imageRatio
-                                  imageX = 0
-                                  imageY = (containerRect.height - imageHeight) / 2
-                                }
-
-                                // Create canvas with original image dimensions
-                                const canvas = document.createElement('canvas')
-                                const ctx = canvas.getContext('2d')
-                                if (!ctx) return
-
-                                canvas.width = templateImg.naturalWidth
-                                canvas.height = templateImg.naturalHeight
-
-                                // Draw the template image
-                                ctx.drawImage(templateImg, 0, 0, canvas.width, canvas.height)
-
-                                // Calculate scale factors for text positioning
-                                const scaleX = canvas.width / imageWidth
-                                const scaleY = canvas.height / imageHeight
-
-                                // Helper function to draw text
-                                const drawText = (text: string, x: number, y: number, size: number, color: string, align: string, font: string, bold = false) => {
-                                  if (!text) return
-                                  
-                                  ctx.fillStyle = color
-                                  ctx.font = `${bold ? 'bold ' : ''}${size * scaleX}px ${font}`
-                                  ctx.textAlign = align as CanvasTextAlign
-                                  ctx.textBaseline = 'top'
-                                  
-                                  // Convert preview coordinates to canvas coordinates
-                                  const canvasX = (x - imageX) * scaleX
-                                  const canvasY = (y - imageY) * scaleY
-                                  
-                                  ctx.fillText(text, canvasX, canvasY)
-                                }
-
-                                // Draw title
-                                if (certificateData.title || certificateData.name) {
-                                  drawText(
-                                    certificateData.title || certificateData.name,
-                                    certificateData.title_x || 370,
-                                    certificateData.title_y || 180,
-                                    certificateData.title_size || 32,
-                                    certificateData.title_color || "#000000",
-                                    certificateData.title_align || "center",
-                                    certificateData.title_font || "Inter, ui-sans-serif, system-ui",
-                                    true
-                                  )
-                                }
-
-                                // Draw description
-                                if (certificateData.description) {
-                                  drawText(
-                                    certificateData.description,
-                                    certificateData.desc_x || 360,
-                                    certificateData.desc_y || 235,
-                                    certificateData.desc_size || 15,
-                                    certificateData.desc_color || "#000000",
-                                    certificateData.desc_align || "center",
-                                    certificateData.desc_font || "Inter, ui-sans-serif, system-ui"
-                                  )
-                                }
-
-                                // Draw date
-                                if (certificateData.issued_at) {
-                                  drawText(
-                                    certificateData.issued_at,
-                                    certificateData.date_x || 50,
-                                    certificateData.date_y || 110,
-                                    certificateData.date_size || 14,
-                                    certificateData.date_color || "#000000",
-                                    certificateData.title_align || "center",
-                                    certificateData.date_font || "Inter, ui-sans-serif, system-ui"
-                                  )
-                                }
-
-                                // Convert canvas to PDF
-                                const imgData = canvas.toDataURL('image/png', 1.0)
-                                
-                                // Create PDF
-                                const pdf = new jsPDF({
-                                  orientation: canvas.width >= canvas.height ? 'landscape' : 'portrait',
-                                  unit: 'px',
-                                  format: [canvas.width, canvas.height]
-                                })
-
-                                // Add image to PDF
-                                pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height)
-
-                                // Download PDF
-                                pdf.save(`certificate_${viewingCertificate.id}.pdf`)
-
-                               } catch (error) {
-                                 console.error('Export failed:', error)
-                                 showToast('Failed to export PDF: ' + (error instanceof Error ? error.message : 'Unknown error'), 'error')
-                               }
-                            }}
-                            className="inline-block rounded-md bg-green-600 hover:bg-green-500 px-4 py-2 text-sm"
-                          >
-                            Export PDF
-                          </button>
                         </div>
                       </div>
                     </div>
                   ) : (
                     <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-6 text-center">
                       <div className="text-yellow-300 font-medium mb-2">Sertifikat Belum Dibuat</div>
-                      <p className="text-white/70 mb-4">
-                        Sertifikat ini belum memiliki template atau konten yang diedit.
-                      </p>
-                      <a 
-                        href={`/admin/edit?id=${viewingCertificate.id}`}
-                        className="inline-block rounded-md bg-blue-600 hover:bg-blue-500 px-4 py-2 text-sm"
-                      >
-                        Buat Sertifikat
-                      </a>
+                      <p className="text-white/70 mb-4">Sertifikat ini belum memiliki template atau konten yang diedit.</p>
+                      <a href={`/admin/edit?id=${viewingCertificate.id}`} className="inline-block rounded-md bg-blue-600 hover:bg-blue-500 px-4 py-2 text-sm">Buat Sertifikat</a>
                     </div>
                   )}
                 </div>
