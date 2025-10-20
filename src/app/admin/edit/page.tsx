@@ -338,46 +338,6 @@ export default function AdminPage() {
 
       // Set current template config
       setCurrentTemplateConfig(config)
-
-      // Save all changes to database
-      if (certificateId) {
-        const updateData = {
-          title_x: defaultPositions.title.x,
-          title_y: defaultPositions.title.y,
-          title_size: defaultPositions.title.size,
-          title_color: defaultPositions.title.color,
-          title_align: defaultPositions.title.align,
-          title_font: defaultPositions.title.font,
-          desc_x: defaultPositions.description.x,
-          desc_y: defaultPositions.description.y,
-          desc_size: defaultPositions.description.size,
-          desc_color: defaultPositions.description.color,
-          desc_align: defaultPositions.description.align,
-          desc_font: defaultPositions.description.font,
-          date_x: defaultPositions.date.x,
-          date_y: defaultPositions.date.y,
-          date_size: defaultPositions.date.size,
-          date_color: defaultPositions.date.color,
-          date_align: defaultPositions.date.align,
-          date_font: defaultPositions.date.font,
-          template_path: templatePath
-        }
-
-        const { error } = await supabase
-          .from("certificates")
-          .update(updateData)
-          .eq("id", certificateId)
-        
-        if (error) {
-          console.error("Error saving template config:", error)
-          setMessage(t('failedToSave') + error.message)
-          throw new Error(`Database error: ${error.message}`)
-        } else {
-          console.log("Template config applied and saved successfully")
-          setMessage(t('changesSaved'))
-          setTimeout(() => setMessage(''), 1500)
-        }
-      }
     } catch (error) {
       console.error("Error applying template config:", error)
       setMessage(t('failedToSave') + (error instanceof Error ? error.message : 'Unknown error'))
@@ -1360,6 +1320,7 @@ export default function AdminPage() {
                     date_y: dateY,
                     date_size: dateSize,
                     date_color: dateColor,
+                    template_path: selectedTemplate || null,
                     // Number fields
                     number: numberText || null,
                     number_align: numberAlign,

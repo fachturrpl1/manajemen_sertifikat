@@ -257,9 +257,6 @@ export default function CertificateEditor() {
           onChoose={async (path) => {
             setSelectedTemplate(path)
             setPreviewSrc(`/${path}`)
-            if (certificateId) {
-              await supabase.from("certificates").update({ template_path: path }).eq("id", certificateId)
-            }
           }}
         />
         <div className="text-center text-white/70 mb-1">atau</div>
