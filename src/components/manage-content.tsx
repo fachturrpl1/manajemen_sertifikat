@@ -316,8 +316,26 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                               <button 
                                 aria-label="View" 
                                 title="View" 
-                                 className="rounded-md border border-white/10 bg-white/5 px-2 py-1 opacity-50 cursor-not-allowed"
-                                 disabled
+                                className="rounded-md border border-white/10 bg-white/5 px-2 py-1 hover:bg-white/10"
+                                onClick={async () => {
+                                  try {
+                                    setViewingCertificate(r)
+                                    setShowViewModal(true)
+                                    if (!r.id) return
+                                    const { data, error } = await supabase
+                                      .from("certificates")
+                                      .select("*")
+                                      .eq("id", r.id)
+                                      .single()
+                                    if (error) {
+                                      console.error("Load certificate error:", error)
+                                      return
+                                    }
+                                    setCertificateData(data)
+                                  } catch (e) {
+                                    console.error(e)
+                                  }
+                                }}
                               >
                                 <Eye className="h-4 w-4 text-white" />
                               </button>

@@ -282,14 +282,14 @@ export default function AdminPage() {
       }
 
       const { defaultPositions } = config
-      
+
       // Validate template configuration
-      if (!defaultPositions || !defaultPositions.title || !defaultPositions.description || !defaultPositions.date) {
+      if (!defaultPositions || !defaultPositions.title || !defaultPositions.description || !defaultPositions.date || !defaultPositions.number || !defaultPositions.expired) {
         console.error("Invalid template configuration:", config)
         setMessage(t('failedToSave') + t('invalidTemplateConfig'))
         return
       }
-    
+
       // Update all position and styling states
       setTitleX(defaultPositions.title.x)
       setTitleY(defaultPositions.title.y)
@@ -311,6 +311,22 @@ export default function AdminPage() {
       setDateColor(defaultPositions.date.color)
       setDateAlign(defaultPositions.date.align)
       setDateFont(defaultPositions.date.font)
+
+      // Number
+      setNumberX(defaultPositions.number.x)
+      setNumberY(defaultPositions.number.y)
+      setNumberSize(defaultPositions.number.size)
+      setNumberColor(defaultPositions.number.color)
+      setNumberAlign(defaultPositions.number.align)
+      setNumberFont(defaultPositions.number.font)
+
+      // Expired
+      setExpX(defaultPositions.expired.x)
+      setExpY(defaultPositions.expired.y)
+      setExpSize(defaultPositions.expired.size)
+      setExpColor(defaultPositions.expired.color)
+      setExpAlign(defaultPositions.expired.align)
+      setExpFont(defaultPositions.expired.font)
 
       // Set current template config
       setCurrentTemplateConfig(config)
@@ -336,6 +352,18 @@ export default function AdminPage() {
           date_color: defaultPositions.date.color,
           date_align: defaultPositions.date.align,
           date_font: defaultPositions.date.font,
+          number_x: defaultPositions.number.x,
+          number_y: defaultPositions.number.y,
+          number_size: defaultPositions.number.size,
+          number_color: defaultPositions.number.color,
+          number_align: defaultPositions.number.align,
+          number_font: defaultPositions.number.font,
+          expires_x: defaultPositions.expired.x,
+          expires_y: defaultPositions.expired.y,
+          expires_size: defaultPositions.expired.size,
+          expires_color: defaultPositions.expired.color,
+          expires_align: defaultPositions.expired.align,
+          expires_font: defaultPositions.expired.font,
           template_path: templatePath
         }
 
@@ -343,7 +371,7 @@ export default function AdminPage() {
           .from("certificates")
           .update(updateData)
           .eq("id", certificateId)
-        
+
         if (error) {
           console.error("Error saving template config:", error)
           setMessage(t('failedToSave') + error.message)
@@ -1079,13 +1107,39 @@ export default function AdminPage() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm text-white/70 mb-1">{t('positionX')}</label>
-                <input type="number" className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm" value={activeElement==='title'?titleX:activeElement==='description'?descX:dateX}
-                  onChange={(e) => { const n = Math.max(0, Number(e.target.value)||0); if(activeElement==='title'){ setTitleX(n); saveToHistory(); queueSave({ title_x: n }) } else if(activeElement==='description'){ setDescX(n); saveToHistory(); queueSave({ desc_x: n }) } else { setDateX(n); saveToHistory(); queueSave({ date_x: n }) } }} />
+                <input type="number" className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm" value={
+                  activeElement==='title' ? titleX :
+                  activeElement==='description' ? descX :
+                  activeElement==='date' ? dateX :
+                  activeElement==='number' ? numberX :
+                  expX
+                }
+                  onChange={(e) => {
+                    const n = Math.max(0, Number(e.target.value)||0);
+                    if (activeElement==='title') { setTitleX(n); saveToHistory(); queueSave({ title_x: n }) }
+                    else if (activeElement==='description') { setDescX(n); saveToHistory(); queueSave({ desc_x: n }) }
+                    else if (activeElement==='date') { setDateX(n); saveToHistory(); queueSave({ date_x: n }) }
+                    else if (activeElement==='number') { setNumberX(n); saveToHistory(); queueSave({ number_x: n }) }
+                    else { setExpX(n); saveToHistory(); queueSave({ expires_x: n }) }
+                  }} />
             </div>
             <div>
                 <label className="block text-sm text-white/70 mb-1">{t('positionY')}</label>
-                <input type="number" className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm" value={activeElement==='title'?titleY:activeElement==='description'?descY:dateY}
-                  onChange={(e) => { const n = Math.max(0, Number(e.target.value)||0); if(activeElement==='title'){ setTitleY(n); saveToHistory(); queueSave({ title_y: n }) } else if(activeElement==='description'){ setDescY(n); saveToHistory(); queueSave({ desc_y: n }) } else { setDateY(n); saveToHistory(); queueSave({ date_y: n }) } }} />
+                <input type="number" className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm" value={
+                  activeElement==='title' ? titleY :
+                  activeElement==='description' ? descY :
+                  activeElement==='date' ? dateY :
+                  activeElement==='number' ? numberY :
+                  expY
+                }
+                  onChange={(e) => {
+                    const n = Math.max(0, Number(e.target.value)||0);
+                    if (activeElement==='title') { setTitleY(n); saveToHistory(); queueSave({ title_y: n }) }
+                    else if (activeElement==='description') { setDescY(n); saveToHistory(); queueSave({ desc_y: n }) }
+                    else if (activeElement==='date') { setDateY(n); saveToHistory(); queueSave({ date_y: n }) }
+                    else if (activeElement==='number') { setNumberY(n); saveToHistory(); queueSave({ number_y: n }) }
+                    else { setExpY(n); saveToHistory(); queueSave({ expires_y: n }) }
+                  }} />
               </div>
             </div>
             {/* Justify & Font per elemen */}
@@ -1104,6 +1158,52 @@ export default function AdminPage() {
                   <label className="block text-sm text-white/70 mb-1">{t('fontTitle')}</label>
                   <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={titleFont}
                      onChange={(e)=>{ const v=e.target.value; setTitleFont(v); saveToHistory(); queueSave({ title_font: v }) }}>
+                    <option value="Inter, ui-sans-serif, system-ui">{t('inter')}</option>
+                    <option value="Arial, Helvetica, sans-serif">{t('arial')}</option>
+                    <option value="Times New Roman, Times, serif">{t('timesNewRoman')}</option>
+                    <option value="Georgia, serif">{t('georgia')}</option>
+                  </select>
+                </div>
+              </div>
+            )}
+            {activeElement === 'number' && (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm text-white/70 mb-1">Justify Number</label>
+                  <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={numberAlign}
+                    onChange={(e)=>{ const v = e.target.value as "left"|"center"|"right"; setNumberAlign(v); saveToHistory(); queueSave({ number_align: v }) }}>
+                    <option value="left">{t('left')}</option>
+                    <option value="center">{t('center')}</option>
+                    <option value="right">{t('right')}</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm text-white/70 mb-1">Font Number</label>
+                  <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={numberFont}
+                    onChange={(e)=>{ const v=e.target.value; setNumberFont(v); saveToHistory(); queueSave({ number_font: v }) }}>
+                    <option value="Inter, ui-sans-serif, system-ui">{t('inter')}</option>
+                    <option value="Arial, Helvetica, sans-serif">{t('arial')}</option>
+                    <option value="Times New Roman, Times, serif">{t('timesNewRoman')}</option>
+                    <option value="Georgia, serif">{t('georgia')}</option>
+                  </select>
+                </div>
+              </div>
+            )}
+            {activeElement === 'expired' && (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm text-white/70 mb-1">Justify Expired</label>
+                  <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={expAlign}
+                    onChange={(e)=>{ const v = e.target.value as "left"|"center"|"right"; setExpAlign(v); saveToHistory(); queueSave({ expires_align: v }) }}>
+                    <option value="left">{t('left')}</option>
+                    <option value="center">{t('center')}</option>
+                    <option value="right">{t('right')}</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm text-white/70 mb-1">Font Expired</label>
+                  <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={expFont}
+                    onChange={(e)=>{ const v=e.target.value; setExpFont(v); saveToHistory(); queueSave({ expires_font: v }) }}>
                     <option value="Inter, ui-sans-serif, system-ui">{t('inter')}</option>
                     <option value="Arial, Helvetica, sans-serif">{t('arial')}</option>
                     <option value="Times New Roman, Times, serif">{t('timesNewRoman')}</option>
@@ -1161,13 +1261,25 @@ export default function AdminPage() {
             <div className="grid grid-cols-2 gap-3">
             <div>
                 <label className="block text-sm text-white/70 mb-1">{t('fontSize')}</label>
-                <input type="number" className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm" value={activeElement==='title'?titleSize:activeElement==='description'?descSize:dateSize}
-                   onChange={(e)=>{ const n=Number(e.target.value)||12; if(activeElement==='title'){ setTitleSize(n); saveToHistory(); queueSave({ title_size: n }) } else if(activeElement==='description'){ setDescSize(n); saveToHistory(); queueSave({ desc_size: n }) } else { setDateSize(n); saveToHistory(); queueSave({ date_size: n }) } }} />
+                <input type="number" className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm" value={
+                  activeElement==='title' ? titleSize :
+                  activeElement==='description' ? descSize :
+                  activeElement==='date' ? dateSize :
+                  activeElement==='number' ? numberSize :
+                  expSize
+                }
+                   onChange={(e)=>{ const n=Number(e.target.value)||12; if(activeElement==='title'){ setTitleSize(n); saveToHistory(); queueSave({ title_size: n }) } else if(activeElement==='description'){ setDescSize(n); saveToHistory(); queueSave({ desc_size: n }) } else if(activeElement==='date'){ setDateSize(n); saveToHistory(); queueSave({ date_size: n }) } else if(activeElement==='number'){ setNumberSize(n); saveToHistory(); queueSave({ number_size: n }) } else { setExpSize(n); saveToHistory(); queueSave({ expires_size: n }) } }} />
             </div>
             <div>
                 <label className="block text-sm text-white/70 mb-1">{t('color')}</label>
-                <input type="color" className="h-10 w-full rounded-md border border-white/10 bg-white/5 p-1" value={activeElement==='title'?titleColor:activeElement==='description'?descColor:dateColor}
-                  onChange={(e)=>{ const v=e.target.value; if(activeElement==='title'){ setTitleColor(v); saveToHistory(); queueSave({ title_color: v }) } else if(activeElement==='description'){ setDescColor(v); saveToHistory(); queueSave({ desc_color: v }) } else { setDateColor(v); saveToHistory(); queueSave({ date_color: v }) } }} />
+                <input type="color" className="h-10 w-full rounded-md border border-white/10 bg-white/5 p-1" value={
+                  activeElement==='title' ? titleColor :
+                  activeElement==='description' ? descColor :
+                  activeElement==='date' ? dateColor :
+                  activeElement==='number' ? numberColor :
+                  expColor
+                }
+                  onChange={(e)=>{ const v=e.target.value; if(activeElement==='title'){ setTitleColor(v); saveToHistory(); queueSave({ title_color: v }) } else if(activeElement==='description'){ setDescColor(v); saveToHistory(); queueSave({ desc_color: v }) } else if(activeElement==='date'){ setDateColor(v); saveToHistory(); queueSave({ date_color: v }) } else if(activeElement==='number'){ setNumberColor(v); saveToHistory(); queueSave({ number_color: v }) } else { setExpColor(v); saveToHistory(); queueSave({ expires_color: v }) } }} />
               </div>
             </div>
              <div className="text-right text-xs text-white/50 h-4">
@@ -1217,7 +1329,9 @@ export default function AdminPage() {
                     title: title || null,
                     name: title || null,
                     description: description || null,
+                    number: numberText || null,
                     issued_at: issuedAt || null,
+                    expires_at: expiresAt || null,
                     // Field styling yang tersedia di database
                     title_align: titleAlign,
                     title_font: titleFont,
@@ -1237,6 +1351,20 @@ export default function AdminPage() {
                     date_y: dateY,
                     date_size: dateSize,
                     date_color: dateColor,
+                    // Number styling
+                    number_align: numberAlign,
+                    number_font: numberFont,
+                    number_x: numberX,
+                    number_y: numberY,
+                    number_size: numberSize,
+                    number_color: numberColor,
+                    // Expired styling
+                    expires_align: expAlign,
+                    expires_font: expFont,
+                    expires_x: expX,
+                    expires_y: expY,
+                    expires_size: expSize,
+                    expires_color: expColor,
                   }
 
                   // Generate and upload preview PNG
@@ -1379,11 +1507,11 @@ function PreviewPanel({ category, previewSrc, title, description, numberText, ti
 
 
         
-        // const fontsAny = (document as any).fonts
-        // const ready = fontsAny?.ready
-        // if (ready && typeof (ready as any).then === 'function') {
-        //   try { await Promise.race([ready, new Promise(res => setTimeout(res, 500))]) } catch {}
-        // }
+        const fontsAny = (document as any).fonts
+        const ready = fontsAny?.ready
+        if (ready && typeof (ready as any).then === 'function') {
+          try { await Promise.race([ready, new Promise(res => setTimeout(res, 500))]) } catch {}
+        }
         ctx.font = `${weight} ${size}px ${font}`
         ctx.textBaseline = 'top'
 

@@ -121,6 +121,16 @@
   }
 }
 
+/* Sembunyikan badge "1 Issue" Next.js di mode dev */
+nextjs-portal [data-nextjs-toast] {
+  display: none !important;
+}
+
+/* Jika ingin sekalian menonaktifkan overlay error penuh (modal merah) */
+nextjs-portal {
+  display: none !important;
+}
+
 /* Make native input icons (date/time pickers) white in dark theme */
 .dark input[type="date"]::-webkit-calendar-picker-indicator,
 .dark input[type="datetime-local"]::-webkit-calendar-picker-indicator,

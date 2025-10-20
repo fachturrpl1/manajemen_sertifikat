@@ -29,16 +29,16 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
     name: "Industrial Visit Template 1",
     defaultPositions: {
       title: { 
-        x: 180,
-        y: 185, 
+        x: 615,
+        y: 609, 
         size: 32, 
         color: "#000000", 
         align: "center", 
         font: "Times New Roman, Times, serif" 
       },
       description: { 
-        x: 200,
-        y: 240, 
+        x: 651,
+        y: 785, 
         size: 12, 
         color: "#000000", 
         align: "center", 
@@ -305,44 +305,44 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
     name: "Training Template 1",
     defaultPositions: {
       title: { 
-        x: 360, 
-        y: 185, 
+        x: 715, 
+        y: 562, 
         size: 31, 
-        color: "#000000", 
+        color: "#26786e", 
         align: "center", 
-        font: "Inter, ui-sans-serif, system-ui" 
+        font: "Arial, ui-sans-serif, system-ui" 
       },
       description: { 
-        x: 350, 
-        y: 230, 
+        x: 862, 
+        y: 747, 
         size: 15, 
-        color: "#000000", 
+        color: "#26786e", 
         align: "center", 
-        font: "Inter, ui-sans-serif, system-ui" 
+        font: "Arial, ui-sans-serif, system-ui" 
       },
       date: { 
-        x: 70, 
-        y: 115, 
+        x: 855, 
+        y: 1203, 
         size: 13, 
-        color: "#000000", 
+        color: "#26786e", 
         align: "center", 
-        font: "Inter, ui-sans-serif, system-ui" 
+        font: "Arial, ui-sans-serif, system-ui" 
       },
       number: {
-        x: 360,
-        y: 300,
+        x: 908,
+        y: 26,
         size: 14,
-        color: "#000000",
+        color: "#26786e",
         align: "center",
-        font: "Inter, ui-sans-serif, system-ui"
+        font: "Arial, ui-sans-serif, system-ui"
       },
       expired: {
-        x: 360,
-        y: 360,
+        x: 862,
+        y: 1269,
         size: 12,
-        color: "#000000",
+        color: "#26786e",
         align: "center",
-        font: "Inter, ui-sans-serif, system-ui"
+        font: "Arial, ui-sans-serif, system-ui"
       }
     }
   },
@@ -351,44 +351,44 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
     name: "Training Template 2",
     defaultPositions: {
       title: { 
-        x: 360, 
-        y: 185, 
-        size: 31, 
-        color: "#000000", 
+        x: 397,
+        y: 1098, 
+        size: 38, 
+        color: "#c9ac17", 
         align: "center", 
-        font: "Inter, ui-sans-serif, system-ui" 
+        font: "Times New Roman, ui-sans-serif, system-ui" 
       },
       description: { 
-        x: 350, 
-        y: 230, 
+        x: 414, 
+        y: 1258, 
         size: 15, 
-        color: "#000000", 
+        color: "#868dad", 
         align: "center", 
         font: "Inter, ui-sans-serif, system-ui" 
       },
       date: { 
-        x: 70, 
-        y: 115, 
+        x: 583,
+        y: 1682, 
         size: 13, 
-        color: "#000000", 
+        color: "#868dad", 
         align: "center", 
-        font: "Inter, ui-sans-serif, system-ui" 
+        font: "Arial, ui-sans-serif, system-ui" 
       },
       number: {
-        x: 360,
-        y: 300,
-        size: 14,
-        color: "#000000",
+        x: 1162,
+        y: 93,
+        size: 13,
+        color: "#c9ac17",
         align: "center",
         font: "Inter, ui-sans-serif, system-ui"
       },
       expired: {
-        x: 360,
-        y: 360,
+        x: 592,
+        y: 1733,
         size: 12,
-        color: "#000000",
+        color: "#868dad",
         align: "center",
-        font: "Inter, ui-sans-serif, system-ui"
+        font: "Arial, ui-sans-serif, system-ui"
       }
     }
   },

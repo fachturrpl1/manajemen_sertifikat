@@ -7,7 +7,7 @@ import { useState } from "react"
 import { useI18n } from "@/lib/i18n"
 
 export default function TeamManagePage() {
-  const [tab, setTab] = useState<"cert" | "member">("cert")
+  const [tab, setTab] = useState<"member" | "team">("team")
   const { t } = useI18n()
   return (
     <div className="min-h-svh bg-gradient-to-b from-[#0b1220] to-[#0f1c35] text-white">
@@ -16,21 +16,21 @@ export default function TeamManagePage() {
         <div className="flex justify-center">
           <div className="inline-flex rounded-lg border border-white/10 bg-white/5 p-1">
             <button
-              onClick={() => setTab("cert")}
-              className={`${tab === "cert" ? "bg-blue-600 text-white" : "text-white/80 hover:text-white"} rounded-md px-3 py-1.5 text-sm`}
-            >
-              {t('certificateManagement')}
-            </button>
-            <button
               onClick={() => setTab("member")}
               className={`${tab === "member" ? "bg-blue-600 text-white" : "text-white/80 hover:text-white"} rounded-md px-3 py-1.5 text-sm`}
             >
-              {t('memberManagement')}
+              Member
+            </button>
+            <button
+              onClick={() => setTab("team")}
+              className={`${tab === "team" ? "bg-blue-600 text-white" : "text-white/80 hover:text-white"} rounded-md px-3 py-1.5 text-sm`}
+            >
+              Team
             </button>
           </div>
         </div>
       </div>
-      {tab === "cert" ? <ManageContent role="team" /> : <MemberManageContent />}
+      {tab === "member" ? <ManageContent role="team" /> : <MemberManageContent />}
     </div>
   )
 }
