@@ -78,44 +78,44 @@ export default function CertificateEditor() {
         .single()
       if (!error && data) {
         const row = data as Record<string, unknown>
-        setCategory(row.category || "")
+        setCategory(typeof row.category === 'string' ? row.category : "")
         
         // Set title/name - prioritize 'name' field, fallback to 'title' field
-        const certificateTitle = row.name || row.title || ""
+        const certificateTitle = (typeof row.name === 'string' ? row.name : "") || (typeof row.title === 'string' ? row.title : "") || ""
         setTitle(certificateTitle)
         
         // Set other fields
-        setDescription(row.description || "")
-        setIssuedAt(row.issued_at || "")
+        setDescription(typeof row.description === 'string' ? row.description : "")
+        setIssuedAt(typeof row.issued_at === 'string' ? row.issued_at : "")
         
         // Set positioning and styling with fallback values
-        setTitleX(row.title_x ?? 370)
-        setTitleY(row.title_y ?? 180)
-        setTitleSize(row.title_size ?? 32)
-        setTitleColor(row.title_color ?? "#000000")
-        setTitleAlign(row.title_align ?? "center")
-        setTitleFont(row.title_font ?? "Inter, ui-sans-serif, system-ui")
+        setTitleX(typeof row.title_x === 'number' ? row.title_x : 370)
+        setTitleY(typeof row.title_y === 'number' ? row.title_y : 180)
+        setTitleSize(typeof row.title_size === 'number' ? row.title_size : 32)
+        setTitleColor(typeof row.title_color === 'string' ? row.title_color : "#000000")
+        setTitleAlign(row.title_align === "left" || row.title_align === "center" || row.title_align === "right" ? row.title_align : "center")
+        setTitleFont(typeof row.title_font === 'string' ? row.title_font : "Inter, ui-sans-serif, system-ui")
         
-        setDescX(row.desc_x ?? 360)
-        setDescY(row.desc_y ?? 235)
-        setDescSize(row.desc_size ?? 15)
-        setDescColor(row.desc_color ?? "#000000")
-        setDescAlign(row.desc_align ?? "center")
-        setDescFont(row.desc_font ?? "Inter, ui-sans-serif, system-ui")
+        setDescX(typeof row.desc_x === 'number' ? row.desc_x : 360)
+        setDescY(typeof row.desc_y === 'number' ? row.desc_y : 235)
+        setDescSize(typeof row.desc_size === 'number' ? row.desc_size : 15)
+        setDescColor(typeof row.desc_color === 'string' ? row.desc_color : "#000000")
+        setDescAlign(row.desc_align === "left" || row.desc_align === "center" || row.desc_align === "right" ? row.desc_align : "center")
+        setDescFont(typeof row.desc_font === 'string' ? row.desc_font : "Inter, ui-sans-serif, system-ui")
         
         // Use saved values if available, otherwise use defaults
-        setDateX(row.date_x ?? 50)
-        setDateY(row.date_y ?? 110)
-        setDateSize(row.date_size ?? 14)
-        setDateColor(row.date_color ?? "#000000")
-        setDateAlign(row.date_align ?? "center")
-        setDateFont(row.date_font ?? "Inter, ui-sans-serif, system-ui")
+        setDateX(typeof row.date_x === 'number' ? row.date_x : 50)
+        setDateY(typeof row.date_y === 'number' ? row.date_y : 110)
+        setDateSize(typeof row.date_size === 'number' ? row.date_size : 14)
+        setDateColor(typeof row.date_color === 'string' ? row.date_color : "#000000")
+        setDateAlign(row.date_align === "left" || row.date_align === "center" || row.date_align === "right" ? row.date_align : "center")
+        setDateFont(typeof row.date_font === 'string' ? row.date_font : "Inter, ui-sans-serif, system-ui")
         
         // Set template
-        if (row.template_path) {
+        if (typeof row.template_path === 'string' && row.template_path) {
           setSelectedTemplate(row.template_path)
           setPreviewSrc(`/${row.template_path}`)
-        } else if (row.category) {
+        } else if (typeof row.category === 'string' && row.category) {
           const first = getTemplates(row.category)[0]
           if (first) {
             setSelectedTemplate(first)

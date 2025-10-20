@@ -1,11 +1,19 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import type { ReactNode } from "react"
 import { supabase } from "@/lib/supabase"
 
 export function DetailedDebug() {
   const [debugResults, setDebugResults] = useState<Record<string, unknown> | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+
+  const renderError = (error: unknown): ReactNode => {
+    if (error instanceof Error) {
+      return error.message
+    }
+    return String(error)
+  }
 
   useEffect(() => {
     const runDetailedDebug = async () => {
@@ -144,15 +152,15 @@ export function DetailedDebug() {
             <pre>{JSON.stringify(debugResults?.alternativeQuery, null, 2)}</pre>
           </div>
         </div>
-
+{/* 
         {debugResults?.error && (
           <div>
             <h4 className="font-medium text-red-400 mb-2">Error:</h4>
             <div className="bg-red-500/10 p-2 rounded text-xs">
-              {String(debugResults.error)}
+              {renderError(debugResults.error)}
             </div>
           </div>
-        )}
+        )} */}
       </div>
     </div>
   )

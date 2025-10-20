@@ -26,6 +26,11 @@ export default function CheckCertificatePage({ params }: Props) {
     address?: string;
     city?: string;
     notes?: string;
+    // Optional aliases used in UI
+    instansi_penerima?: string; // alias of organization/recipient_org
+    penerbit?: string; // alias of issuer
+    recipient_org?: string;
+    issuer?: string;
   } | null>(null)
   const [certificateData, setCertificateData] = useState<{
     id: string;
@@ -420,7 +425,7 @@ export default function CheckCertificatePage({ params }: Props) {
                 <div>
                   <p className="text-white/70 text-sm">Tanggal Terbit</p>
                   <p className="font-medium">
-                    {memberData.tanggal_terbit ? new Date(memberData.tanggal_terbit).toLocaleDateString('id-ID') : '-'}
+                    {certificateData.issued_at ? new Date(certificateData.issued_at).toLocaleDateString('id-ID') : '-'}
                   </p>
                 </div>
               </>

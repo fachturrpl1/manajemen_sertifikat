@@ -229,7 +229,7 @@ export function MemberManageContent() {
           })
           try {
             const f = failures[0]
-            setMessage(`Berhasil import ${successCount} member. ${failures.length > 0 ? `Gagal: ${failures.length}. Error pertama: ${f.error.code} - ${f.error.hint || f.error.message}` : ''}`)
+            setUpdateMessage(`Berhasil import ${successCount} member. ${failures.length > 0 ? `Gagal: ${failures.length}. Error pertama: ${f.error.code} - ${f.error.hint || f.error.message}` : ''}`)
           } catch {}
           return
         }
