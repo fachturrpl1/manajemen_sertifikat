@@ -2,12 +2,12 @@
 
 import { AdminNavbar } from "@/components/admin-navbar"
 import { ProtectedRoute } from "@/components/protected-route"
-import { useState } from "react"
+import { useState, Suspense } from "react"
 import { ManageContent } from "@/components/manage-content"
 import { MemberManageContent } from "@/components/member-manage-content"
 import { useI18n } from "@/lib/i18n"
 
-export default function ManagePage() {
+function AdminManageContent() {
   const [tab, setTab] = useState<"member" | "team">("member")
   const { t } = useI18n()
   
@@ -36,5 +36,17 @@ export default function ManagePage() {
         {tab === "member" ? <ManageContent role="admin" /> : <MemberManageContent />}
       </div>
     </ProtectedRoute>
+  )
+}
+
+export default function ManagePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-b from-[#0b1220] to-[#0f1c35] flex items-center justify-center">
+        <div className="text-white text-lg">Loading...</div>
+      </div>
+    }>
+      <AdminManageContent />
+    </Suspense>
   )
 }
