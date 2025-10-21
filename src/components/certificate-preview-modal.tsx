@@ -13,6 +13,9 @@ interface CertificatePreviewModalProps {
   issuedAt: string
   category: string
   certificateId?: string
+  email?: string
+  name?: string
+  number?: string
   // Position and styling props
   titleX: number
   titleY: number
@@ -43,6 +46,9 @@ export function CertificatePreviewModal({
   issuedAt,
   category,
   certificateId,
+  email,
+  name,
+  number,
   titleX,
   titleY,
   titleSize,
@@ -105,6 +111,78 @@ export function CertificatePreviewModal({
     } catch (error) {
       console.error('Export error:', error)
       alert('Gagal mengexport PDF. Silakan coba lagi.')
+    }
+  }
+
+  const handleCopyLink = async () => {
+    try {
+      const base = typeof window !== 'undefined' ? window.location.origin : ''
+      const link = number ? `${base}/cek/${encodeURIComponent(number)}` : ''
+      if (link) {
+        await navigator.clipboard.writeText(link)
+        alert('Link berhasil disalin!')
+      } else {
+        alert('Link pratinjau tidak tersedia')
+      }
+    } catch (e) {
+      console.error('copy link failed:', e)
+      alert('Gagal menyalin link')
+    }
+  }
+
+  const handleSendEmail = async () => {
+    try {
+      if (!number) {
+        alert('Nomor sertifikat tidak tersedia')
+        return
+      }
+
+      // Get preview image URL
+      let imageUrl = ''
+      if (certificateId) {
+        const { data: certificateData, error } = await supabase
+          .from('certificates')
+          .select('preview_image')
+          .eq('id', certificateId)
+          .single()
+        
+        if (!error && certificateData?.preview_image) {
+          imageUrl = certificateData.preview_image
+        }
+      }
+
+      // Create email content like in cek page
+      const subject = `Sertifikat ${title || name || 'Digital'}`
+      const body = `Halo${name ? ' ' + name : ''},
+
+Berikut adalah sertifikat digital Anda:
+
+📜 **Detail Sertifikat:**
+• Judul: ${title || name || '-'}
+• Nomor: ${number || '-'}
+• Kategori: ${category || '-'}
+• Tanggal: ${issuedAt ? new Date(issuedAt).toLocaleDateString('id-ID', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }) : '-'}
+
+🔗 **Link Sertifikat:** ${imageUrl || `${typeof window !== 'undefined' ? window.location.origin : ''}/cek/${encodeURIComponent(number)}`}
+
+Sertifikat ini dapat dibuka dan dibagikan melalui link di atas.
+
+Terima kasih.`
+
+      // Open email client
+      const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+      window.open(mailtoUrl, '_blank')
+      
+      // Show success alert
+      alert('Email client dibuka dengan link sertifikat!')
+      
+    } catch (error) {
+      console.error('Send email failed:', error)
+      alert('Gagal mengirim email: ' + (error instanceof Error ? error.message : 'Unknown error'))
     }
   }
 
@@ -293,7 +371,21 @@ export function CertificatePreviewModal({
                   onClick={handleExportPDF}
                   disabled={!previewSrc}
                 >
-                  📄 {t('exportPdf')}
+                  Download PDF
+                </button>
+                <button
+                  className="rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm hover:bg-white/10"
+                  onClick={handleCopyLink}
+                  disabled={!number}
+                >
+                  Copy Link
+                </button>
+                <button
+                  className="rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm hover:bg-white/10"
+                  onClick={handleSendEmail}
+                  disabled={!number}
+                >
+                  Send Email
                 </button>
               </div>
             </div>

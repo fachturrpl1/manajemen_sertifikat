@@ -727,29 +727,26 @@ function TeamEditContent() {
                 <label className="block text-sm text-white/70 mb-1">{t('integratedDate')}</label>
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-xs text-white/60 mb-1">Tanggal Sertifikat</label>
                     <input type="date" className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white" value={issuedAt || ""} onChange={async (e) => { const v = e.target.value; if (v) { const selectedDate = new Date(v); const today = new Date(); const tenYearsAgo = new Date(); tenYearsAgo.setFullYear(today.getFullYear() - 10); if (selectedDate > today) { alert('Tanggal tidak boleh lebih dari hari ini'); return } if (selectedDate < tenYearsAgo) { alert('Tanggal tidak boleh lebih dari 10 tahun yang lalu'); return } } setIssuedAt(v); saveToHistory(); if (certificateId) { queueSave({ issued_at: v || null }) } }} />
                   </div>
                   <div>
-                    <label className="block text-xs text-white/60 mb-1">Format Tanggal</label>
                     <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm text-white" value={dateFormat} onChange={(e) => { setDateFormat(e.target.value); saveToHistory(); if (certificateId) { queueSave({ date_format: e.target.value }) } }}>
-                      <option value="dd/mm/yyyy">dd/mm/yyyy (01/10/2025)</option>
-                      <option value="mm/dd/yyyy">mm/dd/yyyy (10/01/2025)</option>
-                      <option value="yyyy/mm/dd">yyyy/mm/dd (2025/10/01)</option>
-                      <option value="dd-mm-yyyy">dd-mm-yyyy (01-10-2025)</option>
-                      <option value="mm-dd-yyyy">mm-dd-yyyy (10-01-2025)</option>
-                      <option value="yyyy-mm-dd">yyyy-mm-dd (2025-10-01)</option>
-                      <option value="dd mmm yyyy">dd mmm yyyy (01 Oct 2025)</option>
-                      <option value="dd mmmm yyyy">dd mmmm yyyy (01 October 2025)</option>
-                      <option value="mmm dd, yyyy">mmm dd, yyyy (Oct 01, 2025)</option>
-                      <option value="mmmm dd, yyyy">mmmm dd, yyyy (October 01, 2025)</option>
+                      <option value="dd/mm/yyyy">dd/mm/yyyy</option>
+                      <option value="mm/dd/yyyy">mm/dd/yyyy</option>
+                      <option value="yyyy/mm/dd">yyyy/mm/dd</option>
+                      <option value="dd-mm-yyyy">dd-mm-yyyy</option>
+                      <option value="mm-dd-yyyy">mm-dd-yyyy</option>
+                      <option value="yyyy-mm-dd">yyyy-mm-dd</option>
+                      <option value="dd mmm yyyy">dd mmm yyyy</option>
+                      <option value="dd mmmm yyyy">dd mmmm yyyy</option>
+                      <option value="mmm dd, yyyy">mmm dd, yyyy</option>
+                      <option value="mmmm dd, yyyy">mmmm dd, yyyy</option>
                     </select>
                   </div>
                   <div className="w-full rounded-md border border-blue-500/30 bg-blue-500/10 px-3 py-2 text-sm text-white/90 flex items-center justify-between">
                     <span className="flex items-center gap-2"><span className="w-2 h-2 bg-blue-500 rounded-full"></span>{issuedAt ? formatDate(issuedAt, dateFormat) : t('noDateAvailable')}</span>
                     <span className="text-xs text-blue-400/70 font-medium">{issuedAt ? 'Manual' : 'Belum diatur'}</span>
                   </div>
-                  <div className="text-xs text-white/60 bg-white/5 rounded px-2 py-1"><span className="text-blue-400">ℹ</span> Tanggal akan ditampilkan pada sertifikat sesuai format yang dipilih</div>
                 </div>
               </div>
             )}
@@ -758,29 +755,26 @@ function TeamEditContent() {
                 <label className="block text-sm text-white/70 mb-1">Expired Date</label>
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-xs text-white/60 mb-1">Tanggal Kedaluwarsa</label>
                     <input type="date" className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white" value={expiresAt || ""} onChange={async (e) => { const v = e.target.value; setExpiresAt(v); saveToHistory(); if (certificateId) { queueSave({ expires_at: v }) } }} />
                   </div>
                   <div>
-                    <label className="block text-xs text-white/60 mb-1">Format Tanggal Kedaluwarsa</label>
                     <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm text-white" value={expiredFormat} onChange={(e) => { setExpiredFormat(e.target.value); saveToHistory(); if (certificateId) { queueSave({ expired_format: e.target.value }) } }}>
-                      <option value="dd/mm/yyyy">dd/mm/yyyy (01/10/2025)</option>
-                      <option value="mm/dd/yyyy">mm/dd/yyyy (10/01/2025)</option>
-                      <option value="yyyy/mm/dd">yyyy/mm/dd (2025/10/01)</option>
-                      <option value="dd-mm-yyyy">dd-mm-yyyy (01-10-2025)</option>
-                      <option value="mm-dd-yyyy">mm-dd-yyyy (10-01-2025)</option>
-                      <option value="yyyy-mm-dd">yyyy-mm-dd (2025-10-01)</option>
-                      <option value="dd mmm yyyy">dd mmm yyyy (01 Oct 2025)</option>
-                      <option value="dd mmmm yyyy">dd mmmm yyyy (01 October 2025)</option>
-                      <option value="mmm dd, yyyy">mmm dd, yyyy (Oct 01, 2025)</option>
-                      <option value="mmmm dd, yyyy">mmmm dd, yyyy (October 01, 2025)</option>
+                      <option value="dd/mm/yyyy">dd/mm/yyyy</option>
+                      <option value="mm/dd/yyyy">mm/dd/yyyy</option>
+                      <option value="yyyy/mm/dd">yyyy/mm/dd</option>
+                      <option value="dd-mm-yyyy">dd-mm-yyyy</option>
+                      <option value="mm-dd-yyyy">mm-dd-yyyy</option>
+                      <option value="yyyy-mm-dd">yyyy-mm-dd</option>
+                      <option value="dd mmm yyyy">dd mmm yyyy</option>
+                      <option value="dd mmmm yyyy">dd mmmm yyyy</option>
+                      <option value="mmm dd, yyyy">mmm dd, yyyy</option>
+                      <option value="mmmm dd, yyyy">mmmm dd, yyyy</option>
                     </select>
                   </div>
                   <div className="w-full rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-white/90 flex items-center justify-between">
                     <span className="flex items-center gap-2"><span className="w-2 h-2 bg-red-500 rounded-full"></span>{expiresAt ? formatDate(expiresAt, expiredFormat) : 'Tidak ada tanggal kedaluwarsa'}</span>
                     <span className="text-xs text-red-400/70 font-medium">{expiresAt ? 'Manual' : 'Belum diatur'}</span>
                   </div>
-                  <div className="text-xs text-white/60 bg-white/5 rounded px-2 py-1"><span className="text-red-400">ℹ</span> Tanggal kedaluwarsa akan ditampilkan sesuai format yang dipilih</div>
                 </div>
               </div>
             )}
@@ -1076,8 +1070,22 @@ function PreviewPanel({ category, previewSrc, title, description, numberText, ti
           const ox = base.x - start.x
           const oy = base.y - start.y
           setDragging(true)
-          const onMove = (ev: MouseEvent) => { const pos = screenToImg(Math.round(ev.clientX - rect.left), Math.round(ev.clientY - rect.top)); const nx = pos.x + ox; const ny = pos.y + oy; onDragPosition?.(clampX(nx), clampY(ny)) }
-          const onUp = () => { setDragging(false); window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); const baseNow = active === 'title' ? titlePos : active === 'description' ? descPos : active === 'date' ? datePos : active === 'number' ? numberPos : expiredPos; const nx = clampX(baseNow.x); const ny = clampY(baseNow.y); onCommitPosition?.(nx, ny) }
+          let lastX = base.x
+          let lastY = base.y
+          const onMove = (ev: MouseEvent) => {
+            const pos = screenToImg(Math.round(ev.clientX - rect.left), Math.round(ev.clientY - rect.top))
+            const nx = pos.x + ox
+            const ny = pos.y + oy
+            lastX = clampX(nx)
+            lastY = clampY(ny)
+            onDragPosition?.(lastX, lastY)
+          }
+          const onUp = () => {
+            setDragging(false)
+            window.removeEventListener('mousemove', onMove)
+            window.removeEventListener('mouseup', onUp)
+            onCommitPosition?.(lastX, lastY)
+          }
           window.addEventListener('mousemove', onMove)
           window.addEventListener('mouseup', onUp)
         }} title={t('clickAndDrag')}>

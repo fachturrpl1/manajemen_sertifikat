@@ -1126,17 +1126,72 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
 
                 <button
                   className="rounded-md border border-white/10 bg-white/5 px-3 py-2 hover:bg-white/10"
-                  onClick={() => {
+                  onClick={async () => {
                     try {
-                      const base = typeof window !== 'undefined' ? window.location.origin : ''
-                      const link = certificateData?.number ? `${base}/cek/${encodeURIComponent(certificateData.number)}` : (certificateData?.preview_image || '')
-                      const to = certificateData?.email || ''
-                      const subject = encodeURIComponent('Sertifikat Anda')
-                      const body = encodeURIComponent(`Halo${certificateData?.name ? ' ' + certificateData.name : ''},%0D%0A%0D%0ABerikut link sertifikat Anda:%0D%0A${link || ''}%0D%0A%0DTerima kasih.`)
-                      window.location.href = `mailto:${to}?subject=${subject}&body=${body}`
-                    } catch (e) { console.error('mailto failed:', e) }
+                      if (!certificateData?.number) {
+                        showToast('Nomor sertifikat tidak tersedia', 'error')
+                        return
+                      }
+
+                      // Get preview image URL
+                      let imageUrl = ''
+                      if (certificateData.preview_image) {
+                        imageUrl = certificateData.preview_image
+                      } else if (previewModalSrc) {
+                        // Upload current preview to storage
+                        const response = await fetch(previewModalSrc)
+                        const blob = await response.blob()
+                        const fileName = `certificate_${certificateData.id}_${Date.now()}.jpg`
+                        const { data: uploadData, error: uploadError } = await supabase.storage
+                          .from('sertifikat')
+                          .upload(fileName, blob, {
+                            contentType: 'image/jpeg',
+                            upsert: false
+                          })
+                        
+                        if (!uploadError) {
+                          const { data: publicUrlData } = supabase.storage
+                            .from('sertifikat')
+                            .getPublicUrl(fileName)
+                          imageUrl = publicUrlData.publicUrl
+                        }
+                      }
+
+                      // Create email content like in cek page
+                      const subject = `Sertifikat ${certificateData.title || certificateData.name || 'Digital'}`
+                      const body = `Halo${certificateData.name ? ' ' + certificateData.name : ''},
+
+Berikut adalah sertifikat digital Anda:
+
+📜 **Detail Sertifikat:**
+• Judul: ${certificateData.title || certificateData.name || '-'}
+• Nomor: ${certificateData.number || '-'}
+• Kategori: ${certificateData.category || '-'}
+• Tanggal: ${certificateData.issued_at ? new Date(certificateData.issued_at).toLocaleDateString('id-ID', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      }) : '-'}
+
+🔗 **Link Sertifikat:** ${imageUrl || `${typeof window !== 'undefined' ? window.location.origin : ''}/cek/${encodeURIComponent(certificateData.number)}`}
+
+Sertifikat ini dapat dibuka dan dibagikan melalui link di atas.
+
+Terima kasih.`
+
+                      // Open email client
+                      const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+                      window.open(mailtoUrl, '_blank')
+                      
+                      // Show success toast
+                      showToast('Email client dibuka dengan link sertifikat!', 'success')
+                      
+                    } catch (error) {
+                      console.error('Send email failed:', error)
+                      showToast('Gagal mengirim email: ' + (error instanceof Error ? error.message : 'Unknown error'), 'error')
+                    }
                   }}
-                >Kirim via Email</button>
+                >Send Email</button>
               </div>
               
               {certificateData ? (
