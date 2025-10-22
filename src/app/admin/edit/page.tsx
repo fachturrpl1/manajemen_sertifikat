@@ -8,8 +8,6 @@ import { useSearchParams, useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import { useI18n } from "@/lib/i18n"
 import { getTemplateConfig, TemplateConfig } from "@/lib/template-configs"
-import { TemplateChooser } from "@/components/certificate/TemplateChooser"
-import { getTemplates } from "@/lib/template-map"
 
 function AdminEditContent() {
   const params = useSearchParams()
@@ -1977,7 +1975,72 @@ function PreviewPanel({ category, previewSrc, title, description, numberText, ti
   )
 }
 
-// TemplateChooser and getTemplates now imported from shared modules
+// Peta template per kategori (public/certificate/<kategori>/...)
+// Tambahkan alias dengan underscore untuk kompatibilitas data lama di DB
+const TEMPLATE_MAP: Record<string, string[]> = {
+  // Kunjungan Industri
+  "kunjungan industri": [
+    "certificate/kunjungan_industri/industri1.png",
+    "certificate/kunjungan_industri/industri2.png",
+  ],
+  "kunjungan_industri": [
+    "certificate/kunjungan_industri/industri1.png",
+    "certificate/kunjungan_industri/industri2.png",
+  ],
+  // Magang
+  magang: [
+    "certificate/magang/magang1.png",
+    "certificate/magang/magang2.png",
+  ],
+  // MoU
+  mou: [
+    "certificate/mou/mou1.png",
+    "certificate/mou/mou2.png",
+  ],
+  // Pelatihan
+  pelatihan: [
+    "certificate/pelatihan/pelatihan1.png",
+    "certificate/pelatihan/pelatihan2.png",
+    "certificate/pelatihan/pelatihan3.png",
+  ],
+}
+
+function getTemplates(category: string) {
+  return category ? TEMPLATE_MAP[category] || [] : []
+}
+
+function TemplateChooser({ category, onChoose }: { category: string; onChoose?: (path: string, url: string) => void }) {
+  const { t } = useI18n()
+  // Render daftar template singkat; untuk saat ini placeholder.
+  // Production: baca daftar template dari struktur /public/certificate/<kategori>/ atau tabel template.
+  // Hardcode contoh mapping; tambahkan sesuai folder di public/certificate
+  const list = getTemplates(category)
+  return (
+    <div>
+      <label className="block text-sm text-white/70 mb-2">{t('chooseTemplate')}</label>
+      {(!category || list.length === 0) ? (
+        <div className="text-white/60 text-sm">{t('selectCategoryToSeeTemplates')}</div>
+      ) : (
+        <div className="grid grid-cols-2 gap-3">
+          {list.map((path) => {
+            const url = `/${path}`
+            return (
+              <button
+                key={path}
+                type="button"
+                onClick={onChoose ? () => onChoose(path, url) : undefined}
+                className="rounded-md border border-white/10 bg-white/5 hover:bg-white/10 p-1 cursor-pointer"
+                title={path}
+              >
+                <img src={url} alt={path} className="aspect-video object-cover rounded" />
+              </button>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function AdminPage() {
   return (

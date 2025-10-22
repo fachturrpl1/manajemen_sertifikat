@@ -8,8 +8,6 @@ import { useSearchParams, useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import { useI18n } from "@/lib/i18n"
 import { getTemplateConfig, TemplateConfig } from "@/lib/template-configs"
-import { TemplateChooser } from "@/components/certificate/TemplateChooser"
-import { getTemplates } from "@/lib/template-map"
 
 function TeamEditContent() {
   const params = useSearchParams()
@@ -423,12 +421,18 @@ function TeamEditContent() {
       try {
         const cleanUpdate = Object.fromEntries(Object.entries(update).filter(([, v]) => v !== undefined))
         if (Object.keys(cleanUpdate).length === 0) { setUiSaving(false); return }
-        // Disable preview generation during autosave to avoid UI delay and storage permission issues
-        const needsPreviewUpdate = false
+        const needsPreviewUpdate = Object.keys(cleanUpdate).some(key => ['title','description','number','issued_at','expires_at','title_x','title_y','title_size','title_color','title_align','title_font','desc_x','desc_y','desc_size','desc_color','desc_align','desc_font','date_x','date_y','date_size','date_color','date_align','date_font','number_x','number_y','number_size','number_color','number_align','number_font','expires_x','expires_y','expires_size','expires_color','expires_align','expires_font','template_path'].includes(key))
+        if (needsPreviewUpdate) {
+          const previewImage = await generatePreviewImage()
+          if (previewImage) {
+            const publicUrl = await uploadPreviewToStorage(previewImage, certificateId)
+            if (publicUrl) (cleanUpdate as { [key: string]: unknown }).preview_image = publicUrl
+          }
+        }
         await supabase.from("certificates").update(cleanUpdate).eq("id", certificateId)
       } catch {}
       setUiSaving(false)
-    }, 0)
+    }, 500)
   }
 
   const categoryOptions = useMemo(() => [
@@ -700,19 +704,7 @@ function TeamEditContent() {
             </select>
             {message && (<div className="mt-2 text-xs text-white/70">{message}</div>)}
           </div>
-          <TemplateChooser
-            category={category}
-            onChoose={async (path) => {
-              setSelectedTemplate(path)
-              try {
-                const abs = typeof window !== 'undefined' ? new URL(`/${path}`, window.location.origin).toString() : `/${path}`
-                setPreviewSrc(abs)
-              } catch {
-                setPreviewSrc(`/${path}`)
-              }
-              applyTemplateConfig(path)
-            }}
-          />
+          <TemplateChooser category={category} onChoose={async (path) => { setSelectedTemplate(path); setPreviewSrc(`/${path}`); await applyTemplateConfig(path) }} />
           <div className="grid grid-cols-1 gap-3 pt-2">
             <div>
               <label className="block text-sm text-white/70 mb-1">{t('editElements')}</label>
@@ -1059,8 +1051,6 @@ function PreviewPanel({ category, previewSrc, title, description, numberText, ti
       setLivePng(url)
     } catch {}
   }
-
-
   const clampX = (x: number) => x
   const clampY = (y: number) => y
 
@@ -1109,34 +1099,27 @@ function PreviewPanel({ category, previewSrc, title, description, numberText, ti
             previewSrc.endsWith('.pdf') ? (
               <object data={previewSrc} type="application/pdf" className="w-full h-full" />
             ) : (
-              <img
-                src={previewSrc}
-                alt="Template"
-                className="absolute inset-0 w-full h-full object-contain"
-                crossOrigin="anonymous"
-                onLoad={(e)=>{ setNatW(e.currentTarget.naturalWidth); setNatH(e.currentTarget.naturalHeight); setTimeout(()=>{renderLivePng()},0) }}
-                onError={(e)=>{ const img = e.currentTarget as HTMLImageElement; if (!img.src.endsWith('/root.jpg')) img.src = '/root.jpg' }}
-              />
+              <img src={previewSrc} alt="Template" className="absolute inset-0 w-full h-full object-contain" onLoad={(e)=>{ setNatW(e.currentTarget.naturalWidth); setNatH(e.currentTarget.naturalHeight); setTimeout(()=>{renderLivePng()},0) }} />
             )
           ) : null}
-          <div className="absolute" style={{ left: `${imgToScreen(titlePos.x, titlePos.y).x}px`, top: `${imgToScreen(titlePos.x, titlePos.y).y}px`, width: 'auto', maxWidth: 'calc(100% - 40px)', textAlign: titleAlign, fontFamily: titleFont, fontSize: `${titlePos.size}px`, color: titlePos.color, position: 'absolute', zIndex: 10, opacity: livePng ? 0 : 1, transform: titleAlign === 'center' ? 'translateX(-50%)' : titleAlign === 'right' ? 'translateX(-100%)' : undefined }} data-overlay="text">
+          <div className="absolute" style={{ left: `${imgToScreen(titlePos.x, titlePos.y).x}px`, top: `${imgToScreen(titlePos.x, titlePos.y).y}px`, width: 'auto', maxWidth: 'calc(100% - 40px)', textAlign: titleAlign, fontFamily: titleFont, fontSize: `${titlePos.size}px`, color: titlePos.color, position: 'absolute', zIndex: 10, opacity: livePng ? 0 : 1 }} data-overlay="text">
             <div>{title}</div>
           </div>
-          <div className="absolute" style={{ left: `${imgToScreen(descPos.x, descPos.y).x}px`, top: `${imgToScreen(descPos.x, descPos.y).y}px`, width: 'auto', maxWidth: 'calc(100% - 40px)', textAlign: descAlign, fontFamily: descFont, fontSize: `${descPos.size}px`, color: descPos.color, whiteSpace: 'pre-line', position: 'absolute', zIndex: 10, opacity: livePng ? 0 : 1, transform: descAlign === 'center' ? 'translateX(-50%)' : descAlign === 'right' ? 'translateX(-100%)' : undefined }}>
+          <div className="absolute" style={{ left: `${imgToScreen(descPos.x, descPos.y).x}px`, top: `${imgToScreen(descPos.x, descPos.y).y}px`, width: 'auto', maxWidth: 'calc(100% - 40px)', textAlign: descAlign, fontFamily: descFont, fontSize: `${descPos.size}px`, color: descPos.color, whiteSpace: 'pre-line', position: 'absolute', zIndex: 10, opacity: livePng ? 0 : 1 }}>
             <div className="opacity-90">{description}</div>
           </div>
           {numberText && (
-            <div className="absolute" style={{ left: `${imgToScreen(numberPos.x, numberPos.y).x}px`, top: `${imgToScreen(numberPos.x, numberPos.y).y}px`, width: 'auto', maxWidth: 'calc(100% - 40px)', textAlign: numberAlign, fontFamily: numberFont, fontSize: `${numberPos.size}px`, color: numberPos.color, position: 'absolute', zIndex: 10, opacity: livePng ? 0 : 1, transform: numberAlign === 'center' ? 'translateX(-50%)' : numberAlign === 'right' ? 'translateX(-100%)' : undefined }}>
+            <div className="absolute" style={{ left: `${imgToScreen(numberPos.x, numberPos.y).x}px`, top: `${imgToScreen(numberPos.x, numberPos.y).y}px`, width: 'auto', maxWidth: 'calc(100% - 40px)', textAlign: numberAlign, fontFamily: numberFont, fontSize: `${numberPos.size}px`, color: numberPos.color, position: 'absolute', zIndex: 10, opacity: livePng ? 0 : 1 }}>
               <div>{numberText}</div>
             </div>
           )}
           {issuedAt && (
-            <div className="absolute" style={{ left: `${imgToScreen(datePos.x, datePos.y).x}px`, top: `${imgToScreen(datePos.x, datePos.y).y}px`, width: 'auto', maxWidth: 'calc(100% - 40px)', textAlign: dateAlign, fontFamily: dateFont, fontSize: `${datePos.size}px`, color: datePos.color, position: 'absolute', zIndex: 10, opacity: livePng ? 0 : 1, transform: dateAlign === 'center' ? 'translateX(-50%)' : dateAlign === 'right' ? 'translateX(-100%)' : undefined }}>
+            <div className="absolute" style={{ left: `${imgToScreen(datePos.x, datePos.y).x}px`, top: `${imgToScreen(datePos.x, datePos.y).y}px`, width: 'auto', maxWidth: 'calc(100% - 40px)', textAlign: dateAlign, fontFamily: dateFont, fontSize: `${datePos.size}px`, color: datePos.color, position: 'absolute', zIndex: 10, opacity: livePng ? 0 : 1 }}>
               <div className="mt-1 opacity-80">{issuedAt}</div>
             </div>
           )}
           {expiresAt && (
-            <div className="absolute" style={{ left: `${imgToScreen(expiredPos.x, expiredPos.y).x}px`, top: `${imgToScreen(expiredPos.x, expiredPos.y).y}px`, width: 'auto', maxWidth: 'calc(100% - 40px)', textAlign: expAlign, fontFamily: expFont, fontSize: `${expiredPos.size}px`, color: expiredPos.color, position: 'absolute', zIndex: 10, opacity: livePng ? 0 : 1, transform: expAlign === 'center' ? 'translateX(-50%)' : expAlign === 'right' ? 'translateX(-100%)' : undefined }}>
+            <div className="absolute" style={{ left: `${imgToScreen(expiredPos.x, expiredPos.y).x}px`, top: `${imgToScreen(expiredPos.x, expiredPos.y).y}px`, width: 'auto', maxWidth: 'calc(100% - 40px)', textAlign: expAlign, fontFamily: expFont, fontSize: `${expiredPos.size}px`, color: expiredPos.color, position: 'absolute', zIndex: 10, opacity: livePng ? 0 : 1 }}>
               <div className="mt-1 opacity-80">{expiresAt}</div>
             </div>
           )}
@@ -1147,7 +1130,58 @@ function PreviewPanel({ category, previewSrc, title, description, numberText, ti
   )
 }
 
-// TemplateChooser imported from shared component
+// Peta template per kategori (public/certificate/<kategori>/...)
+const TEMPLATE_MAP: Record<string, string[]> = {
+  "kunjungan industri": [
+    "certificate/kunjungan_industri/industri1.png",
+    "certificate/kunjungan_industri/industri2.png",
+  ],
+  magang: [
+    "certificate/magang/magang1.png",
+    "certificate/magang/magang2.png",
+  ],
+  mou: [
+    "certificate/mou/mou1.png",
+    "certificate/mou/mou2.png",
+  ],
+  pelatihan: [
+    "certificate/pelatihan/pelatihan1.png",
+    "certificate/pelatihan/pelatihan2.png",
+  ],
+}
+
+function getTemplates(category: string) {
+  return category ? TEMPLATE_MAP[category] || [] : []
+}
+
+function TemplateChooser({ category, onChoose }: { category: string; onChoose?: (path: string, url: string) => void }) {
+  const { t } = useI18n()
+  const list = getTemplates(category)
+  return (
+    <div>
+      <label className="block text-sm text-white/70 mb-2">{t('chooseTemplate')}</label>
+      {(!category || list.length === 0) ? (
+        <div className="text-white/60 text-sm">{t('selectCategoryToSeeTemplates')}</div>
+      ) : (
+        <div className="grid grid-cols-2 gap-3">
+          {list.map((path) => {
+            const url = `/${path}`
+            return (
+              <button
+                key={path}
+                onClick={onChoose ? () => onChoose(path, url) : undefined}
+                className="rounded-md border border-white/10 bg-white/5 hover:bg-white/10 p-1"
+                title={path}
+              >
+                <img src={url} alt={path} className="aspect-video object-cover rounded" />
+              </button>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function TeamEditPage() {
   return (
