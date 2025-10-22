@@ -1080,7 +1080,7 @@ function PreviewPanel({ category, previewSrc, title, description, numberText, ti
           const overlay = (e.currentTarget as HTMLDivElement).querySelector('[data-overlay="text"]') as HTMLElement | null
           if (!overlay) return
           const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect()
-          const base = activeElement === 'title' ? titlePos : activeElement === 'description' ? descPos : activeElement === 'date' ? datePos : activeElement === 'number' ? numberPos : expiredPos
+          const base = active === 'title' ? titlePos : active === 'description' ? descPos : active === 'date' ? datePos : active === 'number' ? numberPos : expiredPos
           const start = screenToImg(Math.round(e.clientX - rect.left), Math.round(e.clientY - rect.top))
           const ox = base.x - start.x
           const oy = base.y - start.y
