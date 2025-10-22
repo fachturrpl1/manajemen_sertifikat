@@ -130,6 +130,29 @@ export function CertificatePreviewModal({
     }
   }
 
+  const handleCopyImageLink = async () => {
+    try {
+      if (!certificateId) {
+        alert('Certificate ID tidak tersedia')
+        return
+      }
+      const { data, error } = await supabase
+        .from('certificates')
+        .select('preview_image')
+        .eq('id', certificateId)
+        .single()
+      if (error || !data?.preview_image) {
+        alert('Preview image tidak tersedia. Silakan simpan sertifikat terlebih dahulu.')
+        return
+      }
+      await navigator.clipboard.writeText(data.preview_image)
+      alert('Link gambar berhasil disalin!')
+    } catch (e) {
+      console.error('copy image link failed:', e)
+      alert('Gagal menyalin link gambar')
+    }
+  }
+
   const handleSendEmail = async () => {
     try {
       if (!number) {
@@ -372,6 +395,13 @@ Terima kasih.`
                   disabled={!previewSrc}
                 >
                   Download PDF
+                </button>
+                <button
+                  className="rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm hover:bg-white/10"
+                  onClick={handleCopyImageLink}
+                  disabled={!certificateId}
+                >
+                  Copy Image Link
                 </button>
                 <button
                   className="rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm hover:bg-white/10"

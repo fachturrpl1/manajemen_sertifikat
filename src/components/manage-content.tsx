@@ -1122,7 +1122,7 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                       }
                     } catch (e) { console.error('copy link failed:', e) }
                   }}
-                >Copy Link</button>
+                >Copy Image Link</button>
 
                 <button
                   className="rounded-md border border-white/10 bg-white/5 px-3 py-2 hover:bg-white/10"
@@ -1149,17 +1149,23 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                             upsert: false
                           })
                         
-                        if (!uploadError) {
-                          const { data: publicUrlData } = supabase.storage
-                            .from('sertifikat')
-                            .getPublicUrl(fileName)
-                          imageUrl = publicUrlData.publicUrl
+                        if (uploadError) {
+                          throw new Error('Failed to upload to storage: ' + uploadError.message)
                         }
+                        
+                        const { data: publicUrlData } = await supabase.storage
+                          .from('sertifikat')
+                          .getPublicUrl(fileName)
+                        
+                        const publicUrl = publicUrlData.publicUrl
+                        imageUrl = publicUrl
+                      } else {
+                        imageUrl = ''
                       }
-
-                      // Create email content like in cek page
+                      // Create email content
                       const subject = `Sertifikat ${certificateData.title || certificateData.name || 'Digital'}`
-                      const body = `Halo${certificateData.name ? ' ' + certificateData.name : ''},
+                      const body = `Halo,
+${certificateData.name ? ' ' + certificateData.name : ''},
 
 Berikut adalah sertifikat digital Anda:
 
@@ -1192,6 +1198,25 @@ Terima kasih.`
                     }
                   }}
                 >Send Email</button>
+
+                <button
+                  className="rounded-md border border-white/10 bg-white/5 px-3 py-2 hover:bg-white/10"
+                  onClick={async () => {
+                    try {
+                      const base = typeof window !== 'undefined' ? window.location.origin : ''
+                      const link = certificateData?.number ? `${base}/cek/${encodeURIComponent(String(certificateData.number))}` : ''
+                      if (link) {
+                        await navigator.clipboard.writeText(link)
+                        showToast('Link halaman berhasil disalin!', 'success')
+                      } else {
+                        showToast('Link halaman tidak tersedia', 'error')
+                      }
+                    } catch (e) {
+                      console.error('copy page link failed:', e)
+                      showToast('Gagal menyalin link halaman', 'error')
+                    }
+                  }}
+                >Copy Link</button>
               </div>
               
               {certificateData ? (

@@ -886,7 +886,30 @@ Terima kasih.`
             }}
             className="rounded-md border border-white/10 bg-white/5 hover:bg-white/10 px-4 py-2 text-sm"
           >
-            Copy Link
+            Copy Image Link
+          </button>
+          <button 
+            onClick={async () => {
+              try {
+                const baseFromEnv = process.env.NEXT_PUBLIC_BASE_URL || ''
+                const runtimeOrigin = typeof window !== 'undefined' ? window.location.origin : ''
+                const base = (baseFromEnv || runtimeOrigin).replace(/\/$/, '')
+                const code = certificateData?.number || no
+                if (!base || !code) {
+                  showToast('Gagal menyalin: data tidak lengkap', 'error')
+                  return
+                }
+                const url = `${base}/cek/${code}`
+                await navigator.clipboard.writeText(url)
+                showToast('Link URL berhasil disalin!', 'success')
+              } catch (error) {
+                console.error('Copy URL failed:', error)
+                showToast('Gagal menyalin link URL', 'error')
+              }
+            }}
+            className="rounded-md border border-white/10 bg-white/5 hover:bg-white/10 px-4 py-2 text-sm"
+          >
+            Copy Link URL
           </button>
         </div>
       </div>
