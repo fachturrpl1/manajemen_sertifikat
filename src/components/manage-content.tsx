@@ -3,7 +3,7 @@
 import { useMemo, useRef, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import * as XLSX from "xlsx"
-import { Eye, Pencil, Trash2, X } from "lucide-react"
+import { Eye, Pencil, Trash2, X, Search } from "lucide-react"
 import { ModalOverlay, ModalContent } from "@/components/ui/separator"
 import { supabase } from "@/lib/supabase"
 import { useEffect } from "react"
@@ -473,11 +473,12 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
         />
         <div className="ml-2 flex-1 grid grid-cols-1 md:grid-cols-2 gap-2">
           <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50 z-10" />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={t('searchPlaceholder')}
-              className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2 text-sm placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-blue-500/60"
+              className="w-full rounded-md border border-white/10 bg-[#0d172b] pl-9 pr-3 py-2 text-sm placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-blue-500/60"
             />
             <div className="pointer-events-none absolute inset-0 rounded-md ring-1 ring-white/5" />
           </div>
@@ -503,8 +504,8 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                 <th className="px-4 py-3 font-medium">{t('name')}</th>
                 <th className="px-4 py-3 font-medium">{t('number')}</th>
                 <th className="px-4 py-3 font-medium">{t('category')}</th>
-                {/* <th className="px-4 py-3 font-medium">INSTANSI PENERIMA</th> */}
-                {/* <th className="px-4 py-3 font-medium">PENERBIT</th> */}
+                <th className="px-4 py-3 font-medium">{t('recipientOrganization')}</th>
+                <th className="px-4 py-3 font-medium">{t('issuer')}</th>
                 <th className="px-4 py-3 font-medium">{t('issuedDate')}</th>
                 <th className="px-4 py-3 font-medium">{t('expiredDate')}</th>
                 <th className="px-4 py-3 font-medium">{t('actions')}</th>
@@ -531,8 +532,8 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                       <td className="px-4 py-2">{r.name}</td>
                       <td className="px-4 py-2">{r.number}</td>
                       <td className="px-4 py-2">{r.category}</td>
-                      {/* <td className="px-4 py-2">{r.recipientOrg}</td> */}
-                      {/* <td className="px-4 py-2">{r.issuer}</td> */}
+                      <td className="px-4 py-2">{r.recipientOrg}</td>
+                      <td className="px-4 py-2">{r.issuer}</td>
                       <td className="px-4 py-2">{r.issuedAt}</td>
                       <td className="px-4 py-2">{r.expiresAt}</td>
                       <td className="px-4 py-2">
@@ -662,6 +663,7 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                       copy.splice(deleteIndex, 1)
                       setRows(copy)
                       setShowDeleteConfirm(false)
+                      showToast('Sertifikat berhasil dihapus!', 'success')
                     } finally {
                       setIsDeleting(false)
                       setDeleteIndex(null)
@@ -1086,139 +1088,6 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                   <X className="h-4 w-4" />
                 </button>
               </div>
-              {/* Action Buttons */}
-              <div className="mb-4 flex flex-wrap gap-2">
-                <button
-                  className="rounded-md border border-white/10 bg-white/5 px-3 py-2 hover:bg-white/10"
-                  onClick={() => {
-                    try {
-                      if (!previewModalSrc) return
-                      const img = new Image()
-                      img.onload = () => {
-                        const W = img.naturalWidth || 1200
-                        const H = img.naturalHeight || 900
-                        const doc = new jsPDF({ orientation: W >= H ? 'landscape' : 'portrait', unit: 'pt', format: [W, H] })
-                        doc.addImage(previewModalSrc, 'PNG', 0, 0, W, H)
-                        const name = (certificateData?.name || certificateData?.title || 'certificate').toString().replace(/\s+/g,'_')
-                        doc.save(`${name}.pdf`)
-                      }
-                      img.src = previewModalSrc
-                    } catch (e) {
-                      console.error('download pdf failed:', e)
-                    }
-                  }}
-                >Download PDF</button>
-
-                <button
-                  className="rounded-md border border-white/10 bg-white/5 px-3 py-2 hover:bg-white/10"
-                  onClick={async () => {
-                    try {
-                      const link = (certificateData?.preview_image && String(certificateData.preview_image)) || ''
-                      if (link) {
-                        await navigator.clipboard.writeText(link)
-                        showToast('Link gambar pratinjau berhasil disalin!', 'success')
-                      } else {
-                        showToast('Link pratinjau tidak tersedia', 'error')
-                      }
-                    } catch (e) { console.error('copy link failed:', e) }
-                  }}
-                >Copy Image Link</button>
-
-                <button
-                  className="rounded-md border border-white/10 bg-white/5 px-3 py-2 hover:bg-white/10"
-                  onClick={async () => {
-                    try {
-                      if (!certificateData?.number) {
-                        showToast('Nomor sertifikat tidak tersedia', 'error')
-                        return
-                      }
-
-                      // Get preview image URL
-                      let imageUrl = ''
-                      if (certificateData.preview_image) {
-                        imageUrl = certificateData.preview_image
-                      } else if (previewModalSrc) {
-                        // Upload current preview to storage
-                        const response = await fetch(previewModalSrc)
-                        const blob = await response.blob()
-                        const fileName = `certificate_${certificateData.id}_${Date.now()}.jpg`
-                        const { data: uploadData, error: uploadError } = await supabase.storage
-                          .from('sertifikat')
-                          .upload(fileName, blob, {
-                            contentType: 'image/jpeg',
-                            upsert: false
-                          })
-                        
-                        if (uploadError) {
-                          throw new Error('Failed to upload to storage: ' + uploadError.message)
-                        }
-                        
-                        const { data: publicUrlData } = await supabase.storage
-                          .from('sertifikat')
-                          .getPublicUrl(fileName)
-                        
-                        const publicUrl = publicUrlData.publicUrl
-                        imageUrl = publicUrl
-                      } else {
-                        imageUrl = ''
-                      }
-                      // Create email content
-                      const subject = `Sertifikat ${certificateData.title || certificateData.name || 'Digital'}`
-                      const body = `Halo,
-${certificateData.name ? ' ' + certificateData.name : ''},
-
-Berikut adalah sertifikat digital Anda:
-
-📜 **Detail Sertifikat:**
-• Judul: ${certificateData.title || certificateData.name || '-'}
-• Nomor: ${certificateData.number || '-'}
-• Kategori: ${certificateData.category || '-'}
-• Tanggal: ${certificateData.issued_at ? new Date(certificateData.issued_at).toLocaleDateString('id-ID', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      }) : '-'}
-
-🔗 **Link Sertifikat:** ${imageUrl || `${typeof window !== 'undefined' ? window.location.origin : ''}/cek/${encodeURIComponent(certificateData.number)}`}
-
-Sertifikat ini dapat dibuka dan dibagikan melalui link di atas.
-
-Terima kasih.`
-
-                      // Open email client
-                      const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
-                      window.open(mailtoUrl, '_blank')
-                      
-                      // Show success toast
-                      showToast('Email client dibuka dengan link sertifikat!', 'success')
-                      
-                    } catch (error) {
-                      console.error('Send email failed:', error)
-                      showToast('Gagal mengirim email: ' + (error instanceof Error ? error.message : 'Unknown error'), 'error')
-                    }
-                  }}
-                >Send Email</button>
-
-                <button
-                  className="rounded-md border border-white/10 bg-white/5 px-3 py-2 hover:bg-white/10"
-                  onClick={async () => {
-                    try {
-                      const base = typeof window !== 'undefined' ? window.location.origin : ''
-                      const link = certificateData?.number ? `${base}/cek/${encodeURIComponent(String(certificateData.number))}` : ''
-                      if (link) {
-                        await navigator.clipboard.writeText(link)
-                        showToast('Link halaman berhasil disalin!', 'success')
-                      } else {
-                        showToast('Link halaman tidak tersedia', 'error')
-                      }
-                    } catch (e) {
-                      console.error('copy page link failed:', e)
-                      showToast('Gagal menyalin link halaman', 'error')
-                    }
-                  }}
-                >Copy Link</button>
-              </div>
-              
               {certificateData ? (
                 <div className="space-y-4">
                   {(certificateData.title || certificateData.name) || certificateData.template_path || certificateData.issued_at ? (
@@ -1235,6 +1104,141 @@ Terima kasih.`
                         ) : (
                           <div className="text-white/60 text-sm">Generating preview...</div>
                         )}
+                      </div>
+                      
+                      {/* Action Buttons Container - Moved to bottom */}
+                      <div className="mt-6 p-4 rounded-lg border border-white/0 bg-white/0">
+                        <div className="flex flex-wrap gap-3 justify-center">
+                          <button
+                            className="rounded-md bg-blue-600 hover:bg-blue-500 px-4 py-2 text-sm"
+                            onClick={() => {
+                              try {
+                                if (!previewModalSrc) return
+                                const img = new Image()
+                                img.onload = () => {
+                                  const W = img.naturalWidth || 1200
+                                  const H = img.naturalHeight || 900
+                                  const doc = new jsPDF({ orientation: W >= H ? 'landscape' : 'portrait', unit: 'pt', format: [W, H] })
+                                  doc.addImage(previewModalSrc, 'PNG', 0, 0, W, H)
+                                  const name = (certificateData?.name || certificateData?.title || 'certificate').toString().replace(/\s+/g,'_')
+                                  doc.save(`${name}.pdf`)
+                                }
+                                img.src = previewModalSrc
+                              } catch (e) {
+                                console.error('download pdf failed:', e)
+                              }
+                            }}
+                          >Export PDF</button>
+
+                          <button
+                            className="rounded-md border border-white/10 bg-white/5 hover:bg-white/10 px-4 py-2 text-sm"
+                            onClick={async () => {
+                              try {
+                                if (!certificateData?.number) {
+                                  showToast('Nomor sertifikat tidak tersedia', 'error')
+                                  return
+                                }
+
+                                // Get preview image URL
+                                let imageUrl = ''
+                                if (certificateData.preview_image) {
+                                  imageUrl = certificateData.preview_image
+                                } else if (previewModalSrc) {
+                                  // Upload current preview to storage
+                                  const response = await fetch(previewModalSrc)
+                                  const blob = await response.blob()
+                                  const fileName = `certificate_${certificateData.id}_${Date.now()}.jpg`
+                                  const { data: uploadData, error: uploadError } = await supabase.storage
+                                    .from('sertifikat')
+                                    .upload(fileName, blob, {
+                                      contentType: 'image/jpeg',
+                                      upsert: false
+                                    })
+                                  
+                                  if (uploadError) {
+                                    throw new Error('Failed to upload to storage: ' + uploadError.message)
+                                  }
+                                  
+                                  const { data: publicUrlData } = await supabase.storage
+                                    .from('sertifikat')
+                                    .getPublicUrl(fileName)
+                                  
+                                  const publicUrl = publicUrlData.publicUrl
+                                  imageUrl = publicUrl
+                                } else {
+                                  imageUrl = ''
+                                }
+                                // Create email content
+                                const subject = `Sertifikat ${certificateData.title || certificateData.name || 'Digital'}`
+                                const body = `Halo,
+${certificateData.name ? ' ' + certificateData.name : ''},
+
+Berikut adalah sertifikat digital Anda:
+
+📜 **Detail Sertifikat:**
+• Judul: ${certificateData.title || certificateData.name || '-'}
+• Nomor: ${certificateData.number || '-'}
+• Kategori: ${certificateData.category || '-'}
+• Tanggal: ${certificateData.issued_at ? new Date(certificateData.issued_at).toLocaleDateString('id-ID', {
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric'
+                                }) : '-'}
+
+🔗 **Link Sertifikat:** ${imageUrl || `${typeof window !== 'undefined' ? window.location.origin : ''}/cek/${encodeURIComponent(certificateData.number)}`}
+
+Sertifikat ini dapat dibuka dan dibagikan melalui link di atas.
+
+Terima kasih.`
+
+                                // Open email client
+                                const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+                                window.open(mailtoUrl, '_blank')
+                                
+                                // Show success toast
+                                showToast('Email client dibuka dengan link sertifikat!', 'success')
+                                
+                              } catch (error) {
+                                console.error('Send email failed:', error)
+                                showToast('Gagal mengirim email: ' + (error instanceof Error ? error.message : 'Unknown error'), 'error')
+                              }
+                            }}
+                          >Send Email</button>
+
+                          <button
+                            className="rounded-md border border-white/10 bg-white/5 hover:bg-white/10 px-4 py-2 text-sm"
+                            onClick={async () => {
+                              try {
+                                const link = (certificateData?.preview_image && String(certificateData.preview_image)) || ''
+                                if (link) {
+                                  await navigator.clipboard.writeText(link)
+                                  showToast('Link gambar pratinjau berhasil disalin!', 'success')
+                                } else {
+                                  showToast('Link pratinjau tidak tersedia', 'error')
+                                }
+                              } catch (e) { console.error('copy link failed:', e) }
+                            }}
+                          >Copy Image Link</button>
+
+                          <button
+                            className="rounded-md border border-white/10 bg-white/5 hover:bg-white/10 px-4 py-2 text-sm"
+                            onClick={async () => {
+                              try {
+                                const base = typeof window !== 'undefined' ? window.location.origin : ''
+                                const link = certificateData?.number ? `${base}/cek/${encodeURIComponent(String(certificateData.number))}` : ''
+                                if (link) {
+                                  await navigator.clipboard.writeText(link)
+                                  showToast('Link halaman berhasil disalin!', 'success')
+                                } else {
+                                  showToast('Link halaman tidak tersedia', 'error')
+                                }
+                              } catch (e) {
+                                console.error('copy page link failed:', e)
+                                showToast('Gagal menyalin link halaman', 'error')
+                              }
+                            }}
+                          >Copy Link URL</button>
+                        </div>
                       </div>
                     </div>
                   ) : (

@@ -376,65 +376,10 @@ export default function CheckCertificatePage({ params }: Props) {
               )}
             </div>
           </div>
-        </section>
-
-        {/* Certificate Details */}
-        <div className="mt-8 bg-white/5 border border-white/10 rounded-lg p-6">
-          <h3 className="text-lg font-semibold mb-4">{t('certificateDetails')}</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <p className="text-white/70 text-sm">{t('name')}</p>
-              <p className="font-medium">{certificateData.title || '-'}</p>
-            </div>
-            <div>
-              <p className="text-white/70 text-sm">{t('category')}</p>
-              <p className="font-medium">{certificateData.category || '-'}</p>
-            </div>
-            <div>
-              <p className="text-white/70 text-sm">Nomor</p>
-              <p className="font-medium">{certificateData.number || '-'}</p>
-            </div>
-            <div>
-              <p className="text-white/70 text-sm">{t('description')}</p>
-              <p className="font-medium">{certificateData.description || '-'}</p>
-            </div>
-            <div>
-              <p className="text-white/70 text-sm">{t('date')}</p>
-              <p className="font-medium">
-                {certificateData.issued_at ? new Date(certificateData.issued_at).toLocaleDateString('id-ID', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                }) : '-'}
-              </p>
-            </div>
-            {memberData && (
-              <>
-                <div>
-                  <p className="text-white/70 text-sm">{t('name')}</p>
-                  <p className="font-medium">{memberData.name}</p>
-                </div>
-                <div>
-                  <p className="text-white/70 text-sm">Instansi Penerima</p>
-                  <p className="font-medium">{memberData.instansi_penerima}</p>
-                </div>
-                <div>
-                  <p className="text-white/70 text-sm">Penerbit</p>
-                  <p className="font-medium">{memberData.penerbit}</p>
-                </div>
-                <div>
-                  <p className="text-white/70 text-sm">Tanggal Terbit</p>
-                  <p className="font-medium">
-                    {certificateData.issued_at ? new Date(certificateData.issued_at).toLocaleDateString('id-ID') : '-'}
-                  </p>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="mt-6 flex gap-3">
+          
+          {/* Action Buttons Container */}
+          <div className="mt-6 p-4 rounded-lg border border-white/0 bg-white/0">
+            <div className="flex flex-wrap gap-3 justify-center">
           <button 
             onClick={async () => {
               try {
@@ -911,7 +856,9 @@ Terima kasih.`
           >
             Copy Link URL
           </button>
-        </div>
+            </div>
+          </div>
+        </section>
       </div>
       
       {/* Toast Container */}

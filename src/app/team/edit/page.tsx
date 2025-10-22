@@ -4,6 +4,7 @@ import { TeamNavbar } from "@/components/team-navbar"
 import { ProtectedRoute } from "@/components/protected-route"
 import { useEffect, useMemo, useState, useRef, useCallback, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
+ 
 import { supabase } from "@/lib/supabase"
 import { useI18n } from "@/lib/i18n"
 import { getTemplateConfig, TemplateConfig } from "@/lib/template-configs"
@@ -12,6 +13,7 @@ function TeamEditContent() {
   const params = useSearchParams()
   const certificateId = params.get("id") || undefined
   const router = useRouter()
+
   const { t } = useI18n()
   const [category, setCategory] = useState("")
   const [saving, setSaving] = useState(false)
@@ -24,6 +26,8 @@ function TeamEditContent() {
   const [previewSrc, setPreviewSrc] = useState<string>("")
   const [currentTemplateConfig, setCurrentTemplateConfig] = useState<TemplateConfig | null>(null)
   const [applyingTemplate, setApplyingTemplate] = useState(false)
+  const [uploadedPreviewUrl, setUploadedPreviewUrl] = useState<string>("")
+  const [uploadedFileId, setUploadedFileId] = useState<string | null>(null)
   
   // Restore last edited ID on refresh if URL has no id
   useEffect(() => {
@@ -51,6 +55,8 @@ function TeamEditContent() {
     title: string
     description: string
     issuedAt: string
+    expiresAt: string
+    numberText: string
     titleX: number
     titleY: number
     titleSize: number
@@ -168,53 +174,54 @@ function TeamEditContent() {
 
   // Fungsi untuk menyimpan state ke history
   const saveToHistory = () => {
-    const currentState = {
-      title,
-      description,
-      issuedAt,
-      expiresAt,
-      numberText,
-      titleX,
-      titleY,
-      titleSize,
-      titleColor,
-      titleAlign,
-      titleFont,
-      descX,
-      descY,
-      descSize,
-      descColor,
-      descAlign,
-      descFont,
-      dateX,
-      dateY,
-      dateSize,
-      dateColor,
-      dateAlign,
-      dateFont,
-      numberX,
-      numberY,
-      numberSize,
-      numberColor,
-      numberAlign,
-      numberFont,
-      expX,
-      expY,
-      expSize,
-      expColor,
-      expAlign,
-      expFont
-    }
-    const newHistory = history.slice(0, historyIndex + 1)
-    newHistory.push(currentState)
-    if (newHistory.length > 50) {
-      newHistory.shift()
-    } else {
-      setHistoryIndex(prev => prev + 1)
-    }
-    setHistory(newHistory)
-    setCanUndo(newHistory.length > 1)
-    setCanRedo(false)
+    setTimeout(() => {
+      const snapshot = {
+        title,
+        description,
+        issuedAt,
+        expiresAt,
+        numberText,
+        titleX,
+        titleY,
+        titleSize,
+        titleColor,
+        titleAlign,
+        titleFont,
+        descX,
+        descY,
+        descSize,
+        descColor,
+        descAlign,
+        descFont,
+        dateX,
+        dateY,
+        dateSize,
+        dateColor,
+        dateAlign,
+        dateFont,
+        numberX,
+        numberY,
+        numberSize,
+        numberColor,
+        numberAlign,
+        numberFont,
+        expX,
+        expY,
+        expSize,
+        expColor,
+        expAlign,
+        expFont
+      }
+      setHistory(prev => {
+        const base = prev.slice(0, historyIndex + 1)
+        base.push(snapshot)
+        if (base.length > 50) base.shift()
+        return base
+      })
+      setHistoryIndex(prev => Math.min(prev + 1, 49))
+      setCanUndo(true)
+      setCanRedo(false)
+    }, 0)
   }
 
   // Fungsi untuk undo
@@ -466,6 +473,11 @@ function TeamEditContent() {
         setDateX((row.date_x as number) ?? 50); setDateY((row.date_y as number) ?? 110); setDateSize((row.date_size as number) ?? 14); setDateColor((row.date_color as string) ?? "#000000"); setDateAlign((row.date_align as "left" | "center" | "right") ?? "center"); setDateFont((row.date_font as string) ?? "Inter, ui-sans-serif, system-ui")
         setNumberX((row.number_x as number) ?? 370); setNumberY((row.number_y as number) ?? 300); setNumberSize((row.number_size as number) ?? 14); setNumberColor((row.number_color as string) ?? "#000000"); setNumberAlign((row.number_align as "left" | "center" | "right") ?? "center"); setNumberFont((row.number_font as string) ?? "Inter, ui-sans-serif, system-ui")
         setExpX((row.expires_x as number) ?? 370); setExpY((row.expires_y as number) ?? 360); setExpSize((row.expires_size as number) ?? 12); setExpColor((row.expires_color as string) ?? "#000000"); setExpAlign((row.expires_align as "left" | "center" | "right") ?? "center"); setExpFont((row.expires_font as string) ?? "Inter, ui-sans-serif, system-ui")
+        
+        // Set date formats
+        setDateFormat((row.date_format as string) ?? "dd/mm/yyyy")
+        setExpiredFormat((row.expired_format as string) ?? "dd/mm/yyyy")
+        
         if (row.template_path) {
           const templatePath = row.template_path as string
           setSelectedTemplate(templatePath)
@@ -743,10 +755,7 @@ function TeamEditContent() {
                       <option value="mmmm dd, yyyy">mmmm dd, yyyy</option>
                     </select>
                   </div>
-                  <div className="w-full rounded-md border border-blue-500/30 bg-blue-500/10 px-3 py-2 text-sm text-white/90 flex items-center justify-between">
-                    <span className="flex items-center gap-2"><span className="w-2 h-2 bg-blue-500 rounded-full"></span>{issuedAt ? formatDate(issuedAt, dateFormat) : t('noDateAvailable')}</span>
-                    <span className="text-xs text-blue-400/70 font-medium">{issuedAt ? 'Manual' : 'Belum diatur'}</span>
-                  </div>
+                  
                 </div>
               </div>
             )}
@@ -770,10 +779,6 @@ function TeamEditContent() {
                       <option value="mmm dd, yyyy">mmm dd, yyyy</option>
                       <option value="mmmm dd, yyyy">mmmm dd, yyyy</option>
                     </select>
-                  </div>
-                  <div className="w-full rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-white/90 flex items-center justify-between">
-                    <span className="flex items-center gap-2"><span className="w-2 h-2 bg-red-500 rounded-full"></span>{expiresAt ? formatDate(expiresAt, expiredFormat) : 'Tidak ada tanggal kedaluwarsa'}</span>
-                    <span className="text-xs text-red-400/70 font-medium">{expiresAt ? 'Manual' : 'Belum diatur'}</span>
                   </div>
                 </div>
               </div>

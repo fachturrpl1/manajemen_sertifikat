@@ -46,6 +46,36 @@ export default function CertificateEditor() {
   const [descFont, setDescFont] = useState("Inter, ui-sans-serif, system-ui")
   const [dateFont, setDateFont] = useState("Inter, ui-sans-serif, system-ui")
 
+  // Date format state
+  const [dateFormat, setDateFormat] = useState<string>("dd/mm/yyyy")
+
+  // Helper: format date according to selected format
+  const formatDate = (dateStr: string, format: string) => {
+    if (!dateStr) return ""
+    const date = new Date(dateStr)
+    if (isNaN(date.getTime())) return ""
+    
+    const day = date.getDate().toString().padStart(2, '0')
+    const month = (date.getMonth() + 1).toString().padStart(2, '0')
+    const year = date.getFullYear().toString()
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    const monthNamesLong = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+    
+    switch (format) {
+      case 'dd-mm-yyyy': return `${day}-${month}-${year}`
+      case 'mm-dd-yyyy': return `${month}-${day}-${year}`
+      case 'yyyy-mm-dd': return `${year}-${month}-${day}`
+      case 'dd mmm yyyy': return `${day} ${monthNames[date.getMonth()]} ${year}`
+      case 'dd mmmm yyyy': return `${day} ${monthNamesLong[date.getMonth()]} ${year}`
+      case 'mmm dd, yyyy': return `${monthNames[date.getMonth()]} ${day}, ${year}`
+      case 'mmmm dd, yyyy': return `${monthNamesLong[date.getMonth()]} ${day}, ${year}`
+      case 'dd/mm/yyyy': return `${day}/${month}/${year}`
+      case 'mm/dd/yyyy': return `${month}/${day}/${year}`
+      case 'yyyy/mm/dd': return `${year}/${month}/${day}`
+      default: return `${day}/${month}/${year}`
+    }
+  }
+
   // Helper: queue save with debounce to Supabase
   function queueSave(update: Record<string, unknown>) {
     if (!certificateId) return
@@ -73,7 +103,7 @@ export default function CertificateEditor() {
     ;(async () => {
       const { data, error } = await supabase
         .from("certificates")
-        .select("category, template_path, title, description, issued_at, name, title_x, title_y, title_size, title_color, title_align, title_font, desc_x, desc_y, desc_size, desc_color, desc_align, desc_font, date_x, date_y, date_size, date_color, date_font, date_align")
+        .select("category, template_path, title, description, issued_at, name, title_x, title_y, title_size, title_color, title_align, title_font, desc_x, desc_y, desc_size, desc_color, desc_align, desc_font, date_x, date_y, date_size, date_color, date_font, date_align, date_format")
         .eq("id", certificateId)
         .single()
       if (!error && data) {
@@ -110,6 +140,9 @@ export default function CertificateEditor() {
         setDateColor(typeof row.date_color === 'string' ? row.date_color : "#000000")
         setDateAlign(row.date_align === "left" || row.date_align === "center" || row.date_align === "right" ? row.date_align : "center")
         setDateFont(typeof row.date_font === 'string' ? row.date_font : "Inter, ui-sans-serif, system-ui")
+        
+        // Set date format
+        setDateFormat(typeof row.date_format === 'string' ? row.date_format : "dd/mm/yyyy")
         
         // Set template
         if (typeof row.template_path === 'string' && row.template_path) {
@@ -368,16 +401,40 @@ export default function CertificateEditor() {
                   }}
                 />
                 
+                {/* Format tanggal */}
+                <div>
+                  <label className="block text-xs text-white/70 mb-1">Format Tanggal</label>
+                  <select 
+                    className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm text-white" 
+                    value={dateFormat} 
+                    onChange={async (e) => { 
+                      const newFormat = e.target.value
+                      setDateFormat(newFormat)
+                      if (certificateId) { 
+                        queueSave({ date_format: newFormat }) 
+                      } 
+                    }}
+                  >
+                    <option value="dd/mm/yyyy">dd/mm/yyyy</option>
+                    <option value="mm/dd/yyyy">mm/dd/yyyy</option>
+                    <option value="yyyy/mm/dd">yyyy/mm/dd</option>
+                    <option value="dd-mm-yyyy">dd-mm-yyyy</option>
+                    <option value="mm-dd-yyyy">mm-dd-yyyy</option>
+                    <option value="yyyy-mm-dd">yyyy-mm-dd</option>
+                    <option value="dd mmm yyyy">dd mmm yyyy</option>
+                    <option value="dd mmmm yyyy">dd mmmm yyyy</option>
+                    <option value="mmm dd, yyyy">mmm dd, yyyy</option>
+                    <option value="mmmm dd, yyyy">mmmm dd, yyyy</option>
+                  </select>
+                </div>
+                
                 {/* Status tanggal */}
                 <div className="w-full rounded-md border border-blue-500/30 bg-blue-500/10 px-3 py-2 text-sm text-white/90 flex items-center justify-between">
                   <span className="flex items-center gap-2">
                     <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                    {issuedAt ? new Date(issuedAt).toLocaleDateString('id-ID') : 'Belum diatur'}
+                    {issuedAt ? formatDate(issuedAt, dateFormat) : 'Belum diatur'}
                   </span>
-                  <span className="text-xs text-blue-400/70 font-medium">
-                    {issuedAt ? 'Manual' : 'Kosong'}
-                  </span>
-                </div>
+                </div> 
                 
                 {/* Info */}
                 <div className="text-xs text-white/60 bg-white/5 rounded px-2 py-1">
@@ -703,6 +760,7 @@ const TEMPLATE_MAP: Record<string, string[]> = {
   pelatihan: [
     "certificate/pelatihan/pelatihan1.png",
     "certificate/pelatihan/pelatihan2.png",
+    "certificate/pelatihan/pelatihan3.png",
   ],
 }
 

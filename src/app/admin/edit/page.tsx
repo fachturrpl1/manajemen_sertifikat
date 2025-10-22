@@ -686,6 +686,10 @@ function AdminEditContent() {
         setExpAlign((row.expires_align as "left" | "center" | "right") ?? "center")
         setExpFont((row.expires_font as string) ?? "Inter, ui-sans-serif, system-ui")
         
+        // Set date formats
+        setDateFormat((row.date_format as string) ?? "dd/mm/yyyy")
+        setExpiredFormat((row.expired_format as string) ?? "dd/mm/yyyy")
+        
         // Set template
         if (row.template_path) {
           const templatePath = row.template_path as string
@@ -1227,10 +1231,6 @@ function AdminEditContent() {
                       <option value="mmmm dd, yyyy">mmmm dd, yyyy</option>
                     </select>
                   </div>
-                  <div className="w-full rounded-md border border-blue-500/30 bg-blue-500/10 px-3 py-2 text-sm text-white/90 flex items-center justify-between">
-                    <span className="flex items-center gap-2"><span className="w-2 h-2 bg-blue-500 rounded-full"></span>{issuedAt ? formatDate(issuedAt, dateFormat) : t('noDateAvailable')}</span>
-                    <span className="text-xs text-blue-400/70 font-medium">{issuedAt ? 'Manual' : 'Belum diatur'}</span>
-                  </div>
                 </div>
               </div>
             )}
@@ -1267,10 +1267,7 @@ function AdminEditContent() {
                       <option value="mmmm dd, yyyy">mmmm dd, yyyy</option>
                     </select>
                   </div>
-                  <div className="w-full rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-white/90 flex items-center justify-between">
-                    <span className="flex items-center gap-2"><span className="w-2 h-2 bg-red-500 rounded-full"></span>{expiresAt ? formatDate(expiresAt, expiredFormat) : 'Tidak ada tanggal kedaluwarsa'}</span>
-                    <span className="text-xs text-red-400/70 font-medium">{expiresAt ? 'Manual' : 'Belum diatur'}</span>
-                  </div>
+                  
                 </div>
               </div>
             )}
@@ -2004,6 +2001,7 @@ const TEMPLATE_MAP: Record<string, string[]> = {
   pelatihan: [
     "certificate/pelatihan/pelatihan1.png",
     "certificate/pelatihan/pelatihan2.png",
+    "certificate/pelatihan/pelatihan3.png",
   ],
 }
 

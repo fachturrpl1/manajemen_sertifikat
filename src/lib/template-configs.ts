@@ -392,6 +392,52 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
       }
     }
   },
+  "certificate/pelatihan/pelatihan3.png": {
+    templatePath: "certificate/pelatihan/pelatihan3.png",
+    name: "Training Template 2",
+    defaultPositions: {
+      title: { 
+        x: 950,
+        y: 448, 
+        size: 8, 
+        color: "#000", 
+        align: "center", 
+        font: "Inter, Times New Roman, ui-sans-serif, system-ui" 
+      },
+      description: { 
+        x: 889, 
+        y: 584, 
+        size: 8, 
+        color: "#000", 
+        align: "left", 
+        font: "Inter, ui-sans-serif, system-ui" 
+      },
+      date: { 
+        x: 1568,
+        y: 727, 
+        size: 7, 
+        color: "#000", 
+        align: "center", 
+        font: "Inter, Arial, ui-sans-serif, system-ui" 
+      },
+      number: {
+        x: 1010,
+        y: 321,
+        size: 9,
+        color: "#000",
+        align: "center",
+        font: "Inter, ui-sans-serif, system-ui"
+      },
+      expired: {
+        x: 231,
+        y: 1125,
+        size: 7,
+        color: "#000",
+        align: "center",
+        font: "Inter, Arial, ui-sans-serif, system-ui"
+      }
+    }
+  }
 };
 
 // Fungsi untuk mendapatkan konfigurasi template berdasarkan path

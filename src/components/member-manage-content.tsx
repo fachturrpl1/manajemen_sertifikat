@@ -2,10 +2,11 @@
 
 import { useEffect, useMemo, useRef, useState } from "react"
 import * as XLSX from "xlsx"
-import { Pencil, Trash2, X } from "lucide-react"
+import { Pencil, Trash2, X, Search } from "lucide-react"
 import { ModalOverlay, ModalContent } from "@/components/ui/separator"
 import { useI18n } from "@/lib/i18n"
 import { supabase } from "@/lib/supabase"
+import { useToast } from "@/components/ui/toast"
 
 type MemberRow = {
   id?: string
@@ -23,6 +24,7 @@ type MemberRow = {
 
 export function MemberManageContent() {
   const { t } = useI18n()
+  const { showToast, ToastContainer } = useToast()
   const [rows, setRows] = useState<MemberRow[]>([])
   const [query, setQuery] = useState("")
   const fileInputRef = useRef<HTMLInputElement | null>(null)
@@ -285,11 +287,12 @@ export function MemberManageContent() {
         {/* Import Excel button removed as requested */}
         <div className="ml-2 flex-1">
           <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50 z-10" />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder={t('searchPlaceholder')}
-              className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-blue-500/60"
+              placeholder={t('searchMemberPlaceholder')}
+              className="w-full rounded-md border border-white/10 bg-[#0d172b] pl-9 pr-3 py-2 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-blue-500/60"
             />
             <div className="pointer-events-none absolute inset-0 rounded-md ring-1 ring-white/5" />
           </div>
@@ -408,6 +411,7 @@ export function MemberManageContent() {
                       copy.splice(deleteIndex, 1)
                       setRows(copy)
                       setShowDeleteConfirm(false)
+                      showToast('Member berhasil dihapus!', 'success')
                     } finally {
                       setIsDeleting(false)
                       setDeleteIndex(null)
@@ -759,6 +763,7 @@ export function MemberManageContent() {
           </ModalContent>
         </>
       )}
+      <ToastContainer />
     </main>
   )
 }

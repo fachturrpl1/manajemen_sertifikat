@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { useAuth } from "@/lib/useAuth"
 import { useI18n } from "@/lib/i18n"
 import { Globe } from "lucide-react"
@@ -10,6 +10,7 @@ import { Globe } from "lucide-react"
 export function AdminNavbar() {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
   const router = useRouter()
+  const pathname = usePathname()
   const { logout, user } = useAuth()
   const { locale, setLocale, t } = useI18n()
 
@@ -27,10 +28,31 @@ export function AdminNavbar() {
         </span>
       </div>
       </Link>
-        <nav className="hidden md:flex items-center gap-6 text-sm text-white/70">
-          <Link className="hover:text-white" href="/admin">{t('dashboard')}</Link>
-          <Link className="hover:text-white" href="/admin/manage">{t('manage')}</Link>
-          <Link className="hover:text-white" href="/admin/faq">{t('faq')}</Link>
+        <nav className="hidden md:flex items-center gap-10 text-sm">
+          <Link 
+            className={`hover:text-white transition-colors ${
+              pathname === '/admin' ? 'text-white font-medium' : 'text-white/70'
+            }`} 
+            href="/admin"
+          >
+            {t('dashboard')}
+          </Link>
+          <Link 
+            className={`hover:text-white transition-colors ${
+              pathname === '/admin/manage' ? 'text-white font-medium' : 'text-white/70'
+            }`} 
+            href="/admin/manage"
+          >
+            {t('manage')}
+          </Link>
+          <Link 
+            className={`hover:text-white transition-colors ${
+              pathname === '/admin/faq' ? 'text-white font-medium' : 'text-white/70'
+            }`} 
+            href="/admin/faq"
+          >
+            {t('faq')}
+          </Link>
         </nav>
       </div>
       <div className="flex items-center gap-4 text-sm">

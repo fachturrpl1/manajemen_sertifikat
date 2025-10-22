@@ -5,7 +5,7 @@ import { ProtectedRoute } from "@/components/protected-route"
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
 import { useRouter } from "next/navigation"
-import { Pencil, X } from "lucide-react"
+import { Pencil, X, Search } from "lucide-react"
 import { ModalOverlay, ModalContent } from "@/components/ui/separator"
 import { useI18n } from "@/lib/i18n"
 
@@ -106,12 +106,15 @@ export default function TeamPage() {
           <div>
             <label className="block text-sm text-white/70 mb-2">{t('searchCertificate')}</label>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder={t('searchPlaceholder')}
-                className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm placeholder:text-white/50"
-              />
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50" />
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder={t('searchPlaceholder')}
+                  className="w-full rounded-md border border-white/10 bg-white/5 pl-9 pr-3 py-2 text-sm placeholder:text-white/50"
+                />
+              </div>
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}

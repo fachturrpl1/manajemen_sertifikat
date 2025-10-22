@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useI18n } from "@/lib/i18n"
-import { Globe } from "lucide-react"
+import { Globe, Search } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 
 export default function PublicVerifyPage() {
@@ -95,13 +95,16 @@ export default function PublicVerifyPage() {
         <p className="mb-6 text-white/80">{t('enterCertificateNumber')}</p>
 
         <div className="mx-auto flex max-w-xl items-stretch gap-3">
-          <input
-            value={no}
-            onChange={(e) => setNo(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && submit()}
-            placeholder={t('typeCertificateNumber')}
-            className="flex-1 rounded-lg border border-blue-900/60 bg-[#0e1930] px-4 py-3 text-base outline-none ring-1 ring-transparent focus:ring-blue-500/60 placeholder:text-white/50"
-          />
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-white/50" />
+            <input
+              value={no}
+              onChange={(e) => setNo(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && submit()}
+              placeholder={t('typeCertificateNumber')}
+              className="w-full rounded-lg border border-blue-900/60 bg-[#0e1930] pl-10 pr-4 py-3 text-base outline-none ring-1 ring-transparent focus:ring-blue-500/60 placeholder:text-white/50"
+            />
+          </div>
           <button
             onClick={submit}
             className="rounded-lg bg-blue-600 px-5 py-3 font-medium hover:bg-blue-500"
