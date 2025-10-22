@@ -1,28 +1,65 @@
 "use client"
 
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useI18n } from "@/lib/i18n"
-import { Globe } from "lucide-react"
-import Image from "next/image"
+import { Globe, Search } from "lucide-react"
+import { supabase } from "@/lib/supabase"
 
-export default function AuPage() {
+export default function PublicVerifyPage() {
+  const [no, setNo] = useState("")
+  const router = useRouter()
   const { t, locale, setLocale } = useI18n()
+
+  async function submit() {
+    const raw = no.trim()
+    if (!raw) return
+    // If user pasted a URL (e.g., Supabase public preview_image), try to resolve to certificate number
+    if (/^https?:\/\//i.test(raw)) {
+      const url = raw
+      // First, exact/equivalent match
+      const { data: exactData } = await supabase
+        .from("certificates")
+        .select("number,preview_image")
+        .or(`preview_image.eq.${url},preview_image.ilike.%${url}%`)
+        .limit(1)
+        .maybeSingle()
+      if (exactData?.number) {
+        router.push(`/cek/${encodeURIComponent(String(exactData.number))}`)
+        return
+      }
+      // Fallback: match by filename segment (strip query)
+      try {
+        const u = new URL(url)
+        const file = u.pathname.split('/').pop() || ''
+        const fname = file.split('?')[0]
+        if (fname) {
+          const { data: byFile } = await supabase
+            .from("certificates")
+            .select("number,preview_image")
+            .ilike("preview_image", `%${fname}%`)
+            .limit(1)
+            .maybeSingle()
+          if (byFile?.number) {
+            router.push(`/cek/${encodeURIComponent(String(byFile.number))}`)
+            return
+          }
+        }
+      } catch {}
+      // As last resort, open the URL directly (keeps current behavior intuitive)
+      if (typeof window !== 'undefined') window.open(url, '_blank')
+      return
+    }
+    // Default: treat as certificate number
+    router.push(`/cek/${encodeURIComponent(raw)}`)
+  }
+
   return (
-    <div className="relative min-h-svh bg-gradient-to-b from-[#0b1220] to-[#0f1c35] text-white">
-      <div className="absolute left-6 top-6 z-20">
-        <a href="#" className="flex items-center gap-2 font-medium">
-          <div className="bg-blue-600 text-primary-white flex size-7 items-center justify-center rounded-md">
-            S
-          </div>
-          <span className="text-lg font-semibold tracking-wide">
-            <span className="text-white">Sertiku</span>
-            <span className="text-blue-400">.co.id</span>
-          </span>
-        </a>
-      </div>
+    <div className="min-h-svh relative flex items-center justify-center bg-[#0b1220] text-white">
       <div className="absolute right-6 top-6 z-20 flex items-center gap-4">
         <Link href="/login" className="text-sm text-blue-400 hover:text-white">{t('login')}</Link>
-         {/* Language Toggle Button */}
+        {/* Language Toggle Button */}
         <button
           onClick={() => setLocale(locale === 'en' ? 'id' : 'en')}
           className="flex items-center gap-2 rounded-md border border-white/10 bg-white/5 px-3 py-1.5 text-sm hover:bg-white/10 transition-colors"
@@ -32,58 +69,50 @@ export default function AuPage() {
           <span className="font-medium">{locale === 'en' ? 'EN' : 'ID'}</span>
         </button>
       </div>
-    
-      {/* subtle pattern */}
+      {/* grid background overlay */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.10)_1px,_transparent_1px)] [background-size:28px_28px] opacity-60"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(59,130,246,0.08)_1px,_transparent_1px)] [background-size:28px_28px] opacity-60"
       />
 
-      <section className="relative mx-auto grid max-w-6xl grid-cols-1 items-center gap-10 px-6 py-16 md:grid-cols-2 md:py-24">
-          <div>
-            <h1 className="text-4xl font-extrabold leading-tight tracking-tight md:text-5xl">
-              {t('creatorAndManagement')}
-            </h1>
-            <p className="mt-4 max-w-2xl text-white/80">
-              {t('designDescription')}
-            </p>
-
-          <div className="mt-8 flex items-center gap-3">
-            <a
-              href="/all"
-              className="inline-flex items-center justify-center rounded-md bg-blue-600 px-5 py-3 text-sm font-medium text-white hover:bg-blue-500"
-            >
-              {t('tryPublicVerification')}
-            </a>
+      <div className="relative z-10 w-full max-w-2xl px-6 text-center">
+        {/* Logo */}
+        <Link href="/">        
+        <div className="mx-auto mb-6 inline-flex items-center gap-2">
+          <div className="h-10 w-10 size-7 rounded-md bg-blue-600 text-white grid place-items-center font-bold">
+            S
           </div>
-
-          <p className="mt-3 text-xs text-white/50">* {t('noCreditCard')}</p>
+          <span className="text-3xl font-semibold tracking-wide">
+            <span className="text-white">Sertiku</span>
+            <span className="text-blue-400">.co.id</span>
+          </span>
         </div>
+        </Link>
 
-        <div className="relative">
-          {/* mock preview area */}
-          <div className="rounded-2xl border border-white/10 bg-[#0d172b] p-4 shadow-xl shadow-blue-500/10">
-            <div className="aspect-[16/10] w-full rounded-lg bg-white/5 relative overflow-hidden box-content">
-              <Image
-                src="/root.jpg"
-                alt="Preview"
-                fill
-                className="object-cover object-center"
-                sizes="(max-width: 768px) 100vw, 50vw"
-                priority
-              />
-            </div>
-            <div className="mt-4 grid grid-cols-2 gap-3 text-xs text-white/70">
-              <div className="rounded-md border border-white/10 bg-white/5 p-2">{t('feature1')}</div>
-              <div className="rounded-md border border-white/10 bg-white/5 p-2">{t('feature2')}</div>
-              <div className="rounded-md border border-white/10 bg-white/5 p-2">{t('feature3')}</div>
-              <div className="rounded-md border border-white/10 bg-white/5 p-2">{t('feature4')}</div>
-              <div className="rounded-md border border-white/10 bg-white/5 p-2">{t('feature5')}</div>
-              <div className="rounded-md border border-white/10 bg-white/5 p-2">{t('feature6')}</div>
-            </div>
+        <h1 className="mb-4 text-4xl md:text-5xl font-extrabold text-blue-400">
+          {t('certificateVerification')}
+        </h1>
+        <p className="mb-6 text-white/80">{t('enterCertificateNumber')}</p>
+
+        <div className="mx-auto flex max-w-xl items-stretch gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-white/50" />
+            <input
+              value={no}
+              onChange={(e) => setNo(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && submit()}
+              placeholder={t('typeCertificateNumber')}
+              className="w-full rounded-lg border border-blue-900/60 bg-[#0e1930] pl-10 pr-4 py-3 text-base outline-none ring-1 ring-transparent focus:ring-blue-500/60 placeholder:text-white/50"
+            />
           </div>
+          <button
+            onClick={submit}
+            className="rounded-lg bg-blue-600 px-5 py-3 font-medium hover:bg-blue-500"
+          >
+            {t('verify')}
+          </button>
         </div>
-      </section>
+      </div>
     </div>
   )
 }
