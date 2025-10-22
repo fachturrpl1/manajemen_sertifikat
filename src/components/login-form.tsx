@@ -26,18 +26,44 @@ export function LoginForm({
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const [showPassword, setShowPassword] = useState(false)
+  const [emailError, setEmailError] = useState("")
+  const [passwordError, setPasswordError] = useState("")
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setIsLoading(true)
     setError("")
+    setEmailError("")
+    setPasswordError("")
 
     const form = event.currentTarget
     const emailInput = form.querySelector<HTMLInputElement>("#email")
     const passwordInput = form.querySelector<HTMLInputElement>("#password")
 
-    const email = emailInput?.value || ""
+    const email = emailInput?.value.trim() || ""
     const password = passwordInput?.value || ""
+
+    // Validasi email
+    if (!email) {
+      setEmailError(t("emailRequired"))
+      return
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      setEmailError(t("emailInvalid"))
+      return
+    }
+
+    // Validasi password
+    if (!password) {
+      setPasswordError(t("passwordRequired"))
+      return
+    }
+    if (password.length < 6) {
+      setPasswordError(t("passwordMinLength"))
+      return
+    }
+
+    setIsLoading(true)
 
     try {
       // 🔍 Cek tabel users (ADMIN)
@@ -106,7 +132,7 @@ export function LoginForm({
     >
       <FieldGroup>
         <div className="flex flex-col items-center gap-1 text-center">
-          <h1 className="text-2xl font-bold">{t("loginToAccount")}</h1>
+          <h1 className="text-2xl font-bold text-blue-600 dark:text-blue-400">{t("loginToAccount")}</h1>
           <p className="text-muted-foreground text-sm text-balance">
             {t("enterEmailToLogin")}
           </p>
@@ -124,8 +150,12 @@ export function LoginForm({
             id="email"
             type="email"
             placeholder={t("emailPlaceholder")}
+            className={emailError ? "border-red-500 focus:ring-red-500" : ""}
             required
           />
+          {emailError && (
+            <p className="text-xs text-red-500 mt-1">{emailError}</p>
+          )}
         </Field>
 
         <Field>
@@ -137,12 +167,13 @@ export function LoginForm({
               id="password"
               type={showPassword ? "text" : "password"}
               placeholder={t("passwordPlaceholder")}
+              className={passwordError ? "border-red-500 focus:ring-red-500" : ""}
               required
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-300 transition-colors"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-black/50 hover:text-black dark:text-white/50 dark:hover:text-white transition-colors"
             >
               {showPassword ? (
                 <EyeOff className="h-4 w-4" />
@@ -151,6 +182,9 @@ export function LoginForm({
               )}
             </button>
           </div>
+          {passwordError && (
+            <p className="text-xs text-red-500 mt-1">{passwordError}</p>
+          )}
         </Field>
 
         <Field>

@@ -16,7 +16,7 @@ export function AdminNavbar() {
   const { locale, setLocale, t } = useI18n()
 
   return (
-    <header className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-white/10">
+    <header className="flex items-center justify-between px-6 py-4 border-b border-gray-200 shadow-md dark:border-white/10 dark:shadow-blue-500/10">
       <div className="flex items-center gap-8">
       <Link href="/admin">
       <div className="mx-auto m-1 inline-flex items-center gap-2">

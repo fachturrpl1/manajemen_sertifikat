@@ -440,7 +440,7 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
   return (
     <main className="mx-auto max-w-7xl px-4 md:px-6 py-6 space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-extrabold tracking-tight">{t('certificates')}</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight text-blue-600 dark:text-blue-400">{t('certificates')}</h1>
       </div>
 
       <div className="flex items-center gap-3">
@@ -459,9 +459,9 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
           }}
           className="rounded-md border border-blue-600/50 bg-blue-600/10 px-3 py-2 text-sm hover:bg-blue-600/20"
         >
-          + Baru
+          + {t('new')}
         </button>
-        <button onClick={handleImportClick} className="rounded-md border border-gray-300 bg-black/5 px-3 py-2 text-sm hover:bg-black/10 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10">
+        <button onClick={handleImportClick} className="rounded-md border border-blue-600/50 bg-blue-600/10 px-3 py-2 text-sm hover:bg-blue-600/20">
           Import Excel
         </button>
         <input
@@ -496,11 +496,11 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
         </div>
       </div>
 
-      <section className="rounded-xl border border-gray-200 bg-white dark:border-white/10 dark:bg-[#0d172b]">
+      <section className="rounded-xl border-2 border-blue-100 bg-white shadow-lg dark:border-white/10 dark:bg-[#0d172b]">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="text-black/70 dark:text-white/70">
+              <tr className="bg-blue-50/50 text-black/70 dark:bg-blue-900/20 dark:text-white/70">
                 <th className="px-4 py-3 font-medium">{t('name')}</th>
                 <th className="px-4 py-3 font-medium">{t('number')}</th>
                 <th className="px-4 py-3 font-medium">{t('category')}</th>
@@ -515,20 +515,20 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
               {isLoading ? (
                 <tr>
                   <td colSpan={8} className="px-4 py-10 text-center text-black/60 dark:text-white/50">
-                    Memuat data...
+                    {t('loadingData')}
                   </td>
                 </tr>
               ) : paginatedRows.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="px-4 py-10 text-center text-black/60 dark:text-white/50">
-                    Belum ada data untuk ditampilkan
+                    {t('noDataToDisplay')}
                   </td>
                 </tr>
               ) : (
                 paginatedRows.map((r) => {
                   const idx = rows.indexOf(r)
                   return (
-                    <tr key={idx} className="border-t border-gray-200 dark:border-white/5">
+                    <tr key={idx} className="border-t border-gray-200 hover:bg-blue-50/30 transition-colors dark:border-white/5 dark:hover:bg-blue-900/10">
                       <td className="px-4 py-2">{r.name}</td>
                       <td className="px-4 py-2">{r.number}</td>
                       <td className="px-4 py-2">{r.category}</td>
@@ -596,8 +596,8 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
 
         <div className="flex items-center justify-between border-t border-gray-200 dark:border-white/10 px-4 py-3 text-sm">
           <div className="text-black/60 dark:text-white/50">
-            Menampilkan {startIndex + 1}-{Math.min(endIndex, filteredRows.length)} dari {filteredRows.length} 
-            {filteredRows.length !== rows.length && ` (${rows.length} total)`}
+            {t('showing')} {startIndex + 1}-{Math.min(endIndex, filteredRows.length)} {t('of')} {filteredRows.length} 
+            {filteredRows.length !== rows.length && ` (${rows.length} ${t('total')})`}
           </div>
           <div className="flex items-center gap-2">
             <button 
@@ -933,23 +933,23 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
         <>
           <ModalOverlay onClick={() => setShowViewModal(false)} />
           <ModalContent>
-            <div className="w-full max-w-4xl rounded-xl border border-white/10 bg-[#0d1223] p-6 text-sm">
+            <div className="w-full max-w-4xl rounded-xl border-2 border-blue-100 bg-white shadow-2xl p-6 text-sm dark:border-white/10 dark:bg-[#0d1223]">
               <div className="mb-4 flex items-center justify-between">
-                <div className="font-semibold">Pratinjau Sertifikat</div>
+                <div className="font-semibold text-blue-600 dark:text-white">Pratinjau Sertifikat</div>
                 <button 
                   onClick={() => setShowViewModal(false)} 
-                  className="rounded-md border border-white/10 bg-white/5 p-1" 
+                  className="rounded-md border border-gray-300 bg-black/5 p-1 hover:bg-black/10 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10" 
                   aria-label="Close"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-4 w-4 text-black dark:text-white" />
                 </button>
               </div>
               {certificateData ? (
                 <div className="space-y-4">
                   {(certificateData.title || certificateData.name) || certificateData.template_path || certificateData.issued_at ? (
                     <div className="space-y-4">
-                      <div className="rounded-lg border border-white/10 bg-white/5 p-4">
-                        <h3 className="mb-3 font-medium">Preview</h3>
+                      <div className="rounded-lg border-2 border-blue-100 bg-blue-50/30 p-4 dark:border-white/10 dark:bg-white/5">
+                        <h3 className="mb-3 font-medium text-black dark:text-white">Preview</h3>
                         {previewModalSrc ? (
                           <img
                             src={previewModalSrc}
@@ -958,12 +958,12 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                             style={{ maxWidth: '600px' }}
                           />
                         ) : (
-                          <div className="text-white/60 text-sm">Generating preview...</div>
+                          <div className="text-black/60 dark:text-white/60 text-sm">Generating preview...</div>
                         )}
                       </div>
                       
                       {/* Action Buttons Container - Moved to bottom */}
-                      <div className="mt-6 p-4 rounded-lg border border-white/0 bg-white/0">
+                      <div className="mt-6 p-4 rounded-lg border-2 border-blue-100 bg-blue-50/30 dark:border-white/10 dark:bg-white/5">
                         <div className="flex flex-wrap gap-3 justify-center">
                           <button
                             className="rounded-md bg-blue-600 hover:bg-blue-500 px-4 py-2 text-sm"
@@ -987,7 +987,7 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                           >Export PDF</button>
 
                           <button
-                            className="rounded-md border border-white/10 bg-white/5 hover:bg-white/10 px-4 py-2 text-sm"
+                            className="rounded-md border border-gray-300 bg-black/5 hover:bg-black/10 px-4 py-2 text-sm text-black dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10 dark:text-white"
                             onClick={async () => {
                               try {
                                 if (!certificateData?.number) {
@@ -1062,7 +1062,7 @@ Terima kasih.`
                           >Send Email</button>
 
                           <button
-                            className="rounded-md border border-white/10 bg-white/5 hover:bg-white/10 px-4 py-2 text-sm"
+                            className="rounded-md border border-gray-300 bg-black/5 hover:bg-black/10 px-4 py-2 text-sm text-black dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10 dark:text-white"
                             onClick={async () => {
                               try {
                                 const link = (certificateData?.preview_image && String(certificateData.preview_image)) || ''
@@ -1077,7 +1077,7 @@ Terima kasih.`
                           >Copy Image Link</button>
 
                           <button
-                            className="rounded-md border border-white/10 bg-white/5 hover:bg-white/10 px-4 py-2 text-sm"
+                            className="rounded-md border border-gray-300 bg-black/5 hover:bg-black/10 px-4 py-2 text-sm text-black dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10 dark:text-white"
                             onClick={async () => {
                               try {
                                 const base = typeof window !== 'undefined' ? window.location.origin : ''
@@ -1099,15 +1099,15 @@ Terima kasih.`
                     </div>
                   ) : (
                     <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-6 text-center">
-                      <div className="text-yellow-300 font-medium mb-2">Sertifikat Belum Dibuat</div>
-                      <p className="text-white/70 mb-4">Sertifikat ini belum memiliki template atau konten yang diedit.</p>
-                      <a href={`/admin/edit?id=${viewingCertificate.id}`} className="inline-block rounded-md bg-blue-600 hover:bg-blue-500 px-4 py-2 text-sm">Buat Sertifikat</a>
+                      <div className="text-yellow-600 dark:text-yellow-300 font-medium mb-2">{t('certificateNotCreated')}</div>
+                      <p className="text-black/70 dark:text-white/70 mb-4">{t('certificateNotCreatedDesc')}</p>
+                      <a href={`/admin/edit?id=${viewingCertificate.id}`} className="inline-block rounded-md bg-blue-600 hover:bg-blue-500 px-4 py-2 text-sm text-white">{t('createCertificate')}</a>
                     </div>
                   )}
                 </div>
               ) : (
                 <div className="rounded-lg border border-white/10 bg-white/5 p-6 text-center">
-                  <div className="text-white/70">Memuat data sertifikat...</div>
+                  <div className="text-black/70 dark:text-white/70">{t('loadingCertificateData')}</div>
                 </div>
               )}
             </div>

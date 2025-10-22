@@ -37,11 +37,11 @@ export default function ThemeToggle() {
   return (
     <button
       onClick={toggle}
-      className="flex items-center gap-2 rounded-md border border-black/10 bg-black/5 px-3 py-1.5 text-sm hover:bg-black/10 transition-colors dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
+      className="flex items-center gap-2 rounded-md border border-gray-300 bg-black/5 px-3 py-1.5 text-sm hover:bg-black/10 transition-colors dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
       title={isDark ? 'Switch to light' : 'Switch to dark'}
     >
-      {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-      <span className="font-medium">{isDark ? 'Light' : 'Dark'}</span>
+      {isDark ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+      <span className="font-medium">{isDark ? 'Dark' : 'Light'}</span>
     </button>
   )
 }

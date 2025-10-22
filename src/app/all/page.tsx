@@ -11,30 +11,9 @@ import ThemeToggle from "@/components/theme-toggle"
 export default function PublicVerifyPage() {
   const [no, setNo] = useState("")
   const [matches, setMatches] = useState<Array<{ number: string; preview_image: string | null }>>([])
-  const [showFilter, setShowFilter] = useState(false)
-  const [categories, setCategories] = useState<string[]>([])
-  const [filterCategory, setFilterCategory] = useState<string>("")
-  const [filterFrom, setFilterFrom] = useState<string>("") // yyyy-mm-dd
-  const [filterTo, setFilterTo] = useState<string>("")   // yyyy-mm-dd
-  const [filterQ, setFilterQ] = useState<string>("")
   const router = useRouter()
   const { t, locale, setLocale } = useI18n()
 
-  useEffect(() => {
-    // Load categories (deduped) from certificates
-    (async () => {
-      const { data } = await supabase
-        .from('certificates')
-        .select('category')
-        .limit(1000)
-      const set = new Set<string>()
-      data?.forEach((row: any) => {
-        const c = String(row?.category || '').trim()
-        if (c) set.add(c)
-      })
-      setCategories(Array.from(set).sort((a, b) => a.localeCompare(b)))
-    })()
-  }, [])
 
   async function submit() {
     const raw = no.trim()
@@ -85,45 +64,6 @@ export default function PublicVerifyPage() {
     setMatches(data || [])
   }
 
-  async function applyFilters() {
-    // Build query by selected filters; also include typed number as exact filter if provided
-    let query = supabase
-      .from('certificates')
-      .select('number,preview_image,category,issued_at,title,description')
-      .limit(48)
-
-    if (no.trim()) {
-      query = query.eq('number', no.trim())
-    }
-    if (filterCategory) {
-      query = query.eq('category', filterCategory)
-    }
-    if (filterFrom) {
-      query = query.gte('issued_at', filterFrom)
-    }
-    if (filterTo) {
-      // add one day to include end date time if DB stores timestamps
-      query = query.lte('issued_at', filterTo)
-    }
-    if (filterQ.trim()) {
-      const q = `%${filterQ.trim()}%`
-      query = query.or(
-        `title.ilike.${q},description.ilike.${q},number.ilike.${q}`
-      )
-    }
-
-    const { data } = await query
-    setMatches((data as any[])?.map(d => ({ number: d.number, preview_image: d.preview_image })) || [])
-    setShowFilter(false)
-  }
-
-  function resetFilters() {
-    setFilterCategory("")
-    setFilterFrom("")
-    setFilterTo("")
-    setFilterQ("")
-    setMatches([])
-  }
 
   return (
     <div className="min-h-svh relative flex items-center justify-center bg-white text-black dark:bg-[#0b1220] dark:text-white">
@@ -178,66 +118,10 @@ export default function PublicVerifyPage() {
           </div>
           <button
             onClick={submit}
-            className="rounded-lg bg-blue-600 px-5 py-3 font-medium hover:bg-blue-500"
+            className="rounded-lg bg-blue-600 px-5 py-3 font-medium text-white hover:bg-blue-500"
           >
             {t('verify')}
           </button>
-          <div className="relative">
-            <button
-              onClick={() => setShowFilter((v) => !v)}
-              className="rounded-lg border border-gray-300 bg-white px-4 py-3 font-medium hover:bg-black/5 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
-            >
-              Filter
-            </button>
-            {showFilter && (
-              <div className="absolute right-0 mt-2 w-[22rem] rounded-xl border border-gray-200 bg-white p-4 text-left shadow-lg dark:border-white/10 dark:bg-[#0e1930] z-20">
-                <div className="space-y-3">
-                  <div className="text-sm font-medium text-black dark:text-white">Filter Certificates</div>
-                  <div className="grid grid-cols-1 gap-3">
-                    <div>
-                      <label className="block text-xs mb-1 text-black/70 dark:text-white/70">Category</label>
-                      <select
-                        value={filterCategory}
-                        onChange={(e) => setFilterCategory(e.target.value)}
-                        className="w-full rounded-md border border-gray-300 bg-white px-2 py-2 text-sm dark:border-white/10 dark:bg-[#0b1220]"
-                      >
-                        <option value="">All</option>
-                        {categories.map((c) => (
-                          <option key={c} value={c}>{c}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="block text-xs mb-1 text-black/70 dark:text-white/70">From date</label>
-                        <input type="date" value={filterFrom} onChange={(e) => setFilterFrom(e.target.value)} className="w-full rounded-md border border-gray-300 bg-white px-2 py-2 text-sm dark:border-white/10 dark:bg-[#0b1220]" />
-                      </div>
-                      <div>
-                        <label className="block text-xs mb-1 text-black/70 dark:text-white/70">To date</label>
-                        <input type="date" value={filterTo} onChange={(e) => setFilterTo(e.target.value)} className="w-full rounded-md border border-gray-300 bg-white px-2 py-2 text-sm dark:border-white/10 dark:bg-[#0b1220]" />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-xs mb-1 text-black/70 dark:text-white/70">Keyword</label>
-                      <input
-                        value={filterQ}
-                        onChange={(e) => setFilterQ(e.target.value)}
-                        placeholder="Title/Description/Number"
-                        className="w-full rounded-md border border-gray-300 bg-white px-2 py-2 text-sm dark:border-white/10 dark:bg-[#0b1220]"
-                      />
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between pt-2">
-                    <button onClick={resetFilters} className="text-xs text-black/70 hover:text-black dark:text-white/70 dark:hover:text-white">Reset all</button>
-                    <div className="space-x-2">
-                      <button onClick={() => setShowFilter(false)} className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm hover:bg-black/5 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10">Cancel</button>
-                      <button onClick={applyFilters} className="rounded-md bg-blue-600 px-3 py-2 text-sm font-medium hover:bg-blue-500">Apply Filters</button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
         </div>
         {matches.length > 0 && (
           <div className="mx-auto mt-6 max-w-3xl">

@@ -260,7 +260,7 @@ export function MemberManageContent() {
   return (
     <main className="mx-auto max-w-7xl px-4 md:px-6 py-6 space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-extrabold tracking-tight text-black dark:text-white">{t('members')}</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight text-blue-600 dark:text-blue-400">{t('members')}</h1>
       </div>
 
       <div className="flex items-center gap-3">
@@ -282,7 +282,7 @@ export function MemberManageContent() {
           }}
           className="rounded-md border border-blue-600/50 bg-blue-600/10 px-3 py-2 text-sm text-blue-700 hover:bg-blue-600/20 dark:text-white"
         >
-          + Baru
+          + {t('new')}
         </button>
         {/* Import Excel button removed as requested */}
         <div className="ml-2 flex-1">
@@ -299,11 +299,11 @@ export function MemberManageContent() {
         </div>
       </div>
 
-      <section className="rounded-xl border border-gray-200 bg-white dark:border-white/10 dark:bg-[#0d172b]">
+      <section className="rounded-xl border-2 border-blue-100 bg-white shadow-lg dark:border-white/10 dark:bg-[#0d172b]">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="text-black/70 dark:text-white/70">
+              <tr className="bg-blue-50/50 text-black/70 dark:bg-blue-900/20 dark:text-white/70">
                 <th className="px-4 py-3 font-medium">{t('name')}</th>
                 <th className="px-4 py-3 font-medium">{t('organization')}</th>
                 <th className="px-4 py-3 font-medium">{t('phone')}</th>
@@ -320,20 +320,20 @@ export function MemberManageContent() {
               {isLoading ? (
                 <tr>
                   <td colSpan={10} className="px-4 py-10 text-center text-black/60 dark:text-white/50">
-                    Memuat data...
+                    {t('loadingData')}
                   </td>
                 </tr>
               ) : filteredRows.length === 0 ? (
                 <tr>
                   <td colSpan={10} className="px-4 py-10 text-center text-black/60 dark:text-white/50">
-                    Belum ada data untuk ditampilkan
+                    {t('noDataToDisplay')}
                   </td>
                 </tr>
               ) : (
                 filteredRows.map((r) => {
                   const idx = rows.indexOf(r)
                   return (
-                    <tr key={idx} className="border-t border-gray-200 dark:border-white/5">
+                    <tr key={idx} className="border-t border-gray-200 hover:bg-blue-50/30 transition-colors dark:border-white/5 dark:hover:bg-blue-900/10">
                       <td className="px-4 py-2 text-black dark:text-white">{r.name}</td>
                       <td className="px-4 py-2 text-black dark:text-white">{r.organization}</td>
                       <td className="px-4 py-2 text-black dark:text-white">{r.phone}</td>
@@ -372,7 +372,7 @@ export function MemberManageContent() {
         </div>
 
         <div className="flex items-center justify-between border-t border-gray-200 dark:border-white/10 px-4 py-3 text-sm">
-          <div className="text-black/60 dark:text-white/50">Menampilkan {filteredRows.length} dari {rows.length}</div>
+          <div className="text-black/60 dark:text-white/50">{t('showing')} {filteredRows.length} {t('of')} {rows.length}</div>
           <div className="flex items-center gap-2">
             <button className="rounded-md border border-gray-300 bg-black/5 px-2 py-1 disabled:opacity-40 dark:border-white/10 dark:bg-white/5" disabled>{"<<"}</button>
             <button className="rounded-md border border-gray-300 bg-black/5 px-2 py-1 disabled:opacity-40 dark:border-white/10 dark:bg-white/5" disabled>{"<"}</button>

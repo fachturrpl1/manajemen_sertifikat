@@ -16,7 +16,7 @@ export function TeamNavbar() {
   const { user } = useAuth()
 
   return (
-    <header className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-white/10">
+    <header className="flex items-center justify-between px-6 py-4 border-b border-gray-200 shadow-md dark:border-white/10 dark:shadow-blue-500/10">
       <div className="flex items-center gap-8">
       <Link href="/team">
       <div className="mx-auto m-1 inline-flex items-center gap-2">
@@ -77,11 +77,11 @@ export function TeamNavbar() {
             onClick={() => setShowLogoutConfirm(false)}
           />
           <div className="relative z-10 w-full max-w-sm rounded-xl border border-gray-200 bg-white p-6 shadow-2xl animate-in zoom-in-95 fade-in duration-200 dark:border-white/10 dark:bg-[#0d172b]">
-            <h3 className="text-lg font-semibold mb-1 text-black dark:text-white">Konfirmasi Logout</h3>
-            <p className="text-black/70 dark:text-white/70 mb-4">Anda yakin ingin keluar?</p>
+            <h3 className="text-lg font-semibold mb-1 text-black dark:text-white">{t('confirmLogoutTitle')}</h3>
+            <p className="text-black/70 dark:text-white/70 mb-4">{t('confirmLogoutMessage')}</p>
             <div className="flex justify-end gap-3">
-              <button onClick={() => setShowLogoutConfirm(false)} className="rounded-md border border-gray-300 bg-black/5 px-4 py-2 text-sm text-black hover:bg-black/10 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:bg-white/10">Batal</button>
-              <button onClick={() => { setShowLogoutConfirm(false); router.push('/login') }} className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500">Logout</button>
+              <button onClick={() => setShowLogoutConfirm(false)} className="rounded-md border border-gray-300 bg-black/5 px-4 py-2 text-sm text-black hover:bg-black/10 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:bg-white/10">{t('cancel')}</button>
+              <button onClick={() => { setShowLogoutConfirm(false); router.push('/login') }} className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500">{t('logout')}</button>
             </div>
           </div>
         </div>

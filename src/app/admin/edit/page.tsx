@@ -1023,7 +1023,7 @@ function AdminEditContent() {
 
   return (
     <ProtectedRoute allowedRoles={['admin']}>
-      <div className="min-h-svh bg-white text-black dark:bg-gradient-to-b dark:from-[#0b1220] dark:to-[#0f1c35] dark:text-white">
+      <div className="min-h-svh bg-blue-50/30 text-black dark:bg-gradient-to-b dark:from-[#0b1220] dark:to-[#0f1c35] dark:text-white">
         <AdminNavbar />
          <main className="mx-auto max-w-7xl px-4 md:px-6 py-6 grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-6 items-start">
         <PreviewPanel
@@ -1073,7 +1073,7 @@ function AdminEditContent() {
             }
           }}
         />
-        <aside className="rounded-xl border border-gray-200 bg-white p-5 space-y-4 dark:border-white/10 dark:bg-[#0d172b]">
+        <aside className="rounded-xl border-2 border-blue-100 bg-white p-5 space-y-4 shadow-lg dark:border-white/10 dark:bg-[#0d172b]">
           <div>
             <label className="block text-sm text-black/70 mb-2 dark:text-white/70">{t('certificateCategory')}</label>
             <select
@@ -1403,13 +1403,13 @@ function AdminEditContent() {
             
             <div className="grid grid-cols-2 gap-3">
             <div>
-                <label className="block text-sm text-white/70 mb-1">{t('fontSize')}</label>
-                <input type="number" className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm" value={activeElement==='title'?titleSize:activeElement==='description'?descSize:activeElement==='date'?dateSize:activeElement==='number'?numberSize:expSize}
+                <label className="block text-sm text-black/70 mb-1 dark:text-white/70">{t('fontSize')}</label>
+                <input type="number" className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-black dark:border-white/10 dark:bg-white/5 dark:text-white" value={activeElement==='title'?titleSize:activeElement==='description'?descSize:activeElement==='date'?dateSize:activeElement==='number'?numberSize:expSize}
                    onChange={(e)=>{ const n=Number(e.target.value)||12; if(activeElement==='title'){ setTitleSize(n); saveToHistory(); queueSave({ title_size: n }) } else if(activeElement==='description'){ setDescSize(n); saveToHistory(); queueSave({ desc_size: n }) } else if(activeElement==='date'){ setDateSize(n); saveToHistory(); queueSave({ date_size: n }) } else if(activeElement==='number'){ setNumberSize(n); saveToHistory(); queueSave({ number_size: n }) } else { setExpSize(n); saveToHistory(); queueSave({ expires_size: n }) } }} />
             </div>
             <div>
-                <label className="block text-sm text-white/70 mb-1">{t('color')}</label>
-                <input type="color" className="h-10 w-full rounded-md border border-white/10 bg-white/5 p-1" value={activeElement==='title'?titleColor:activeElement==='description'?descColor:activeElement==='date'?dateColor:activeElement==='number'?numberColor:expColor}
+                <label className="block text-sm text-black/70 mb-1 dark:text-white/70">{t('color')}</label>
+                <input type="color" className="h-10 w-full rounded-md border border-gray-300 bg-white p-1 dark:border-white/10 dark:bg-white/5" value={activeElement==='title'?titleColor:activeElement==='description'?descColor:activeElement==='date'?dateColor:activeElement==='number'?numberColor:expColor}
                   onChange={(e)=>{ const v=e.target.value; if(activeElement==='title'){ setTitleColor(v); saveToHistory(); queueSave({ title_color: v }) } else if(activeElement==='description'){ setDescColor(v); saveToHistory(); queueSave({ desc_color: v }) } else if(activeElement==='date'){ setDateColor(v); saveToHistory(); queueSave({ date_color: v }) } else if(activeElement==='number'){ setNumberColor(v); saveToHistory(); queueSave({ number_color: v }) } else { setExpColor(v); saveToHistory(); queueSave({ expires_color: v }) } }} />
               </div>
             </div>
@@ -1780,7 +1780,7 @@ function PreviewPanel({ category, previewSrc, title, description, numberText, ti
     return y
   }
   return (
-    <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm min-h-[420px] dark:border-white/10 dark:bg-[#0d172b] dark:shadow-xl dark:shadow-blue-500/10">
+    <section className="rounded-xl border-2 border-blue-100 bg-white p-6 shadow-lg min-h-[420px] dark:border-white/10 dark:bg-[#0d172b] dark:shadow-xl dark:shadow-blue-500/10">
        <h2 className="text-3xl font-bold text-blue-700 mb-4 text-center dark:text-blue-400">{t('certificatePreview')}</h2>
        <div className="text-black/70 text-sm mb-2 text-center dark:text-white/80">{category ? `${t('categorySelected')}: ${category}` : t('noCategorySelected')}</div>
        {issuedAt && (
@@ -1795,7 +1795,7 @@ function PreviewPanel({ category, previewSrc, title, description, numberText, ti
        )}
       <div className="flex justify-center items-center">
         <div
-          className={`mt-4 rounded-lg border border-gray-200 bg-white relative overflow-hidden dark:border-white/10 dark:bg-white/5 ${dragging ? "cursor-grabbing" : "cursor-grab"}`}
+          className={`mt-4 rounded-lg border border-gray-300 bg-white relative overflow-hidden shadow-md dark:border-white/10 dark:bg-white/5 ${dragging ? "cursor-grabbing" : "cursor-grab"}`}
         ref={containerRef}
         style={{
           position: 'relative',
@@ -2033,7 +2033,7 @@ function TemplateChooser({ category, onChoose }: { category: string; onChoose?: 
                 key={path}
                 type="button"
                 onClick={onChoose ? () => onChoose(path, url) : undefined}
-                className="rounded-md border border-white/10 bg-white/5 hover:bg-white/10 p-1 cursor-pointer"
+                className="rounded-md border border-gray-300 bg-white shadow-sm hover:shadow-md hover:border-gray-400 p-1 cursor-pointer dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
                 title={path}
               >
                 <img src={url} alt={path} className="aspect-video object-cover rounded" />

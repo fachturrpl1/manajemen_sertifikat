@@ -129,7 +129,7 @@ export default function CheckCertificatePage({ params }: Props) {
 
   if (loading) {
     return (
-      <div className="min-h-svh bg-white text-black dark:bg-gradient-to-b dark:from-[#0b1220] dark:to-[#0f1c35] dark:text-white flex items-center justify-center">
+      <div className="min-h-svh bg-blue-50/30 text-black dark:bg-gradient-to-b dark:from-[#0b1220] dark:to-[#0f1c35] dark:text-white flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400 mx-auto mb-4"></div>
           <p>{t('loading')}</p>
@@ -140,7 +140,7 @@ export default function CheckCertificatePage({ params }: Props) {
 
   if (error || !certificateData) {
   return (
-    <div className="min-h-svh bg-white text-black dark:bg-gradient-to-b dark:from-[#0b1220] dark:to-[#0f1c35] dark:text-white">
+    <div className="min-h-svh bg-blue-50/30 text-black dark:bg-gradient-to-b dark:from-[#0b1220] dark:to-[#0f1c35] dark:text-white">
         <div className="absolute right-6 top-6 z-20 flex items-center gap-3">
           {/* Language Toggle Button */}
           <button
@@ -171,7 +171,7 @@ export default function CheckCertificatePage({ params }: Props) {
   }
 
   return (
-    <div className="min-h-svh bg-white text-black dark:bg-gradient-to-b dark:from-[#0b1220] dark:to-[#0f1c35] dark:text-white">
+    <div className="min-h-svh bg-blue-50/30 text-black dark:bg-gradient-to-b dark:from-[#0b1220] dark:to-[#0f1c35] dark:text-white">
       <div className="absolute right-6 top-6 z-20 flex items-center gap-3">
         {/* Language Toggle Button */}
         <button
@@ -198,7 +198,7 @@ export default function CheckCertificatePage({ params }: Props) {
       <div className="mx-auto max-w-6xl px-4 md:px-0 py-6">
 
         {/* Certificate Preview */}
-        <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm min-h-[420px] dark:border-white/10 dark:bg-[#0d172b] dark:shadow-xl dark:shadow-blue-500/10">
+        <section className="rounded-xl border-2 border-blue-100 bg-white p-6 shadow-lg min-h-[420px] dark:border-white/10 dark:bg-[#0d172b] dark:shadow-xl dark:shadow-blue-500/10">
           <h2 className="text-3xl font-bold text-blue-700 mb-4 text-center dark:text-blue-400">{t('certificatePreview')}</h2>
           <div className="text-black/70 text-sm mb-2 text-center dark:text-white/80">
             {certificateData.category ? `${t('categorySelected')}: ${certificateData.category}` : t('noCategorySelected')}
@@ -415,7 +415,7 @@ export default function CheckCertificatePage({ params }: Props) {
                 showToast('Failed to export PDF: ' + (error instanceof Error ? error.message : 'Unknown error'), 'error')
               }
             }}
-            className="rounded-md bg-blue-600 hover:bg-blue-500 px-4 py-2 text-sm"
+            className="rounded-md border border-blue-600/50 bg-blue-600/10 hover:bg-blue-600/20 px-4 py-2 text-sm text-blue-700 font-medium dark:border-blue-500/50 dark:bg-blue-600 dark:hover:bg-blue-500 dark:text-white"
           >
             {t('exportPdf')}
           </button>
@@ -645,7 +645,7 @@ Terima kasih.`
                 showToast('Gagal mengirim email: ' + (error instanceof Error ? error.message : 'Unknown error'), 'error')
               }
             }}
-            className="rounded-md border border-gray-300 bg-black/5 hover:bg-black/10 px-4 py-2 text-sm dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
+            className="rounded-md border border-gray-300 bg-black/5 hover:bg-black/10 px-4 py-2 text-sm text-black dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10 dark:text-white"
           >
             Send Email
           </button>
@@ -832,7 +832,7 @@ Terima kasih.`
                 showToast('Gagal menyalin gambar: ' + (error instanceof Error ? error.message : 'Unknown error'), 'error')
               }
             }}
-            className="rounded-md border border-white/10 bg-white/5 hover:bg-white/10 px-4 py-2 text-sm"
+            className="rounded-md border border-gray-300 bg-black/5 hover:bg-black/10 px-4 py-2 text-sm text-black dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10 dark:text-white"
           >
             Copy Image Link
           </button>
@@ -855,7 +855,7 @@ Terima kasih.`
                 showToast('Gagal menyalin link URL', 'error')
               }
             }}
-            className="rounded-md border border-white/10 bg-white/5 hover:bg-white/10 px-4 py-2 text-sm"
+            className="rounded-md border border-gray-300 bg-black/5 hover:bg-black/10 px-4 py-2 text-sm text-black dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10 dark:text-white"
           >
             Copy Link URL
           </button>

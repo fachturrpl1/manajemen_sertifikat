@@ -10,10 +10,10 @@ import { LoginForm } from "@/components/login-form"
 export default function LoginPage() {
   const { t, locale, setLocale } = useI18n()
   return (
-    <div className="relative min-h-svh bg-white text-black dark:bg-gradient-to-b dark:from-[#0b1220] dark:to-[#0f1c35] dark:text-white">
+    <div className="relative min-h-svh bg-blue-50/30 text-black dark:bg-gradient-to-b dark:from-[#0b1220] dark:to-[#0f1c35] dark:text-white">
       <div className="absolute left-6 top-6 z-20">
         <Link href="/" className="flex items-center gap-2 font-medium">
-          <div className="bg-blue-600 font-bold text-primary-white flex size-7 items-center justify-center rounded-md">
+          <div className="bg-blue-600 font-bold text-white flex size-7 items-center justify-center rounded-md">
             S
           </div>
           <span className="text-lg font-semibold tracking-wide">
@@ -34,7 +34,7 @@ export default function LoginPage() {
         </button>
       </div>
       <div className="flex min-h-svh items-center justify-center p-6 md:p-10">
-        <div className="w-full max-w-xs rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/5 dark:shadow-xl dark:shadow-blue-500/10 dark:backdrop-blur">
+        <div className="w-full max-w-md rounded-xl border-2 border-blue-100 bg-white p-8 shadow-2xl dark:border-white/10 dark:bg-[#0d172b] dark:shadow-xl dark:shadow-blue-500/10">
           <LoginForm />
         </div>
       </div>

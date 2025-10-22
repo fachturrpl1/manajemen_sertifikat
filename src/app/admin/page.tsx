@@ -87,10 +87,10 @@ export default function AdminPage() {
   }
   return (
     <ProtectedRoute allowedRoles={['admin']}>
-      <div className="min-h-svh bg-white text-black dark:bg-gradient-to-b dark:from-[#0b1220] dark:to-[#0f1c35] dark:text-white">
+      <div className="min-h-svh bg-blue-50/30 text-black dark:bg-gradient-to-b dark:from-[#0b1220] dark:to-[#0f1c35] dark:text-white">
         <AdminNavbar />
         <main className="mx-auto max-w-7xl px-4 md:px-6 py-6 grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-6">
-        <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-[#0d172b] dark:shadow-xl dark:shadow-blue-500/10">
+        <section className="rounded-xl border-2 border-blue-100 bg-white p-6 shadow-lg dark:border-white/10 dark:bg-[#0d172b] dark:shadow-xl dark:shadow-blue-500/10">
           <h2 className="text-3xl font-bold text-blue-700 mb-4 dark:text-blue-400">{t('howToUse')}</h2>
           <ol className="space-y-3 text-black/70 list-decimal pl-5 dark:text-white/80">
             <li>{t('step1')}</li>
@@ -102,7 +102,7 @@ export default function AdminPage() {
           </ol>
         </section>
 
-        <aside className="rounded-xl border border-gray-200 bg-white p-5 space-y-4 dark:border-white/10 dark:bg-[#0d172b]">
+        <aside className="rounded-xl border-2 border-blue-100 bg-white p-5 space-y-4 shadow-lg dark:border-white/10 dark:bg-[#0d172b]">
           <div>
             <label className="block text-sm text-black/70 mb-2 dark:text-white/70">{t('searchCertificate')}</label>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
