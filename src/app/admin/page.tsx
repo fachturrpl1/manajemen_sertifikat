@@ -152,7 +152,7 @@ export default function AdminPage() {
             </div>
           </div>
           <div className="pt-1">
-            <button onClick={goCreateNew} className="w-full rounded-md bg-blue-600 hover:bg-blue-500 px-4 py-2 text-sm font-medium">{t('createNew')}</button>
+            <button onClick={goCreateNew} className="w-full rounded-md bg-blue-600 hover:bg-blue-500 px-4 py-2 text-sm font-medium text-white dark:bg-blue-500 dark:hover:bg-blue-400">{t('createNew')}</button>
           </div>
         </aside>
         </main>
