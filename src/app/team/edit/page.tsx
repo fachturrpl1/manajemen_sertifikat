@@ -1080,7 +1080,7 @@ function PreviewPanel({ category, previewSrc, title, description, numberText, ti
           const overlay = (e.currentTarget as HTMLDivElement).querySelector('[data-overlay="text"]') as HTMLElement | null
           if (!overlay) return
           const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect()
-          const base = active === 'title' ? titlePos : active === 'description' ? descPos : active === 'date' ? datePos : active === 'number' ? numberPos : expiredPos
+          const base = activeElement === 'title' ? titlePos : activeElement === 'description' ? descPos : activeElement === 'date' ? datePos : activeElement === 'number' ? numberPos : expiredPos
           const start = screenToImg(Math.round(e.clientX - rect.left), Math.round(e.clientY - rect.top))
           const ox = base.x - start.x
           const oy = base.y - start.y
@@ -1110,27 +1110,27 @@ function PreviewPanel({ category, previewSrc, title, description, numberText, ti
             previewSrc.endsWith('.pdf') ? (
               <object data={previewSrc} type="application/pdf" className="w-full h-full" />
             ) : (
-              <img src={previewSrc} alt="Template" className="absolute inset-0 w-full h-full object-contain" onLoad={(e)=>{ setNatW(e.currentTarget.naturalWidth); setNatH(e.currentTarget.naturalHeight); setTimeout(()=>{renderLivePng()},0) }} />
+              <img src={previewSrc} alt="Template" className="absolute inset-0 w-full h-full object-contain" crossOrigin="anonymous" data-preview-image onLoad={(e)=>{ setNatW(e.currentTarget.naturalWidth); setNatH(e.currentTarget.naturalHeight); setTimeout(()=>{renderLivePng()},0) }} />
             )
           ) : null}
-          <div className="absolute" style={{ left: `${imgToScreen(titlePos.x, titlePos.y).x}px`, top: `${imgToScreen(titlePos.x, titlePos.y).y}px`, width: 'auto', maxWidth: 'calc(100% - 40px)', textAlign: titleAlign, fontFamily: titleFont, fontSize: `${titlePos.size}px`, color: titlePos.color, position: 'absolute', zIndex: 10, opacity: livePng ? 0 : 1 }} data-overlay="text">
+          <div className="absolute" style={{ left: `${imgToScreen(titlePos.x, titlePos.y).x}px`, top: `${imgToScreen(titlePos.x, titlePos.y).y}px`, width: 'auto', maxWidth: 'calc(100% - 40px)', textAlign: titleAlign, fontFamily: titleFont, fontSize: `${titlePos.size}px`, color: titlePos.color, position: 'absolute', zIndex: 10, opacity: livePng ? 0 : 1, transform: titleAlign === 'center' ? 'translateX(-50%)' : titleAlign === 'right' ? 'translateX(-100%)' : undefined }} data-overlay="text">
             <div>{title}</div>
           </div>
-          <div className="absolute" style={{ left: `${imgToScreen(descPos.x, descPos.y).x}px`, top: `${imgToScreen(descPos.x, descPos.y).y}px`, width: 'auto', maxWidth: 'calc(100% - 40px)', textAlign: descAlign, fontFamily: descFont, fontSize: `${descPos.size}px`, color: descPos.color, whiteSpace: 'pre-line', position: 'absolute', zIndex: 10, opacity: livePng ? 0 : 1 }}>
+          <div className="absolute" style={{ left: `${imgToScreen(descPos.x, descPos.y).x}px`, top: `${imgToScreen(descPos.x, descPos.y).y}px`, width: 'auto', maxWidth: 'calc(100% - 40px)', textAlign: descAlign, fontFamily: descFont, fontSize: `${descPos.size}px`, color: descPos.color, whiteSpace: 'pre-line', position: 'absolute', zIndex: 10, opacity: livePng ? 0 : 1, transform: descAlign === 'center' ? 'translateX(-50%)' : descAlign === 'right' ? 'translateX(-100%)' : undefined }}>
             <div className="opacity-90">{description}</div>
           </div>
           {numberText && (
-            <div className="absolute" style={{ left: `${imgToScreen(numberPos.x, numberPos.y).x}px`, top: `${imgToScreen(numberPos.x, numberPos.y).y}px`, width: 'auto', maxWidth: 'calc(100% - 40px)', textAlign: numberAlign, fontFamily: numberFont, fontSize: `${numberPos.size}px`, color: numberPos.color, position: 'absolute', zIndex: 10, opacity: livePng ? 0 : 1 }}>
+            <div className="absolute" style={{ left: `${imgToScreen(numberPos.x, numberPos.y).x}px`, top: `${imgToScreen(numberPos.x, numberPos.y).y}px`, width: 'auto', maxWidth: 'calc(100% - 40px)', textAlign: numberAlign, fontFamily: numberFont, fontSize: `${numberPos.size}px`, color: numberPos.color, position: 'absolute', zIndex: 10, opacity: livePng ? 0 : 1, transform: numberAlign === 'center' ? 'translateX(-50%)' : numberAlign === 'right' ? 'translateX(-100%)' : undefined }}>
               <div>{numberText}</div>
             </div>
           )}
           {issuedAt && (
-            <div className="absolute" style={{ left: `${imgToScreen(datePos.x, datePos.y).x}px`, top: `${imgToScreen(datePos.x, datePos.y).y}px`, width: 'auto', maxWidth: 'calc(100% - 40px)', textAlign: dateAlign, fontFamily: dateFont, fontSize: `${datePos.size}px`, color: datePos.color, position: 'absolute', zIndex: 10, opacity: livePng ? 0 : 1 }}>
+            <div className="absolute" style={{ left: `${imgToScreen(datePos.x, datePos.y).x}px`, top: `${imgToScreen(datePos.x, datePos.y).y}px`, width: 'auto', maxWidth: 'calc(100% - 40px)', textAlign: dateAlign, fontFamily: dateFont, fontSize: `${datePos.size}px`, color: datePos.color, position: 'absolute', zIndex: 10, opacity: livePng ? 0 : 1, transform: dateAlign === 'center' ? 'translateX(-50%)' : dateAlign === 'right' ? 'translateX(-100%)' : undefined }}>
               <div className="mt-1 opacity-80">{issuedAt}</div>
             </div>
           )}
           {expiresAt && (
-            <div className="absolute" style={{ left: `${imgToScreen(expiredPos.x, expiredPos.y).x}px`, top: `${imgToScreen(expiredPos.x, expiredPos.y).y}px`, width: 'auto', maxWidth: 'calc(100% - 40px)', textAlign: expAlign, fontFamily: expFont, fontSize: `${expiredPos.size}px`, color: expiredPos.color, position: 'absolute', zIndex: 10, opacity: livePng ? 0 : 1 }}>
+            <div className="absolute" style={{ left: `${imgToScreen(expiredPos.x, expiredPos.y).x}px`, top: `${imgToScreen(expiredPos.x, expiredPos.y).y}px`, width: 'auto', maxWidth: 'calc(100% - 40px)', textAlign: expAlign, fontFamily: expFont, fontSize: `${expiredPos.size}px`, color: expiredPos.color, position: 'absolute', zIndex: 10, opacity: livePng ? 0 : 1, transform: expAlign === 'center' ? 'translateX(-50%)' : expAlign === 'right' ? 'translateX(-100%)' : undefined }}>
               <div className="mt-1 opacity-80">{expiresAt}</div>
             </div>
           )}
@@ -1143,21 +1143,30 @@ function PreviewPanel({ category, previewSrc, title, description, numberText, ti
 
 // Peta template per kategori (public/certificate/<kategori>/...)
 const TEMPLATE_MAP: Record<string, string[]> = {
+  // Kunjungan Industri
   "kunjungan industri": [
     "certificate/kunjungan_industri/industri1.png",
     "certificate/kunjungan_industri/industri2.png",
   ],
+  "kunjungan_industri": [
+    "certificate/kunjungan_industri/industri1.png",
+    "certificate/kunjungan_industri/industri2.png",
+  ],
+  // Magang
   magang: [
     "certificate/magang/magang1.png",
     "certificate/magang/magang2.png",
   ],
+  // MoU
   mou: [
     "certificate/mou/mou1.png",
     "certificate/mou/mou2.png",
   ],
+  // Pelatihan
   pelatihan: [
     "certificate/pelatihan/pelatihan1.png",
     "certificate/pelatihan/pelatihan2.png",
+    "certificate/pelatihan/pelatihan3.png",
   ],
 }
 
