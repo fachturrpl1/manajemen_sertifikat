@@ -92,7 +92,7 @@ export function DetailedDebug() {
 
   if (isLoading) {
     return (
-      <div className="bg-[#0d172b] border border-white/10 rounded-xl p-4 text-white">
+      <div className="rounded-xl border border-gray-200 bg-white p-4 text-black dark:border-white/10 dark:bg-[#0d172b] dark:text-white">
         <h3 className="text-lg font-semibold mb-4">Running Detailed Debug...</h3>
         <div className="animate-pulse">Loading...</div>
       </div>
@@ -100,55 +100,55 @@ export function DetailedDebug() {
   }
 
   return (
-    <div className="bg-[#0d172b] border border-white/10 rounded-xl p-4 text-white">
+    <div className="rounded-xl border border-gray-200 bg-white p-4 text-black dark:border-white/10 dark:bg-[#0d172b] dark:text-white">
       <h3 className="text-lg font-semibold mb-4">Detailed Debug Results</h3>
       
       <div className="space-y-4">
         <div>
-          <h4 className="font-medium text-blue-400 mb-2">Supabase Client:</h4>
-          <div className="bg-black/20 p-2 rounded text-xs">
+          <h4 className="font-medium text-blue-700 mb-2 dark:text-blue-400">Supabase Client:</h4>
+          <div className="bg-black/5 dark:bg-black/20 p-2 rounded text-xs">
             <pre>{JSON.stringify(debugResults?.supabaseClient, null, 2)}</pre>
           </div>
         </div>
 
         <div>
-          <h4 className="font-medium text-blue-400 mb-2">Authentication:</h4>
-          <div className="bg-black/20 p-2 rounded text-xs">
+          <h4 className="font-medium text-blue-700 mb-2 dark:text-blue-400">Authentication:</h4>
+          <div className="bg-black/5 dark:bg-black/20 p-2 rounded text-xs">
             <pre>{JSON.stringify(debugResults?.auth, null, 2)}</pre>
           </div>
         </div>
 
         <div>
-          <h4 className="font-medium text-blue-400 mb-2">Session:</h4>
-          <div className="bg-black/20 p-2 rounded text-xs">
+          <h4 className="font-medium text-blue-700 mb-2 dark:text-blue-400">Session:</h4>
+          <div className="bg-black/5 dark:bg-black/20 p-2 rounded text-xs">
             <pre>{JSON.stringify(debugResults?.session, null, 2)}</pre>
           </div>
         </div>
 
         <div>
-          <h4 className="font-medium text-blue-400 mb-2">Simple Query:</h4>
-          <div className="bg-black/20 p-2 rounded text-xs">
+          <h4 className="font-medium text-blue-700 mb-2 dark:text-blue-400">Simple Query:</h4>
+          <div className="bg-black/5 dark:bg-black/20 p-2 rounded text-xs">
             <pre>{JSON.stringify(debugResults?.simpleQuery, null, 2)}</pre>
           </div>
         </div>
 
         <div>
-          <h4 className="font-medium text-blue-400 mb-2">Full Query ({(debugResults?.fullQuery as { count?: number })?.count || 0}):</h4>
-          <div className="bg-black/20 p-2 rounded text-xs max-h-40 overflow-auto">
+          <h4 className="font-medium text-blue-700 mb-2 dark:text-blue-400">Full Query ({(debugResults?.fullQuery as { count?: number })?.count || 0}):</h4>
+          <div className="bg-black/5 dark:bg-black/20 p-2 rounded text-xs max-h-40 overflow-auto">
             <pre>{JSON.stringify(debugResults?.fullQuery, null, 2)}</pre>
           </div>
         </div>
 
         <div>
-          <h4 className="font-medium text-blue-400 mb-2">Table Exists:</h4>
-          <div className="bg-black/20 p-2 rounded text-xs">
+          <h4 className="font-medium text-blue-700 mb-2 dark:text-blue-400">Table Exists:</h4>
+          <div className="bg-black/5 dark:bg-black/20 p-2 rounded text-xs">
             <pre>{JSON.stringify(debugResults?.tableExists, null, 2)}</pre>
           </div>
         </div>
 
         <div>
-          <h4 className="font-medium text-blue-400 mb-2">Alternative Query ({(debugResults?.alternativeQuery as { count?: number })?.count || 0}):</h4>
-          <div className="bg-black/20 p-2 rounded text-xs max-h-40 overflow-auto">
+          <h4 className="font-medium text-blue-700 mb-2 dark:text-blue-400">Alternative Query ({(debugResults?.alternativeQuery as { count?: number })?.count || 0}):</h4>
+          <div className="bg-black/5 dark:bg-black/20 p-2 rounded text-xs max-h-40 overflow-auto">
             <pre>{JSON.stringify(debugResults?.alternativeQuery, null, 2)}</pre>
           </div>
         </div>

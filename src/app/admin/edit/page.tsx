@@ -1023,7 +1023,7 @@ function AdminEditContent() {
 
   return (
     <ProtectedRoute allowedRoles={['admin']}>
-      <div className="min-h-svh bg-gradient-to-b from-[#0b1220] to-[#0f1c35] text-white">
+      <div className="min-h-svh bg-white text-black dark:bg-gradient-to-b dark:from-[#0b1220] dark:to-[#0f1c35] dark:text-white">
         <AdminNavbar />
          <main className="mx-auto max-w-7xl px-4 md:px-6 py-6 grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-6 items-start">
         <PreviewPanel
@@ -1073,9 +1073,9 @@ function AdminEditContent() {
             }
           }}
         />
-        <aside className="rounded-xl border border-white/10 bg-[#0d172b] p-5 space-y-4">
+        <aside className="rounded-xl border border-gray-200 bg-white p-5 space-y-4 dark:border-white/10 dark:bg-[#0d172b]">
           <div>
-            <label className="block text-sm text-white/70 mb-2">{t('certificateCategory')}</label>
+            <label className="block text-sm text-black/70 mb-2 dark:text-white/70">{t('certificateCategory')}</label>
             <select
               value={category}
               onChange={async (e) => {
@@ -1083,7 +1083,7 @@ function AdminEditContent() {
                 setCategory(val)
                 await saveCategory(val)
               }}
-              className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-black disabled:opacity-50 disabled:cursor-not-allowed dark:border-white/10 dark:bg-[#0f1c35] dark:text-white"
               disabled={saving || applyingTemplate}
             >
               <option value="">{t('selectCategory')}</option>
@@ -1092,7 +1092,7 @@ function AdminEditContent() {
               ))}
             </select>
             {message && (
-              <div className="mt-2 text-xs text-white/70">{message}</div>
+              <div className="mt-2 text-xs text-black/70 dark:text-white/70">{message}</div>
             )}
           </div>
           <TemplateChooser
@@ -1114,20 +1114,20 @@ function AdminEditContent() {
           <div className="grid grid-cols-1 gap-3 pt-2">
             {/* Pilih elemen yang sedang diedit */}
             <div>
-              <label className="block text-sm text-white/70 mb-1">{t('editElements')}</label>
+              <label className="block text-sm text-black/70 mb-1 dark:text-white/70">{t('editElements')}</label>
               <div className="grid grid-cols-3 gap-2">
-                <button className={`rounded-md border border-white/10 px-3 py-2 text-sm ${activeElement==='title'?'bg-white/15':'bg-white/5'}`} onClick={()=>setActiveElement('title')}>{t('name')}</button>
-                <button className={`rounded-md border border-white/10 px-3 py-2 text-sm ${activeElement==='description'?'bg-white/15':'bg-white/5'}`} onClick={()=>setActiveElement('description')}>{t('description')}</button>
-                <button className={`rounded-md border border-white/10 px-3 py-2 text-sm ${activeElement==='date'?'bg-white/15':'bg-white/5'}`} onClick={()=>setActiveElement('date')}>{t('date')}</button>
-                <button className={`rounded-md border border-white/10 px-3 py-2 text-sm ${activeElement==='number'?'bg-white/15':'bg-white/5'}`} onClick={()=>setActiveElement('number')}>{t('number')}</button>
-                <button className={`rounded-md border border-white/10 px-3 py-2 text-sm ${activeElement==='expired'?'bg-white/15':'bg-white/5'}`} onClick={()=>setActiveElement('expired')}>{t('expired')}</button>
+                <button className={`rounded-md border border-gray-300 px-3 py-2 text-sm ${activeElement==='title'?'bg-black/10 dark:bg-white/15':'bg-black/5 dark:bg-white/5'} dark:border-white/10`} onClick={()=>setActiveElement('title')}>{t('name')}</button>
+                <button className={`rounded-md border border-gray-300 px-3 py-2 text-sm ${activeElement==='description'?'bg-black/10 dark:bg-white/15':'bg-black/5 dark:bg-white/5'} dark:border-white/10`} onClick={()=>setActiveElement('description')}>{t('description')}</button>
+                <button className={`rounded-md border border-gray-300 px-3 py-2 text-sm ${activeElement==='date'?'bg-black/10 dark:bg-white/15':'bg-black/5 dark:bg-white/5'} dark:border-white/10`} onClick={()=>setActiveElement('date')}>{t('date')}</button>
+                <button className={`rounded-md border border-gray-300 px-3 py-2 text-sm ${activeElement==='number'?'bg-black/10 dark:bg-white/15':'bg-black/5 dark:bg-white/5'} dark:border-white/10`} onClick={()=>setActiveElement('number')}>{t('number')}</button>
+                <button className={`rounded-md border border-gray-300 px-3 py-2 text-sm ${activeElement==='expired'?'bg-black/10 dark:bg-white/15':'bg-black/5 dark:bg-white/5'} dark:border-white/10`} onClick={()=>setActiveElement('expired')}>{t('expired')}</button>
               </div>
             </div>
             {activeElement === 'title' && (
             <div>
-              <label className="block text-sm text-white/70 mb-1">{t('name')}</label>
+              <label className="block text-sm text-black/70 mb-1 dark:text-white/70">{t('name')}</label>
               <input
-                className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm"
+                className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-black dark:border-white/10 dark:bg-[#0f1c35] dark:text-white"
                 value={title}
                 onChange={async (e) => {
                   const v = e.target.value; setTitle(v)
@@ -1142,9 +1142,9 @@ function AdminEditContent() {
             )}
             {activeElement === 'description' && (
             <div>
-              <label className="block text-sm text-white/70 mb-1">{t('description')}</label>
+              <label className="block text-sm text-black/70 mb-1 dark:text-white/70">{t('description')}</label>
               <textarea
-                className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm"
+                className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-black dark:border-white/10 dark:bg-[#0f1c35] dark:text-white"
                 rows={3}
                 value={description}
                 onChange={async (e) => {
@@ -1160,9 +1160,9 @@ function AdminEditContent() {
             )}
             {activeElement === 'number' && (
             <div>
-              <label className="block text-sm text-white/70 mb-1">{t('certificateNumber')}</label>
+              <label className="block text-sm text-black/70 mb-1 dark:text-white/70">{t('certificateNumber')}</label>
               <input
-                className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm"
+                className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-black dark:border-white/10 dark:bg-[#0f1c35] dark:text-white"
                 value={numberText}
                 onChange={async (e) => {
                   const v = e.target.value; setNumberText(v)
@@ -1177,13 +1177,13 @@ function AdminEditContent() {
             )}
             {activeElement === 'date' && (
               <div>
-                <label className="block text-sm text-white/70 mb-1">{t('integratedDate')}</label>
+                <label className="block text-sm text-black/70 mb-1 dark:text-white/70">{t('integratedDate')}</label>
                 <div className="space-y-3">
                   {/* Input tanggal manual */}
                   <div>
                     <input 
                       type="date" 
-                      className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white" 
+                      className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-black dark:border-white/10 dark:bg-[#0f1c35] dark:text-white" 
                       value={issuedAt || ""}
                       onChange={async (e) => {
                         const v = e.target.value
@@ -1218,7 +1218,7 @@ function AdminEditContent() {
                     />
                   </div>
                   <div>
-                    <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm text-white" value={dateFormat} onChange={(e) => { setDateFormat(e.target.value); saveToHistory(); if (certificateId) { queueSave({ date_format: e.target.value }) } }}>
+                    <select className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-black dark:border-white/10 dark:bg-[#0f1c35] dark:text-white" value={dateFormat} onChange={(e) => { setDateFormat(e.target.value); saveToHistory(); if (certificateId) { queueSave({ date_format: e.target.value }) } }}>
                       <option value="dd/mm/yyyy">dd/mm/yyyy</option>
                       <option value="mm/dd/yyyy">mm/dd/yyyy</option>
                       <option value="yyyy/mm/dd">yyyy/mm/dd</option>
@@ -1236,12 +1236,12 @@ function AdminEditContent() {
             )}
             {activeElement === 'expired' && (
               <div>
-                <label className="block text-sm text-white/70 mb-1">{t('expiredDate')}</label>
+                <label className="block text-sm text-black/70 mb-1 dark:text-white/70">{t('expiredDate')}</label>
                 <div className="space-y-3">
                   <div>
                     <input 
                       type="date" 
-                      className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white" 
+                      className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-black dark:border-white/10 dark:bg-[#0f1c35] dark:text-white" 
                       value={expiresAt || ""}
                       onChange={async (e) => {
                         const v = e.target.value
@@ -1254,7 +1254,7 @@ function AdminEditContent() {
                     />
                   </div>
                   <div>
-                    <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm text-white" value={expiredFormat} onChange={(e) => { setExpiredFormat(e.target.value); saveToHistory(); if (certificateId) { queueSave({ expired_format: e.target.value }) } }}>
+                    <select className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-black dark:border-white/10 dark:bg-[#0f1c35] dark:text-white" value={expiredFormat} onChange={(e) => { setExpiredFormat(e.target.value); saveToHistory(); if (certificateId) { queueSave({ expired_format: e.target.value }) } }}>
                       <option value="dd/mm/yyyy">dd/mm/yyyy</option>
                       <option value="mm/dd/yyyy">mm/dd/yyyy</option>
                       <option value="yyyy/mm/dd">yyyy/mm/dd</option>
@@ -1273,13 +1273,13 @@ function AdminEditContent() {
             )}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm text-white/70 mb-1">{t('positionX')}</label>
-                <input type="number" className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm" value={activeElement==='title'?titleX:activeElement==='description'?descX:activeElement==='date'?dateX:activeElement==='number'?numberX:expX}
+                <label className="block text-sm text-black/70 mb-1 dark:text-white/70">{t('positionX')}</label>
+                <input type="number" className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-black dark:border-white/10 dark:bg-[#0f1c35] dark:text-white" value={activeElement==='title'?titleX:activeElement==='description'?descX:activeElement==='date'?dateX:activeElement==='number'?numberX:expX}
                   onChange={(e) => { const n = Math.max(0, Number(e.target.value)||0); if(activeElement==='title'){ setTitleX(n); saveToHistory(); queueSave({ title_x: n }) } else if(activeElement==='description'){ setDescX(n); saveToHistory(); queueSave({ desc_x: n }) } else if(activeElement==='date'){ setDateX(n); saveToHistory(); queueSave({ date_x: n }) } else if(activeElement==='number'){ setNumberX(n); saveToHistory(); queueSave({ number_x: n }) } else { setExpX(n); saveToHistory(); queueSave({ expires_x: n }) } }} />
               </div>
               <div>
-                <label className="block text-sm text-white/70 mb-1">{t('positionY')}</label>
-                <input type="number" className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm" value={activeElement==='title'?titleY:activeElement==='description'?descY:activeElement==='date'?dateY:activeElement==='number'?numberY:expY}
+                <label className="block text-sm text-black/70 mb-1 dark:text-white/70">{t('positionY')}</label>
+                <input type="number" className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-black dark:border-white/10 dark:bg-[#0f1c35] dark:text-white" value={activeElement==='title'?titleY:activeElement==='description'?descY:activeElement==='date'?dateY:activeElement==='number'?numberY:expY}
                   onChange={(e) => { const n = Math.max(0, Number(e.target.value)||0); if(activeElement==='title'){ setTitleY(n); saveToHistory(); queueSave({ title_y: n }) } else if(activeElement==='description'){ setDescY(n); saveToHistory(); queueSave({ desc_y: n }) } else if(activeElement==='date'){ setDateY(n); saveToHistory(); queueSave({ date_y: n }) } else if(activeElement==='number'){ setNumberY(n); saveToHistory(); queueSave({ number_y: n }) } else { setExpY(n); saveToHistory(); queueSave({ expires_y: n }) } }} />
               </div>
             </div>
@@ -1287,8 +1287,8 @@ function AdminEditContent() {
             {activeElement === 'title' && (
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm text-white/70 mb-1">{t('justifyTitle')}</label>
-                  <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={titleAlign}
+                  <label className="block text-sm text-black/70 mb-1 dark:text-white/70">{t('justifyTitle')}</label>
+                  <select className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-black dark:border-white/10 dark:bg-[#0f1c35] dark:text-white" value={titleAlign}
                      onChange={(e)=>{ const v = e.target.value as "left"|"center"|"right"; setTitleAlign(v); saveToHistory(); queueSave({ title_align: v }) }}>
                     <option value="left">{t('left')}</option>
                     <option value="center">{t('center')}</option>
@@ -1296,8 +1296,8 @@ function AdminEditContent() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm text-white/70 mb-1">{t('fontTitle')}</label>
-                  <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={titleFont}
+                  <label className="block text-sm text-black/70 mb-1 dark:text-white/70">{t('fontTitle')}</label>
+                  <select className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-black dark:border-white/10 dark:bg-[#0f1c35] dark:text-white" value={titleFont}
                      onChange={(e)=>{ const v=e.target.value; setTitleFont(v); saveToHistory(); queueSave({ title_font: v }) }}>
                     <option value="Inter, ui-sans-serif, system-ui">{t('inter')}</option>
                     <option value="Arial, Helvetica, sans-serif">{t('arial')}</option>
@@ -1310,8 +1310,8 @@ function AdminEditContent() {
             {activeElement === 'number' && (
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm text-white/70 mb-1">{t('justify')}</label>
-                  <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={numberAlign}
+                  <label className="block text-sm text-black/70 mb-1 dark:text-white/70">{t('justify')}</label>
+                  <select className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-black dark:border-white/10 dark:bg-[#0f1c35] dark:text-white" value={numberAlign}
                     onChange={(e)=>{ const v = e.target.value as "left"|"center"|"right"; setNumberAlign(v); saveToHistory(); queueSave({ number_align: v }) }}>
                     <option value="left">{t('left')}</option>
                     <option value="center">{t('center')}</option>
@@ -1319,8 +1319,8 @@ function AdminEditContent() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm text-white/70 mb-1">{t('font')}</label>
-                  <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={numberFont}
+                  <label className="block text-sm text-black/70 mb-1 dark:text-white/70">{t('font')}</label>
+                  <select className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-black dark:border-white/10 dark:bg-[#0f1c35] dark:text-white" value={numberFont}
                     onChange={(e)=>{ const v=e.target.value; setNumberFont(v); saveToHistory(); queueSave({ number_font: v }) }}>
                     <option value="Inter, ui-sans-serif, system-ui">{t('inter')}</option>
                     <option value="Arial, Helvetica, sans-serif">{t('arial')}</option>
@@ -1333,8 +1333,8 @@ function AdminEditContent() {
             {activeElement === 'expired' && (
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm text-white/70 mb-1">{t('justify')}</label>
-                  <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={expAlign}
+                  <label className="block text-sm text-black/70 mb-1 dark:text-white/70">{t('justify')}</label>
+                  <select className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-black dark:border-white/10 dark:bg-[#0f1c35] dark:text-white" value={expAlign}
                     onChange={(e)=>{ const v = e.target.value as "left"|"center"|"right"; setExpAlign(v); saveToHistory(); queueSave({ expires_align: v }) }}>
                     <option value="left">{t('left')}</option>
                     <option value="center">{t('center')}</option>
@@ -1342,8 +1342,8 @@ function AdminEditContent() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm text-white/70 mb-1">{t('font')}</label>
-                  <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={expFont}
+                  <label className="block text-sm text-black/70 mb-1 dark:text-white/70">{t('font')}</label>
+                  <select className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-black dark:border-white/10 dark:bg-[#0f1c35] dark:text-white" value={expFont}
                     onChange={(e)=>{ const v=e.target.value; setExpFont(v); saveToHistory(); queueSave({ expires_font: v }) }}>
                     <option value="Inter, ui-sans-serif, system-ui">{t('inter')}</option>
                     <option value="Arial, Helvetica, sans-serif">{t('arial')}</option>
@@ -1356,8 +1356,8 @@ function AdminEditContent() {
             {activeElement === 'description' && (
             <div className="grid grid-cols-2 gap-3">
               <div>
-                  <label className="block text-sm text-white/70 mb-1">{t('justifyDescription')}</label>
-                  <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={descAlign}
+                  <label className="block text-sm text-black/70 mb-1 dark:text-white/70">{t('justifyDescription')}</label>
+                  <select className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-black dark:border-white/10 dark:bg-[#0f1c35] dark:text-white" value={descAlign}
                      onChange={(e)=>{ const v = e.target.value as "left"|"center"|"right"; setDescAlign(v); saveToHistory(); queueSave({ desc_align: v }) }}>
                   <option value="left">{t('left')}</option>
                   <option value="center">{t('center')}</option>
@@ -1365,8 +1365,8 @@ function AdminEditContent() {
                 </select>
             </div>
             <div>
-                  <label className="block text-sm text-white/70 mb-1">{t('fontDescription')}</label>
-                  <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={descFont}
+                  <label className="block text-sm text-black/70 mb-1 dark:text-white/70">{t('fontDescription')}</label>
+                  <select className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-black dark:border-white/10 dark:bg-[#0f1c35] dark:text-white" value={descFont}
                      onChange={(e)=>{ const v=e.target.value; setDescFont(v); saveToHistory(); queueSave({ desc_font: v }) }}>
                     <option value="Inter, ui-sans-serif, system-ui">{t('inter')}</option>
                     <option value="Arial, Helvetica, sans-serif">{t('arial')}</option>
@@ -1379,8 +1379,8 @@ function AdminEditContent() {
             {activeElement === 'date' && (
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm text-white/70 mb-1">{t('justifyDate')}</label>
-                  <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={dateAlign}
+                  <label className="block text-sm text-black/70 mb-1 dark:text-white/70">{t('justifyDate')}</label>
+                  <select className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-black dark:border-white/10 dark:bg-[#0f1c35] dark:text-white" value={dateAlign}
                      onChange={(e)=>{ const v = e.target.value as "left"|"center"|"right"; setDateAlign(v); saveToHistory(); queueSave({ date_align: v }) }}>
                     <option value="left">{t('left')}</option>
                     <option value="center">{t('center')}</option>
@@ -1388,8 +1388,8 @@ function AdminEditContent() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm text-white/70 mb-1">{t('fontDate')}</label>
-                  <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={dateFont}
+                  <label className="block text-sm text-black/70 mb-1 dark:text-white/70">{t('fontDate')}</label>
+                  <select className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-black dark:border-white/10 dark:bg-[#0f1c35] dark:text-white" value={dateFont}
                      onChange={(e)=>{ const v=e.target.value; setDateFont(v); saveToHistory(); queueSave({ date_font: v }) }}>
                     <option value="Inter, ui-sans-serif, system-ui">{t('inter')}</option>
                     <option value="Arial, Helvetica, sans-serif">{t('arial')}</option>
@@ -1780,18 +1780,22 @@ function PreviewPanel({ category, previewSrc, title, description, numberText, ti
     return y
   }
   return (
-    <section className="rounded-xl border border-white/10 bg-[#0d172b] p-6 shadow-xl shadow-blue-500/10 min-h-[420px]">
-       <h2 className="text-3xl font-bold text-blue-400 mb-4 text-center">{t('certificatePreview')}</h2>
-       <div className="text-white/80 text-sm mb-2 text-center">{category ? `${t('categorySelected')}: ${category}` : t('noCategorySelected')}</div>
+    <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm min-h-[420px] dark:border-white/10 dark:bg-[#0d172b] dark:shadow-xl dark:shadow-blue-500/10">
+       <h2 className="text-3xl font-bold text-blue-700 mb-4 text-center dark:text-blue-400">{t('certificatePreview')}</h2>
+       <div className="text-black/70 text-sm mb-2 text-center dark:text-white/80">{category ? `${t('categorySelected')}: ${category}` : t('noCategorySelected')}</div>
        {issuedAt && (
-         <div className="text-green-400/80 text-xs mb-2 flex items-center justify-center gap-2">
+         <div className="text-green-600/80 text-xs mb-2 flex items-center justify-center gap-2 dark:text-green-400/80">
            <span className="w-1.5 h-1.5 bg-green-400 rounded-full"></span>
-           {t('integratedDate')}: {issuedAt}
+           {t('integratedDate')}: {new Date(issuedAt).toLocaleDateString('id-ID', {
+             year: 'numeric',
+             month: 'long',
+             day: 'numeric'
+           })}
          </div>
        )}
       <div className="flex justify-center items-center">
         <div
-          className={`mt-4 rounded-lg border border-white/10 bg-white/5 relative overflow-hidden ${dragging ? "cursor-grabbing" : "cursor-grab"}`}
+          className={`mt-4 rounded-lg border border-gray-200 bg-white relative overflow-hidden dark:border-white/10 dark:bg-white/5 ${dragging ? "cursor-grabbing" : "cursor-grab"}`}
         ref={containerRef}
         style={{
           position: 'relative',
@@ -1967,7 +1971,7 @@ function PreviewPanel({ category, previewSrc, title, description, numberText, ti
           </div>
         )}
         {!previewSrc && (
-           <div className="absolute inset-0 grid place-items-center text-white/60">{t('selectTemplateOrUpload')}</div>
+           <div className="absolute inset-0 grid place-items-center text-black/60 dark:text-white/60">{t('selectTemplateOrUpload')}</div>
         )}
         </div>
       </div>

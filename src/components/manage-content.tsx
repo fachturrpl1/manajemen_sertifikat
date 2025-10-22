@@ -461,7 +461,7 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
         >
           + Baru
         </button>
-        <button onClick={handleImportClick} className="rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm hover:bg-white/10">
+        <button onClick={handleImportClick} className="rounded-md border border-gray-300 bg-black/5 px-3 py-2 text-sm hover:bg-black/10 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10">
           Import Excel
         </button>
         <input
@@ -473,20 +473,20 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
         />
         <div className="ml-2 flex-1 grid grid-cols-1 md:grid-cols-2 gap-2">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50 z-10" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-black/50 z-10 dark:text-white/50" />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={t('searchPlaceholder')}
-              className="w-full rounded-md border border-white/10 bg-[#0d172b] pl-9 pr-3 py-2 text-sm placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-blue-500/60"
+              className="w-full rounded-md border border-gray-300 bg-white text-black pl-9 pr-3 py-2 text-sm placeholder:text-black/50 focus:outline-none focus:ring-1 focus:ring-blue-500/60 dark:border-white/10 dark:bg-[#0d172b] dark:text-white dark:placeholder:text-white/40"
             />
-            <div className="pointer-events-none absolute inset-0 rounded-md ring-1 ring-white/5" />
+            <div className="pointer-events-none absolute inset-0 rounded-md ring-1 ring-black/10 dark:ring-white/5" />
           </div>
           <div>
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500/60"
+              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-black focus:outline-none focus:ring-1 focus:ring-blue-500/60 dark:border-white/10 dark:bg-[#0f1c35] dark:text-white"
             >
               {categoryOptions.map((opt, i) => (
                 <option key={i} value={opt.value}>{opt.label}</option>
@@ -496,11 +496,11 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
         </div>
       </div>
 
-      <section className="rounded-xl border border-white/10 bg-[#0d172b]">
+      <section className="rounded-xl border border-gray-200 bg-white dark:border-white/10 dark:bg-[#0d172b]">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="text-white/70">
+              <tr className="text-black/70 dark:text-white/70">
                 <th className="px-4 py-3 font-medium">{t('name')}</th>
                 <th className="px-4 py-3 font-medium">{t('number')}</th>
                 <th className="px-4 py-3 font-medium">{t('category')}</th>
@@ -514,13 +514,13 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-10 text-center text-white/50">
+                  <td colSpan={8} className="px-4 py-10 text-center text-black/60 dark:text-white/50">
                     Memuat data...
                   </td>
                 </tr>
               ) : paginatedRows.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-10 text-center text-white/50">
+                  <td colSpan={8} className="px-4 py-10 text-center text-black/60 dark:text-white/50">
                     Belum ada data untuk ditampilkan
                   </td>
                 </tr>
@@ -528,7 +528,7 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                 paginatedRows.map((r) => {
                   const idx = rows.indexOf(r)
                   return (
-                    <tr key={idx} className="border-t border-white/5">
+                    <tr key={idx} className="border-t border-gray-200 dark:border-white/5">
                       <td className="px-4 py-2">{r.name}</td>
                       <td className="px-4 py-2">{r.number}</td>
                       <td className="px-4 py-2">{r.category}</td>
@@ -541,7 +541,7 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                               <button 
                                 aria-label="View" 
                                 title="View" 
-                                className="rounded-md border border-white/10 bg-white/5 px-2 py-1 hover:bg-white/10"
+                                className="rounded-md border border-gray-300 bg-black/5 px-2 py-1 hover:bg-black/10 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
                                 onClick={async () => {
                                   if (!r.id) return
                                   setViewingCertificate(r)
@@ -560,28 +560,28 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                                   }
                                 }}
                               >
-                                <Eye className="h-4 w-4 text-white" />
+                                <Eye className="h-4 w-4 text-black dark:text-white" />
                               </button>
                               <button
                                 aria-label="Edit"
                                 title="Edit"
-                                className="rounded-md border border-white/10 bg-white/5 px-2 py-1"
+                                className="rounded-md border border-gray-300 bg-black/5 px-2 py-1 hover:bg-black/10 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
                                 onClick={() => {
                                   if (!r.id) return
                                   const target = role === 'team' ? '/team/edit' : '/admin/edit'
                                   router.push(`${target}?id=${r.id}`)
                                 }}
                               >
-                                <Pencil className="h-4 w-4 text-white" />
+                                <Pencil className="h-4 w-4 text-black dark:text-white" />
                               </button>
                               {role === "admin" && (
                               <button
                                   aria-label="Delete"
                                   title="Delete"
-                                  className="rounded-md border border-red-500/30 bg-red-500/10 px-2 py-1 text-red-300"
+                                  className="rounded-md border border-red-500/30 bg-red-500/10 px-2 py-1 text-red-700 dark:text-red-300"
                                   onClick={() => { setDeleteIndex(idx); setShowDeleteConfirm(true) }}
                                 >
-                                  <Trash2 className="h-4 w-4 text-white" />
+                                  <Trash2 className="h-4 w-4 text-red-700 dark:text-white" />
                                 </button>
                           )}
                         </div>
@@ -594,38 +594,38 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
           </table>
         </div>
 
-        <div className="flex items-center justify-between border-t border-white/10 px-4 py-3 text-sm">
-          <div className="text-white/50">
+        <div className="flex items-center justify-between border-t border-gray-200 dark:border-white/10 px-4 py-3 text-sm">
+          <div className="text-black/60 dark:text-white/50">
             Menampilkan {startIndex + 1}-{Math.min(endIndex, filteredRows.length)} dari {filteredRows.length} 
             {filteredRows.length !== rows.length && ` (${rows.length} total)`}
           </div>
           <div className="flex items-center gap-2">
             <button 
-              className="rounded-md border border-white/10 bg-white/5 px-2 py-1 disabled:opacity-40 hover:bg-white/10" 
+              className="rounded-md border border-gray-300 bg-black/5 px-2 py-1 disabled:opacity-40 hover:bg-black/10 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10" 
               disabled={currentPage === 1}
               onClick={() => setCurrentPage(1)}
             >
               {"<<"}
             </button>
             <button 
-              className="rounded-md border border-white/10 bg-white/5 px-2 py-1 disabled:opacity-40 hover:bg-white/10" 
+              className="rounded-md border border-gray-300 bg-black/5 px-2 py-1 disabled:opacity-40 hover:bg-black/10 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10" 
               disabled={currentPage === 1}
               onClick={() => setCurrentPage(currentPage - 1)}
             >
               {"<"}
             </button>
-            <span className="inline-flex min-w-8 items-center justify-center rounded-md border border-white/10 bg-white/5 px-3 py-1 text-white">
+            <span className="inline-flex min-w-8 items-center justify-center rounded-md border border-gray-300 bg-black/5 px-3 py-1 text-black dark:border-white/10 dark:bg-white/5 dark:text-white">
               {currentPage}
             </span>
             <button 
-              className="rounded-md border border-white/10 bg-white/5 px-2 py-1 disabled:opacity-40 hover:bg-white/10" 
+              className="rounded-md border border-gray-300 bg-black/5 px-2 py-1 disabled:opacity-40 hover:bg-black/10 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10" 
               disabled={currentPage === totalPages}
               onClick={() => setCurrentPage(currentPage + 1)}
             >
               {">"}
             </button>
             <button 
-              className="rounded-md border border-white/10 bg-white/5 px-2 py-1 disabled:opacity-40 hover:bg-white/10" 
+              className="rounded-md border border-gray-300 bg-black/5 px-2 py-1 disabled:opacity-40 hover:bg-black/10 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10" 
               disabled={currentPage === totalPages}
               onClick={() => setCurrentPage(totalPages)}
             >
@@ -639,12 +639,12 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
         <>
           <ModalOverlay onClick={() => !isDeleting && setShowDeleteConfirm(false)} />
           <ModalContent>
-            <div className="w-full max-w-sm rounded-xl border border-white/10 bg-[#0d1223] p-4 text-sm">
-              <div className="mb-3 text-base font-semibold">Konfirmasi Hapus</div>
-              <div className="mb-4 text-white/70">Apakah Anda yakin ingin menghapus sertifikat ini? Tindakan tidak dapat dibatalkan.</div>
+            <div className="w-full max-w-sm rounded-xl border border-gray-200 bg-white p-4 text-sm dark:border-white/10 dark:bg-[#0d1223]">
+              <div className="mb-3 text-base font-semibold text-black dark:text-white">Konfirmasi Hapus</div>
+              <div className="mb-4 text-black/70 dark:text-white/70">Apakah Anda yakin ingin menghapus sertifikat ini? Tindakan tidak dapat dibatalkan.</div>
               <div className="flex justify-end gap-2">
                 <button
-                  className="rounded-md border border-white/10 bg-white/5 px-3 py-2 disabled:opacity-50"
+                  className="rounded-md border border-gray-300 bg-black/5 px-3 py-2 text-black disabled:opacity-50 dark:border-white/10 dark:bg-white/5 dark:text-white"
                   onClick={() => setShowDeleteConfirm(false)}
                   disabled={isDeleting}
                 >Batal</button>
@@ -677,48 +677,49 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
         </>
       )}
       <style jsx global>{`
-        select option { background-color: #0f1c35; color: #ffffff; }
-        select { color-scheme: dark; }
+        .dark select option { background-color: #0f1c35; color: #ffffff; }
+        .dark select { color-scheme: dark; }
+        .dark select option { background-color: #0f1c35; color: #ffffff; }
       `}</style>
       {showModal && draft && (
         <>
           <ModalOverlay onClick={() => setShowModal(false)} />
           <ModalContent>
-            <div className="w-full max-w-2xl rounded-xl border border-white/10 bg-[#0d1223] p-4 text-sm">
+            <div className="w-full max-w-2xl rounded-xl border border-gray-200 bg-white p-4 text-sm dark:border-white/10 dark:bg-[#0d1223]">
               <div className="mb-3 flex items-center justify-between">
-                <div className="font-semibold">Perbarui Sertifikat</div>
-                <button onClick={() => setShowModal(false)} className="rounded-md border border-white/10 bg-white/5 p-1" aria-label="Close">
-                  <X className="h-4 w-4" />
+                <div className="font-semibold text-black dark:text-white">Perbarui Sertifikat</div>
+                <button onClick={() => setShowModal(false)} className="rounded-md border border-gray-300 bg-black/5 p-1 dark:border-white/10 dark:bg-white/5" aria-label="Close">
+                  <X className="h-4 w-4 text-black dark:text-white" />
                 </button>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <div className="mb-2 text-white/70">Nama</div>
-                  <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.name ?? ""} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
+                  <div className="mb-2 text-black/70 dark:text-white/70">Nama</div>
+                  <input className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-black dark:border-white/10 dark:bg-[#0d172b] dark:text-white" value={draft.name ?? ""} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
                 </div>
                 <div>
-                  <div className="mb-2 text-white/70">Nomor</div>
-                  <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.number ?? ""} onChange={(e) => setDraft({ ...draft, number: e.target.value })} />
+                  <div className="mb-2 text-black/70 dark:text-white/70">Nomor</div>
+                  <input className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-black dark:border-white/10 dark:bg-[#0d172b] dark:text-white" value={draft.number ?? ""} onChange={(e) => setDraft({ ...draft, number: e.target.value })} />
                 </div>
                 <div>
-                  <div className="mb-2 text-white/70">Penerbit</div>
-                  <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.issuer ?? ""} onChange={(e) => setDraft({ ...draft, issuer: e.target.value })} />
+                  <div className="mb-2 text-black/70 dark:text-white/70">Penerbit</div>
+                  <input className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-black dark:border-white/10 dark:bg-[#0d172b] dark:text-white" value={draft.issuer ?? ""} onChange={(e) => setDraft({ ...draft, issuer: e.target.value })} />
                 </div>
                 <div>
-                  <div className="mb-2 text-white/70">Instansi Penerima</div>
-                  <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.recipientOrg ?? ""} onChange={(e) => setDraft({ ...draft, recipientOrg: e.target.value })} />
+                  <div className="mb-2 text-black/70 dark:text-white/70">Instansi Penerima</div>
+                  <input className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-black dark:border-white/10 dark:bg-[#0d172b] dark:text-white" value={draft.recipientOrg ?? ""} onChange={(e) => setDraft({ ...draft, recipientOrg: e.target.value })} />
                 </div>
                 <div>
-                  <div className="mb-2 text-white/70">Tanggal Terbit</div>
+                  <div className="mb-2 text-black/70 dark:text-white/70">Tanggal Terbit</div>
                   <div className="relative">
                     <input
                       readOnly
                       value={fromISO(draft.issuedAt || "") ? formatDateFn(fromISO(draft.issuedAt || "") as Date, dateFormat, { locale: dfLocale }) : ""}
                       onClick={() => setShowIssuedCalendar(!showIssuedCalendar)}
-                      className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2 cursor-pointer"
+                      className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 cursor-pointer text-black dark:border-white/10 dark:bg-[#0d172b] dark:text-white"
                     />
                     {showIssuedCalendar && (
-                      <div className="absolute z-50 mt-2 rounded-md border border-white/10 bg-[#0d172b] p-2 shadow-xl">
+                      <div className="absolute z-50 mt-2 rounded-md border border-gray-300 bg-white p-2 shadow-xl dark:border-white/10 dark:bg-[#0d172b]">
                         <DayPicker
                           mode="single"
                           selected={fromISO(draft.issuedAt || "") || undefined}
@@ -733,16 +734,16 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                   </div>
                 </div>
                 <div>
-                  <div className="mb-2 text-white/70">Tanggal Kadaluarsa</div>
+                  <div className="mb-2 text-black/70 dark:text-white/70">Tanggal Kadaluarsa</div>
                   <div className="relative">
                     <input
                       readOnly
                       value={fromISO(draft.expiresAt || "") ? formatDateFn(fromISO(draft.expiresAt || "") as Date, dateFormat, { locale: dfLocale }) : ""}
                       onClick={() => setShowExpiresCalendar(!showExpiresCalendar)}
-                      className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2 cursor-pointer"
+                      className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 cursor-pointer text-black dark:border-white/10 dark:bg-[#0d172b] dark:text-white"
                     />
                     {showExpiresCalendar && (
-                      <div className="absolute z-50 mt-2 rounded-md border border-white/10 bg-[#0d172b] p-2 shadow-xl">
+                      <div className="absolute z-50 mt-2 rounded-md border border-gray-300 bg-white p-2 shadow-xl dark:border-white/10 dark:bg-[#0d172b]">
                         <DayPicker
                           mode="single"
                           selected={fromISO(draft.expiresAt || "") || undefined}
@@ -757,36 +758,15 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                   </div>
                 </div>
                 <div className="md:col-span-2">
-                  <div className="mb-2 text-white/70">Format Tanggal</div>
+                  <div className="mb-2 text-black/70 dark:text-white/70">Kategori</div>
                   <select
-                    className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2"
-                    value={dateFormat}
-                    onChange={(e) => setDateFormat(e.target.value)}
-                  >
-                    <option value="dd-MM-yyyy">dd-MM-yyyy</option>
-                    <option value="MM-dd-yyyy">MM-dd-yyyy</option>
-                    <option value="yyyy-MM-dd">yyyy-MM-dd</option>
-                    <option value="dd MMM yyyy">dd MMM yyyy</option>
-                    <option value="dd MMMM yyyy">dd MMMM yyyy</option>
-                    <option value="MMM dd, yyyy">MMM dd, yyyy</option>
-                    <option value="MMMM dd, yyyy">MMMM dd, yyyy</option>
-                    <option value="dd/MM/yyyy">dd/MM/yyyy</option>
-                    <option value="MM/dd/yyyy">MM/dd/yyyy</option>
-                    <option value="yyyy/MM/dd">yyyy/MM/dd</option>
-                  </select>
-                </div>
-                <div className="md:col-span-2">
-                  <div className="mb-2 text-white/70">Kategori</div>
-                  <select
-                    className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2"
+                    className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-black dark:border-white/10 dark:bg-[#0d172b] dark:text-white"
                     value={draft.category ?? ""}
                     onChange={(e) => setDraft({ ...draft, category: e.target.value })}
                   >
-                    <option value="" disabled>Pilih kategori</option>
-                    <option value="kunjungan industri">kunjungan industri</option>
-                    <option value="magang">magang</option>
-                    <option value="mou">mou</option>
-                    <option value="pelatihan">pelatihan</option>
+                    {categoryOptions.map((opt, i) => (
+                      <option key={i} value={opt.value} disabled={i === 0 && !opt.value}>{opt.label}</option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -941,130 +921,6 @@ export function ManageContent({ role = "admin" }: ManageContentProps) {
                   disabled={isUpdating}
                 >
                   {isUpdating ? "Memproses..." : "Kirim"}
-                </button>
-              </div>
-            </div>
-          </ModalContent>
-        </>
-      )}
-
-      {/* Add Certificate Modal */}
-      {showAddModal && draft && (
-        <>
-          <ModalOverlay onClick={() => setShowAddModal(false)} />
-          <ModalContent>
-            <div className="w-full max-w-2xl rounded-xl border border-white/10 bg-[#0d1223] p-4 text-sm">
-              <div className="mb-3 flex items-center justify-between">
-                <div className="font-semibold">{t('addNewCertificate')}</div>
-                <button onClick={() => setShowAddModal(false)} className="rounded-md border border-white/10 bg-white/5 p-1" aria-label="Close">
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div>
-                  <div className="mb-1 text-white/70">{t('name')}</div>
-                  <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.name ?? ""} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
-                </div>
-                <div>
-                  <div className="mb-1 text-white/70">{t('number')}</div>
-                  <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.number ?? ""} onChange={(e) => setDraft({ ...draft, number: e.target.value })} />
-                </div>
-                <div>
-                  <div className="mb-1 text-white/70">{t('issuer')}</div>
-                  <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.issuer ?? ""} onChange={(e) => setDraft({ ...draft, issuer: e.target.value })} />
-                </div>
-                <div>
-                  <div className="mb-1 text-white/70">{t('recipientOrganization')}</div>
-                  <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.recipientOrg ?? ""} onChange={(e) => setDraft({ ...draft, recipientOrg: e.target.value })} />
-                </div>
-                <div>
-                  <div className="mb-1 text-white/70">{t('issuedDate')}</div>
-                  <input type="date" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.issuedAt ?? ""} onChange={(e) => setDraft({ ...draft, issuedAt: e.target.value })} />
-                </div>
-                <div>
-                  <div className="mb-1 text-white/70">{t('expiredDate')}</div>
-                  <input type="date" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.expiresAt ?? ""} onChange={(e) => setDraft({ ...draft, expiresAt: e.target.value })} />
-                </div>
-                <div className="md:col-span-2">
-                  <div className="mb-1 text-white/70">{t('category')}</div>
-                  <select
-                    className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2"
-                    value={draft.category ?? ""}
-                    onChange={(e) => setDraft({ ...draft, category: e.target.value })}
-                  >
-                    <option value="" disabled>{t('selectCategory')}</option>
-                    <option value="kunjungan industri">{t('industrialVisit')}</option>
-                    <option value="magang">{t('internship')}</option>
-                    <option value="mou">{t('mou')}</option>
-                    <option value="pelatihan">{t('training')}</option>
-                  </select>
-                </div>
-              </div>
-              {updateMessage && (
-                <div className={`mb-6 mt-6 rounded-md p-4 text-sm ${
-                  updateMessage.includes('berhasil') 
-                    ? 'bg-green-500/10 border border-green-500/20 text-green-400' 
-                    : 'bg-red-500/10 border border-red-500/20 text-red-400'
-                }`}>
-                  {updateMessage}
-                </div>
-              )}
-              <div className="mt-4 flex justify-end gap-2">
-                <button className="rounded-md border border-white/10 bg-white/5 px-3 py-2" onClick={() => setShowAddModal(false)}>{t('cancel')}</button>
-                <button
-                  className="rounded-md border border-green-500/30 bg-green-500/10 px-3 py-2 text-green-300"
-                  onClick={() => {
-                    const doAdd = async () => {
-                      if (!draft) return
-                      
-                      setIsUpdating(true)
-                      setUpdateMessage("")
-                      
-                      try {
-                        const { data, error } = await supabase
-                          .from("certificates")
-                          .insert({
-                            name: draft.name ?? null,
-                            number: draft.number ?? null,
-                            category: draft.category ?? null,
-                            recipient_org: draft.recipientOrg ?? null,
-                            issuer: draft.issuer ?? null,
-                            issued_at: draft.issuedAt ?? null,
-                            expires_at: draft.expiresAt ?? null,
-                          })
-                          .select("id")
-                          .single()
-                        
-                        if (error) {
-                          console.error("Insert error:", error)
-                          setUpdateMessage("Gagal menambahkan data: " + error.message)
-                          return
-                        }
-                        
-                        // Add to local state
-                        const newRow = { ...draft, id: data?.id }
-                        setRows([...rows, newRow])
-                        
-                        setUpdateMessage("Sertifikat berhasil ditambahkan!")
-                        
-                        // Close modal after a short delay
-                        setTimeout(() => {
-                          setShowAddModal(false)
-                          setUpdateMessage("")
-                          setIsUpdating(false)
-                        }, 1500)
-                        
-                      } catch (error) {
-                        console.error("Unexpected error:", error)
-                        setUpdateMessage("Terjadi kesalahan yang tidak terduga")
-                      } finally {
-                        setIsUpdating(false)
-                      }
-                    }
-                    doAdd()
-                  }}
-                >
-                  {isUpdating ? t('saving') : t('add')}
                 </button>
               </div>
             </div>

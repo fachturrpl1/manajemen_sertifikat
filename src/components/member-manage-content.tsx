@@ -260,7 +260,7 @@ export function MemberManageContent() {
   return (
     <main className="mx-auto max-w-7xl px-4 md:px-6 py-6 space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-extrabold tracking-tight text-white">{t('members')}</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight text-black dark:text-white">{t('members')}</h1>
       </div>
 
       <div className="flex items-center gap-3">
@@ -280,30 +280,30 @@ export function MemberManageContent() {
             })
             setShowAddModal(true)
           }}
-          className="rounded-md border border-blue-600/50 bg-blue-600/10 px-3 py-2 text-sm text-white hover:bg-blue-600/20"
+          className="rounded-md border border-blue-600/50 bg-blue-600/10 px-3 py-2 text-sm text-blue-700 hover:bg-blue-600/20 dark:text-white"
         >
           + Baru
         </button>
         {/* Import Excel button removed as requested */}
         <div className="ml-2 flex-1">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50 z-10" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-black/50 z-10 dark:text-white/50" />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={t('searchMemberPlaceholder')}
-              className="w-full rounded-md border border-white/10 bg-[#0d172b] pl-9 pr-3 py-2 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-blue-500/60"
+              className="w-full rounded-md border border-gray-300 bg-white pl-9 pr-3 py-2 text-sm text-black placeholder:text-black/50 focus:outline-none focus:ring-1 focus:ring-blue-500/60 dark:border-white/10 dark:bg-[#0d172b] dark:text-white dark:placeholder:text-white/40"
             />
-            <div className="pointer-events-none absolute inset-0 rounded-md ring-1 ring-white/5" />
+            <div className="pointer-events-none absolute inset-0 rounded-md ring-1 ring-black/10 dark:ring-white/5" />
           </div>
         </div>
       </div>
 
-      <section className="rounded-xl border border-white/10 bg-[#0d172b]">
+      <section className="rounded-xl border border-gray-200 bg-white dark:border-white/10 dark:bg-[#0d172b]">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="text-white/70">
+              <tr className="text-black/70 dark:text-white/70">
                 <th className="px-4 py-3 font-medium">{t('name')}</th>
                 <th className="px-4 py-3 font-medium">{t('organization')}</th>
                 <th className="px-4 py-3 font-medium">{t('phone')}</th>
@@ -319,13 +319,13 @@ export function MemberManageContent() {
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={10} className="px-4 py-10 text-center text-white/50">
+                  <td colSpan={10} className="px-4 py-10 text-center text-black/60 dark:text-white/50">
                     Memuat data...
                   </td>
                 </tr>
               ) : filteredRows.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="px-4 py-10 text-center text-white/50">
+                  <td colSpan={10} className="px-4 py-10 text-center text-black/60 dark:text-white/50">
                     Belum ada data untuk ditampilkan
                   </td>
                 </tr>
@@ -333,33 +333,33 @@ export function MemberManageContent() {
                 filteredRows.map((r) => {
                   const idx = rows.indexOf(r)
                   return (
-                    <tr key={idx} className="border-t border-white/5">
-                      <td className="px-4 py-2 text-white">{r.name}</td>
-                      <td className="px-4 py-2 text-white">{r.organization}</td>
-                      <td className="px-4 py-2 text-white">{r.phone}</td>
-                      <td className="px-4 py-2 text-white">{r.email}</td>
-                      <td className="px-4 py-2 text-white">{r.job}</td>
-                      <td className="px-4 py-2 text-white">{r.dob}</td>
-                      <td className="px-4 py-2 text-white">{r.address}</td>
-                      <td className="px-4 py-2 text-white">{r.city}</td>
-                      <td className="px-4 py-2 text-white">{r.password || "-"}</td>
+                    <tr key={idx} className="border-t border-gray-200 dark:border-white/5">
+                      <td className="px-4 py-2 text-black dark:text-white">{r.name}</td>
+                      <td className="px-4 py-2 text-black dark:text-white">{r.organization}</td>
+                      <td className="px-4 py-2 text-black dark:text-white">{r.phone}</td>
+                      <td className="px-4 py-2 text-black dark:text-white">{r.email}</td>
+                      <td className="px-4 py-2 text-black dark:text-white">{r.job}</td>
+                      <td className="px-4 py-2 text-black dark:text-white">{r.dob}</td>
+                      <td className="px-4 py-2 text-black dark:text-white">{r.address}</td>
+                      <td className="px-4 py-2 text-black dark:text-white">{r.city}</td>
+                      <td className="px-4 py-2 text-black dark:text-white">{r.password || "-"}</td>
                       <td className="px-4 py-2">
                         <div className="flex gap-2 text-xs">
                               <button
                                 aria-label="Edit"
                                 title="Edit"
-                                className="rounded-md border border-white/10 bg-white/5 px-2 py-1"
+                                className="rounded-md border border-gray-300 bg-black/5 px-2 py-1 hover:bg-black/10 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
                                 onClick={() => { setEditingIndex(idx); setDraft(r); setShowModal(true) }}
                               >
-                                <Pencil className="h-4 w-4 text-white" />
+                                <Pencil className="h-4 w-4 text-black dark:text-white" />
                               </button>
                               <button
                                 aria-label="Delete"
                                 title="Delete"
-                                className="rounded-md border border-red-500/30 bg-red-500/10 px-2 py-1"
+                                className="rounded-md border border-red-500/30 bg-red-500/10 px-2 py-1 text-red-700 dark:text-red-300"
                                 onClick={() => { setDeleteIndex(idx); setShowDeleteConfirm(true) }}
                               >
-                                <Trash2 className="h-4 w-4 text-white" />
+                                <Trash2 className="h-4 w-4 text-red-700 dark:text-white" />
                               </button>
                         </div>
                       </td>
@@ -371,14 +371,14 @@ export function MemberManageContent() {
           </table>
         </div>
 
-        <div className="flex items-center justify-between border-t border-white/10 px-4 py-3 text-sm">
-          <div className="text-white/50">Menampilkan {filteredRows.length} dari {rows.length}</div>
+        <div className="flex items-center justify-between border-t border-gray-200 dark:border-white/10 px-4 py-3 text-sm">
+          <div className="text-black/60 dark:text-white/50">Menampilkan {filteredRows.length} dari {rows.length}</div>
           <div className="flex items-center gap-2">
-            <button className="rounded-md border border-white/10 bg-white/5 px-2 py-1 disabled:opacity-40" disabled>{"<<"}</button>
-            <button className="rounded-md border border-white/10 bg-white/5 px-2 py-1 disabled:opacity-40" disabled>{"<"}</button>
-            <span className="inline-flex min-w-8 items-center justify-center rounded-md border border-white/10 bg-white/5 px-3 py-1">1</span>
-            <button className="rounded-md border border-white/10 bg-white/5 px-2 py-1 disabled:opacity-40" disabled>{">"}</button>
-            <button className="rounded-md border border-white/10 bg-white/5 px-2 py-1 disabled:opacity-40" disabled>{">>"}</button>
+            <button className="rounded-md border border-gray-300 bg-black/5 px-2 py-1 disabled:opacity-40 dark:border-white/10 dark:bg-white/5" disabled>{"<<"}</button>
+            <button className="rounded-md border border-gray-300 bg-black/5 px-2 py-1 disabled:opacity-40 dark:border-white/10 dark:bg-white/5" disabled>{"<"}</button>
+            <span className="inline-flex min-w-8 items-center justify-center rounded-md border border-gray-300 bg-black/5 px-3 py-1 text-black dark:border-white/10 dark:bg-white/5 dark:text-white">1</span>
+            <button className="rounded-md border border-gray-300 bg-black/5 px-2 py-1 disabled:opacity-40 dark:border-white/10 dark:bg-white/5" disabled>{">"}</button>
+            <button className="rounded-md border border-gray-300 bg-black/5 px-2 py-1 disabled:opacity-40 dark:border-white/10 dark:bg-white/5" disabled>{">>"}</button>
           </div>
         </div>
       </section>
@@ -387,17 +387,17 @@ export function MemberManageContent() {
         <>
           <ModalOverlay onClick={() => !isDeleting && setShowDeleteConfirm(false)} />
           <ModalContent>
-            <div className="w-full max-w-sm rounded-xl border border-white/10 bg-[#0d1223] p-4 text-sm">
-              <div className="mb-3 text-base font-semibold">Konfirmasi Hapus</div>
-              <div className="mb-4 text-white/70">Apakah Anda yakin ingin menghapus member ini? Tindakan tidak dapat dibatalkan.</div>
+            <div className="w-full max-w-sm rounded-xl border border-gray-200 bg-white p-4 text-sm dark:border-white/10 dark:bg-[#0d1223]">
+              <div className="mb-3 text-base font-semibold text-black dark:text-white">Konfirmasi Hapus</div>
+              <div className="mb-4 text-black/70 dark:text-white/70">Apakah Anda yakin ingin menghapus member ini? Tindakan tidak dapat dibatalkan.</div>
               <div className="flex justify-end gap-2">
                 <button
-                  className="rounded-md border border-white/10 bg-white/5 px-3 py-2 disabled:opacity-50"
+                  className="rounded-md border border-gray-300 bg-black/5 px-3 py-2 text-black disabled:opacity-50 dark:border-white/10 dark:bg-white/5 dark:text-white"
                   onClick={() => setShowDeleteConfirm(false)}
                   disabled={isDeleting}
                 >Batal</button>
                 <button
-                  className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-red-300 disabled:opacity-50"
+                  className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-red-700 dark:text-red-300 disabled:opacity-50"
                   onClick={async () => {
                     if (deleteIndex == null) return
                     try {
@@ -428,49 +428,49 @@ export function MemberManageContent() {
         <>
           <ModalOverlay onClick={() => setShowModal(false)} />
           <ModalContent>
-            <div className="w-full max-w-2xl rounded-xl border border-white/10 bg-[#0d1223] p-4 text-sm">
+            <div className="w-full max-w-2xl rounded-xl border border-gray-200 bg-white p-4 text-sm dark:border-white/10 dark:bg-[#0d1223]">
               <div className="mb-3 flex items-center justify-between">
-                <div className="font-semibold">Perbarui Member</div>
-                <button onClick={() => setShowModal(false)} className="rounded-md border border-white/10 bg-white/5 p-1" aria-label="Close">
-                  <X className="h-4 w-4" />
+                <div className="font-semibold text-black dark:text-white">Perbarui Member</div>
+                <button onClick={() => setShowModal(false)} className="rounded-md border border-gray-300 bg-black/5 p-1 dark:border-white/10 dark:bg-white/5" aria-label="Close">
+                  <X className="h-4 w-4 text-black dark:text-white" />
                 </button>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <div className="mb-2 text-white/70">Name</div>
-                  <input placeholder="Nama lengkap" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2 placeholder:text-white/40" value={draft.name ?? ""} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
+                  <div className="mb-2 text-black/70 dark:text-white/70">Name</div>
+                  <input placeholder="Nama lengkap" className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-black placeholder:text-black/50 dark:border-white/10 dark:bg-[#0d172b] dark:text-white dark:placeholder:text-white/40" value={draft.name ?? ""} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
                 </div>
                 <div>
-                  <div className="mb-2 text-white/70">Organization (opsional)</div>
-                  <input placeholder="Nama organisasi" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2 placeholder:text-white/40" value={draft.organization ?? ""} onChange={(e) => setDraft({ ...draft, organization: e.target.value })} />
+                  <div className="mb-2 text-black/70 dark:text-white/70">Organization (opsional)</div>
+                  <input placeholder="Nama organisasi" className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-black placeholder:text-black/50 dark:border-white/10 dark:bg-[#0d172b] dark:text-white dark:placeholder:text-white/40" value={draft.organization ?? ""} onChange={(e) => setDraft({ ...draft, organization: e.target.value })} />
                 </div>
                 <div>
-                  <div className="mb-2 text-white/70">Phone</div>
-                  <input placeholder="08xxxxxxxxxx" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2 placeholder:text-white/40" value={draft.phone ?? ""} onChange={(e) => setDraft({ ...draft, phone: e.target.value })} />
+                  <div className="mb-2 text-black/70 dark:text-white/70">Phone</div>
+                  <input placeholder="08xxxxxxxxxx" className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-black placeholder:text-black/50 dark:border-white/10 dark:bg-[#0d172b] dark:text-white dark:placeholder:text-white/40" value={draft.phone ?? ""} onChange={(e) => setDraft({ ...draft, phone: e.target.value })} />
                 </div>
                 <div>
-                  <div className="mb-2 text-white/70">Email</div>
-                  <input placeholder="email@contoh.com" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2 placeholder:text:white/40" value={draft.email ?? ""} onChange={(e) => setDraft({ ...draft, email: e.target.value })} />
+                  <div className="mb-2 text-black/70 dark:text-white/70">Email</div>
+                  <input placeholder="email@contoh.com" className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-black placeholder:text-black/50 dark:border-white/10 dark:bg-[#0d172b] dark:text-white dark:placeholder:text-white/40" value={draft.email ?? ""} onChange={(e) => setDraft({ ...draft, email: e.target.value })} />
                 </div>
                 <div>
-                  <div className="mb-2 text-white/70">Job</div>
-                  <input placeholder="Pekerjaan" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2 placeholder:text-white/40" value={draft.job ?? ""} onChange={(e) => setDraft({ ...draft, job: e.target.value })} />
+                  <div className="mb-2 text-black/70 dark:text-white/70">Job</div>
+                  <input placeholder="Pekerjaan" className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-black placeholder:text-black/50 dark:border-white/10 dark:bg-[#0d172b] dark:text-white dark:placeholder:text-white/40" value={draft.job ?? ""} onChange={(e) => setDraft({ ...draft, job: e.target.value })} />
                 </div>
                 <div>
-                  <div className="mb-2 text-white/70">Date of Birth (opsional)</div>
-                  <input type="date" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2 placeholder:text-white/40" value={draft.dob ?? ""} onChange={(e) => setDraft({ ...draft, dob: e.target.value })} />
+                  <div className="mb-2 text-black/70 dark:text-white/70">Date of Birth (opsional)</div>
+                  <input type="date" className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-black placeholder:text-black/50 dark:border-white/10 dark:bg-[#0d172b] dark:text-white dark:placeholder:text-white/40" value={draft.dob ?? ""} onChange={(e) => setDraft({ ...draft, dob: e.target.value })} />
                 </div>
                 <div>
-                  <div className="mb-2 text-white/70">Address (opsional)</div>
-                  <input placeholder="Alamat lengkap" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2 placeholder:text-white/40" value={draft.address ?? ""} onChange={(e) => setDraft({ ...draft, address: e.target.value })} />
+                  <div className="mb-2 text-black/70 dark:text-white/70">Address (opsional)</div>
+                  <input placeholder="Alamat lengkap" className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-black placeholder:text-black/50 dark:border-white/10 dark:bg-[#0d172b] dark:text-white dark:placeholder:text-white/40" value={draft.address ?? ""} onChange={(e) => setDraft({ ...draft, address: e.target.value })} />
                 </div>
                 <div>
-                  <div className="mb-2 text-white/70">City (opsional)</div>
-                  <input placeholder="Kota" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2 placeholder:text-white/40" value={draft.city ?? ""} onChange={(e) => setDraft({ ...draft, city: e.target.value })} />
+                  <div className="mb-2 text-black/70 dark:text-white/70">City (opsional)</div>
+                  <input placeholder="Kota" className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-black placeholder:text-black/50 dark:border-white/10 dark:bg-[#0d172b] dark:text-white dark:placeholder:text-white/40" value={draft.city ?? ""} onChange={(e) => setDraft({ ...draft, city: e.target.value })} />
                 </div>
                 <div className="md:col-span-2">
-                  <div className="mb-2 text-white/70">Password</div>
-                  <input type="text" placeholder="Password akun (opsional)" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2 placeholder:text-white/40" value={draft.password ?? ""} onChange={(e) => setDraft({ ...draft, password: e.target.value })} />
+                  <div className="mb-2 text-black/70 dark:text-white/70">Password</div>
+                  <input type="text" placeholder="Password akun (opsional)" className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-black placeholder:text-black/50 dark:border-white/10 dark:bg-[#0d172b] dark:text-white dark:placeholder:text-white/40" value={draft.password ?? ""} onChange={(e) => setDraft({ ...draft, password: e.target.value })} />
                 </div>
                 {/* Notes field removed as requested */}
               </div>

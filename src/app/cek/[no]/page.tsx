@@ -5,6 +5,7 @@ import { use, useState, useEffect } from "react"
 import { supabase } from "@/lib/supabase"
 import { useI18n } from "@/lib/i18n"
 import { Globe } from "lucide-react"
+import ThemeToggle from "@/components/theme-toggle"
 import jsPDF from "jspdf"
 import html2canvas from "html2canvas"
 import { useToast } from "@/components/ui/toast"
@@ -128,7 +129,7 @@ export default function CheckCertificatePage({ params }: Props) {
 
   if (loading) {
     return (
-      <div className="min-h-svh bg-gradient-to-b from-[#0b1220] to-[#0f1c35] text-white flex items-center justify-center">
+      <div className="min-h-svh bg-white text-black dark:bg-gradient-to-b dark:from-[#0b1220] dark:to-[#0f1c35] dark:text-white flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400 mx-auto mb-4"></div>
           <p>{t('loading')}</p>
@@ -139,17 +140,18 @@ export default function CheckCertificatePage({ params }: Props) {
 
   if (error || !certificateData) {
   return (
-    <div className="min-h-svh bg-gradient-to-b from-[#0b1220] to-[#0f1c35] text-white">
-        <div className="absolute right-6 top-6 z-20">
+    <div className="min-h-svh bg-white text-black dark:bg-gradient-to-b dark:from-[#0b1220] dark:to-[#0f1c35] dark:text-white">
+        <div className="absolute right-6 top-6 z-20 flex items-center gap-3">
           {/* Language Toggle Button */}
           <button
             onClick={() => setLocale(locale === 'en' ? 'id' : 'en')}
-            className="flex items-center gap-2 rounded-md border border-white/10 bg-white/5 px-3 py-1.5 text-sm hover:bg-white/10 transition-colors"
+            className="flex items-center gap-2 rounded-md border border-gray-300 bg-black/5 px-3 py-1.5 text-sm hover:bg-black/10 transition-colors dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
             title={locale === 'en' ? 'Switch to Indonesian' : 'Switch to English'}
           >
             <Globe className="h-4 w-4" />
             <span className="font-medium">{locale === 'en' ? 'EN' : 'ID'}</span>
           </button>
+          <ThemeToggle />
         </div>
       <button
           onClick={handleBack}
@@ -169,23 +171,24 @@ export default function CheckCertificatePage({ params }: Props) {
   }
 
   return (
-    <div className="min-h-svh bg-gradient-to-b from-[#0b1220] to-[#0f1c35] text-white">
-      <div className="absolute right-6 top-6 z-20">
+    <div className="min-h-svh bg-white text-black dark:bg-gradient-to-b dark:from-[#0b1220] dark:to-[#0f1c35] dark:text-white">
+      <div className="absolute right-6 top-6 z-20 flex items-center gap-3">
         {/* Language Toggle Button */}
         <button
           onClick={() => setLocale(locale === 'en' ? 'id' : 'en')}
-          className="flex items-center gap-2 rounded-md border border-white/10 bg-white/5 px-3 py-1.5 text-sm hover:bg-white/10 transition-colors"
+          className="flex items-center gap-2 rounded-md border border-gray-300 bg-black/5 px-3 py-1.5 text-sm hover:bg-black/10 transition-colors dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
           title={locale === 'en' ? 'Switch to Indonesian' : 'Switch to English'}
         >
           <Globe className="h-4 w-4" />
           <span className="font-medium">{locale === 'en' ? 'EN' : 'ID'}</span>
         </button>
+        <ThemeToggle />
       </div>
       
       <button
         onClick={handleBack}
         aria-label="Back"
-        className="ml-8 mt-8 mb-0 inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white hover:bg-white/10"
+        className="ml-8 mt-8 mb-0 inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-300 bg-black/5 text-black hover:bg-black/10 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -195,9 +198,9 @@ export default function CheckCertificatePage({ params }: Props) {
       <div className="mx-auto max-w-6xl px-4 md:px-0 py-6">
 
         {/* Certificate Preview */}
-        <section className="rounded-xl border border-white/10 bg-[#0d172b] p-6 shadow-xl shadow-blue-500/10 min-h-[420px]">
-          <h2 className="text-3xl font-bold text-blue-400 mb-4 text-center">{t('certificatePreview')}</h2>
-          <div className="text-white/80 text-sm mb-2 text-center">
+        <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm min-h-[420px] dark:border-white/10 dark:bg-[#0d172b] dark:shadow-xl dark:shadow-blue-500/10">
+          <h2 className="text-3xl font-bold text-blue-700 mb-4 text-center dark:text-blue-400">{t('certificatePreview')}</h2>
+          <div className="text-black/70 text-sm mb-2 text-center dark:text-white/80">
             {certificateData.category ? `${t('categorySelected')}: ${certificateData.category}` : t('noCategorySelected')}
           </div>
           {certificateData.issued_at && (
@@ -213,7 +216,7 @@ export default function CheckCertificatePage({ params }: Props) {
           
           <div className="flex justify-center items-center">
             <div
-              className="mt-4 rounded-lg border border-white/10 bg-white/5 relative overflow-hidden"
+              className="mt-4 rounded-lg border border-gray-200 bg-white relative overflow-hidden dark:border-white/10 dark:bg-white/5"
               style={{
                 position: 'relative',
                 contain: 'layout style paint',
@@ -368,9 +371,9 @@ export default function CheckCertificatePage({ params }: Props) {
                 </>
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="bg-white/5 border border-white/10 rounded-lg p-8 text-center">
-                    <h3 className="text-lg font-semibold mb-2">{t('certificateNotFound')}</h3>
-                    <p className="text-white/70">{t('selectTemplateOrUpload')}</p>
+                  <div className="border border-gray-200 bg-black/5 rounded-lg p-8 text-center dark:border-white/10 dark:bg-white/5">
+                    <h3 className="text-lg font-semibold mb-2 text-black dark:text-white">{t('certificateNotFound')}</h3>
+                    <p className="text-black/70 dark:text-white/70">{t('selectTemplateOrUpload')}</p>
                   </div>
                 </div>
               )}
@@ -378,7 +381,7 @@ export default function CheckCertificatePage({ params }: Props) {
           </div>
           
           {/* Action Buttons Container */}
-          <div className="mt-6 p-4 rounded-lg border border-white/0 bg-white/0">
+          <div className="mt-6 p-4 rounded-lg border border-transparent">
             <div className="flex flex-wrap gap-3 justify-center">
           <button 
             onClick={async () => {
@@ -642,7 +645,7 @@ Terima kasih.`
                 showToast('Gagal mengirim email: ' + (error instanceof Error ? error.message : 'Unknown error'), 'error')
               }
             }}
-            className="rounded-md border border-white/10 bg-white/5 hover:bg-white/10 px-4 py-2 text-sm"
+            className="rounded-md border border-gray-300 bg-black/5 hover:bg-black/10 px-4 py-2 text-sm dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
           >
             Send Email
           </button>

@@ -6,6 +6,7 @@ import Link from "next/link"
 import { useI18n } from "@/lib/i18n"
 import { Globe, Search } from "lucide-react"
 import { supabase } from "@/lib/supabase"
+import ThemeToggle from "@/components/theme-toggle"
 
 export default function PublicVerifyPage() {
   const [no, setNo] = useState("")
@@ -56,18 +57,19 @@ export default function PublicVerifyPage() {
   }
 
   return (
-    <div className="min-h-svh relative flex items-center justify-center bg-[#0b1220] text-white">
+    <div className="min-h-svh relative flex items-center justify-center bg-white text-black dark:bg-[#0b1220] dark:text-white">
       <div className="absolute right-6 top-6 z-20 flex items-center gap-4">
-        <Link href="/login" className="text-sm text-blue-400 hover:text-white">{t('login')}</Link>
+        <Link href="/login" className="text-sm text-blue-600 hover:text-black dark:text-blue-400 dark:hover:text-white">{t('login')}</Link>
         {/* Language Toggle Button */}
         <button
           onClick={() => setLocale(locale === 'en' ? 'id' : 'en')}
-          className="flex items-center gap-2 rounded-md border border-white/10 bg-white/5 px-3 py-1.5 text-sm hover:bg-white/10 transition-colors"
+          className="flex items-center gap-2 rounded-md border border-black/10 bg-black/5 px-3 py-1.5 text-sm hover:bg-black/10 transition-colors dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
           title={locale === 'en' ? 'Switch to Indonesian' : 'Switch to English'}
         >
           <Globe className="h-4 w-4" />
           <span className="font-medium">{locale === 'en' ? 'EN' : 'ID'}</span>
         </button>
+        <ThemeToggle />
       </div>
       {/* grid background overlay */}
       <div
@@ -83,26 +85,26 @@ export default function PublicVerifyPage() {
             S
           </div>
           <span className="text-3xl font-semibold tracking-wide">
-            <span className="text-white">Sertiku</span>
-            <span className="text-blue-400">.co.id</span>
+            <span className="text-black dark:text-white">Sertiku</span>
+            <span className="text-blue-600 dark:text-blue-400">.co.id</span>
           </span>
         </div>
         </Link>
 
-        <h1 className="mb-4 text-4xl md:text-5xl font-extrabold text-blue-400">
+        <h1 className="mb-4 text-4xl md:text-5xl font-extrabold text-blue-600 dark:text-blue-400">
           {t('certificateVerification')}
         </h1>
-        <p className="mb-6 text-white/80">{t('enterCertificateNumber')}</p>
+        <p className="mb-6 text-black/70 dark:text-white/80">{t('enterCertificateNumber')}</p>
 
         <div className="mx-auto flex max-w-xl items-stretch gap-3">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-white/50" />
+            <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-black/50 dark:text-white/50" />
             <input
               value={no}
               onChange={(e) => setNo(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && submit()}
               placeholder={t('typeCertificateNumber')}
-              className="w-full rounded-lg border border-blue-900/60 bg-[#0e1930] pl-10 pr-4 py-3 text-base outline-none ring-1 ring-transparent focus:ring-blue-500/60 placeholder:text-white/50"
+              className="w-full rounded-lg border border-gray-300 bg-white text-black pl-10 pr-4 py-3 text-base outline-none ring-1 ring-transparent focus:ring-blue-500/60 placeholder:text-black/50 dark:border-blue-900/60 dark:bg-[#0e1930] dark:text-white dark:placeholder:text-white/50"
             />
           </div>
           <button

@@ -215,178 +215,197 @@ Terima kasih.`
     <>
       <div className="fixed inset-0 bg-black/50 z-50" onClick={onClose} />
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="w-full max-w-4xl rounded-xl border border-white/10 bg-[#0d1223] p-6 text-sm">
+        <div className="w-full max-w-4xl rounded-xl border border-gray-200 bg-white p-6 text-sm dark:border-white/10 dark:bg-[#0d1223]">
           <div className="mb-4 flex items-center justify-between">
-            <div className="font-semibold">{t('previewCertificate')}</div>
-            <button 
-              onClick={onClose} 
-              className="rounded-md border border-white/10 bg-white/5 p-1" 
+            <div className="font-semibold text-black dark:text-white">{t('previewCertificate')}</div>
+            <button
+              onClick={onClose}
+              className="rounded-md border border-gray-300 bg-black/5 p-1 dark:border-white/10 dark:bg-white/5"
               aria-label="Close"
             >
               ✕
             </button>
           </div>
-          
-           <div className="space-y-4">
-             {/* Header Title - Sama dengan PreviewPanel */}
-             <h2 className="text-3xl font-bold text-blue-400 mb-4 text-center">{t('certificatePreview')}</h2>
-             
-             {/* Header Information - Sama dengan PreviewPanel */}
-             <div className="space-y-2 mb-4">
-               <div className="text-white/80 text-sm mb-2">{category ? `${t('categorySelected')}: ${category}` : t('noCategorySelected')}</div>
-               {issuedAt && (
-                 <div className="text-green-400/80 text-xs mb-2 flex items-center gap-2">
-                   <span className="w-1.5 h-1.5 bg-green-400 rounded-full"></span>
-                   {t('integratedDate')}: {new Date(issuedAt).toLocaleDateString('id-ID', {
-                     year: 'numeric',
-                     month: 'long',
-                     day: 'numeric'
-                   })}
-                 </div>
-               )}
-             </div>
-             
-             {/* Pratinjau Visual Sertifikat - Sama dengan PreviewPanel */}
-             <div className="flex justify-center items-center">
-               <div className="mt-4 rounded-lg border border-white/10 bg-white/5 relative overflow-hidden" style={{ 
-                 aspectRatio: '4/3', 
-                 height: '420px',
-                 width: '100%',
-                 maxWidth: '600px',
-                 position: 'relative',
-                 contain: 'layout style paint',
-                 willChange: 'transform',
-                 margin: '0 auto'
-               }} data-preview-container="modal">
-                 {/* Template Background */}
-                 {previewSrc ? (
-                   previewSrc.endsWith(".pdf") ? (
-                     <object data={previewSrc} type="application/pdf" className="w-full h-full" />
-                   ) : (
-                     <img 
-                       src={previewSrc} 
-                       alt="Certificate Template" 
-                       className="absolute inset-0 w-full h-full object-contain"
-                       data-preview-image
-                     />
-                   )
-                 ) : (
-                   <div className="absolute inset-0 grid place-items-center text-white/60">{t('selectTemplateOrUpload')}</div>
-                 )}
-                 
-                 {/* Overlay Text Container */}
-                 <div className="absolute inset-0" style={{ position: 'relative' }}>
-                   {/* Title */}
-                   {title && (
-                     <div 
-                       className="absolute font-bold text-black"
-                       style={{
-                         left: `${titleX}px`, 
-                         top: `${titleY}px`, 
-                         width: "calc(100% - 40px)", 
-                         transform: titleAlign === "center" ? "translateX(-50%)" : titleAlign === "right" ? "translateX(-100%)" : undefined, 
-                         textAlign: titleAlign, 
-                         fontFamily: titleFont, 
-                         fontSize: `${titleSize}px`, 
-                         color: titleColor,
-                         position: 'absolute',
-                         zIndex: 10,
-                         willChange: 'transform',
-                         backfaceVisibility: 'hidden',
-                         WebkitBackfaceVisibility: 'hidden',
-                         pointerEvents: 'none',
-                         whiteSpace: 'nowrap'
-                       }}
-                       data-overlay="text"
-                     >
-                       {title}
-                     </div>
-                   )}
-                   
-                   {/* Description */}
-                   {description && (
-                     <div 
-                       className="absolute text-black"
-                       style={{
-                         left: `${descX}px`, 
-                         top: `${descY}px`, 
-                         width: "calc(100% - 40px)", 
-                         transform: descAlign === "center" ? "translateX(-50%)" : descAlign === "right" ? "translateX(-100%)" : undefined, 
-                         textAlign: descAlign, 
-                         fontFamily: descFont, 
-                         fontSize: `${descSize}px`, 
-                         color: descColor,
-                         whiteSpace: 'pre-line',
-                         position: 'absolute',
-                         zIndex: 10,
-                         willChange: 'transform',
-                         backfaceVisibility: 'hidden',
-                         WebkitBackfaceVisibility: 'hidden',
-                         pointerEvents: 'none',
-                         maxWidth: '300px'
-                       }}
-                     >
-                       {description}
-                     </div>
-                   )}
-                   
-                   {/* Date */}
-                   {issuedAt && (
-                     <div 
-                       className="absolute text-black"
-                       style={{
-                         left: `${dateX}px`, 
-                         top: `${dateY}px`, 
-                         width: "calc(100% - 40px)", 
-                         transform: dateAlign === "center" ? "translateX(-50%)" : dateAlign === "right" ? "translateX(-100%)" : undefined, 
-                         textAlign: dateAlign, 
-                         fontFamily: dateFont, 
-                         fontSize: `${dateSize}px`, 
-                         color: dateColor,
-                         position: 'absolute',
-                         zIndex: 10,
-                         willChange: 'transform',
-                         backfaceVisibility: 'hidden',
-                         WebkitBackfaceVisibility: 'hidden',
-                         pointerEvents: 'none',
-                         whiteSpace: 'nowrap'
-                       }}
-                     >
-                       {new Date(issuedAt).toLocaleDateString('id-ID', {
-                         year: 'numeric',
-                         month: 'long',
-                         day: 'numeric'
-                       })}
-                     </div>
-                   )}
-                 </div>
-               </div>
-             </div>
-             
-             {/* Detail Info */}
-            <div className="rounded-lg border border-white/10 bg-white/5 p-4 relative">
+
+          <div className="space-y-4">
+            {/* Header Title - Sama dengan PreviewPanel */}
+            <h2 className="text-3xl font-bold text-blue-700 mb-4 text-center dark:text-blue-400">{t('certificatePreview')}</h2>
+
+            {/* Header Information - Sama dengan PreviewPanel */}
+            <div className="space-y-2 mb-4">
+              <div className="text-black/70 text-sm mb-2 dark:text-white/80">{category ? `${t('categorySelected')}: ${category}` : t('noCategorySelected')}</div>
+              {issuedAt && (
+                <div className="text-green-600/80 text-xs mb-2 flex items-center gap-2 dark:text-green-400/80">
+                  <span className="w-1.5 h-1.5 bg-green-400 rounded-full"></span>
+                  {t('integratedDate')}: {new Date(issuedAt).toLocaleDateString('id-ID', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Pratinjau Visual Sertifikat - Sama dengan PreviewPanel */}
+            <div className="flex justify-center items-center">
+              <div
+                className="mt-4 rounded-lg border border-gray-200 bg-white relative overflow-hidden dark:border-white/10 dark:bg-white/5"
+                style={{
+                  aspectRatio: '4/3',
+                  height: '420px',
+                  width: '100%',
+                  maxWidth: '600px',
+                  position: 'relative',
+                  contain: 'layout style paint',
+                  willChange: 'transform',
+                  margin: '0 auto'
+                }}
+                data-preview-container="modal"
+              >
+                {/* Template Background */}
+                {previewSrc ? (
+                  previewSrc.endsWith('.pdf') ? (
+                    <object data={previewSrc} type="application/pdf" className="w-full h-full" />
+                  ) : (
+                    <img
+                      src={previewSrc}
+                      alt="Certificate Template"
+                      className="absolute inset-0 w-full h-full object-contain"
+                      data-preview-image
+                    />
+                  )
+                ) : (
+                  <div className="absolute inset-0 grid place-items-center text-black/60 dark:text-white/60">{t('selectTemplateOrUpload')}</div>
+                )}
+
+                {/* Overlay Text Container */}
+                <div className="absolute inset-0" style={{ position: 'relative' }}>
+                  {/* Title */}
+                  {title && (
+                    <div
+                      className="absolute font-bold text-black dark:text-white"
+                      style={{
+                        left: `${titleX}px`,
+                        top: `${titleY}px`,
+                        width: 'calc(100% - 40px)',
+                        transform:
+                          titleAlign === 'center'
+                            ? 'translateX(-50%)'
+                            : titleAlign === 'right'
+                            ? 'translateX(-100%)'
+                            : undefined,
+                        textAlign: titleAlign,
+                        fontFamily: titleFont,
+                        fontSize: `${titleSize}px`,
+                        color: titleColor,
+                        position: 'absolute',
+                        zIndex: 10,
+                        willChange: 'transform',
+                        backfaceVisibility: 'hidden',
+                        WebkitBackfaceVisibility: 'hidden',
+                        pointerEvents: 'none',
+                        whiteSpace: 'nowrap'
+                      }}
+                      data-overlay="text"
+                    >
+                      {title}
+                    </div>
+                  )}
+
+                  {/* Description */}
+                  {description && (
+                    <div
+                      className="absolute text-black dark:text-white"
+                      style={{
+                        left: `${descX}px`,
+                        top: `${descY}px`,
+                        width: 'calc(100% - 40px)',
+                        transform:
+                          descAlign === 'center'
+                            ? 'translateX(-50%)'
+                            : descAlign === 'right'
+                            ? 'translateX(-100%)'
+                            : undefined,
+                        textAlign: descAlign,
+                        fontFamily: descFont,
+                        fontSize: `${descSize}px`,
+                        color: descColor,
+                        whiteSpace: 'pre-line',
+                        position: 'absolute',
+                        zIndex: 10,
+                        willChange: 'transform',
+                        backfaceVisibility: 'hidden',
+                        WebkitBackfaceVisibility: 'hidden',
+                        pointerEvents: 'none',
+                        maxWidth: '300px'
+                      }}
+                    >
+                      {description}
+                    </div>
+                  )}
+
+                  {/* Date */}
+                  {issuedAt && (
+                    <div
+                      className="absolute text-black dark:text-white"
+                      style={{
+                        left: `${dateX}px`,
+                        top: `${dateY}px`,
+                        width: 'calc(100% - 40px)',
+                        transform:
+                          dateAlign === 'center'
+                            ? 'translateX(-50%)'
+                            : dateAlign === 'right'
+                            ? 'translateX(-100%)'
+                            : undefined,
+                        textAlign: dateAlign,
+                        fontFamily: dateFont,
+                        fontSize: `${dateSize}px`,
+                        color: dateColor,
+                        position: 'absolute',
+                        zIndex: 10,
+                        willChange: 'transform',
+                        backfaceVisibility: 'hidden',
+                        WebkitBackfaceVisibility: 'hidden',
+                        pointerEvents: 'none',
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      {new Date(issuedAt).toLocaleDateString('id-ID', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Detail Info */}
+            <div className="rounded-lg border border-gray-200 bg-white p-4 relative dark:border-white/10 dark:bg-white/5">
               <div className="flex justify-between items-start mb-3">
-                <h3 className="font-medium">{t('certificateDetails')}</h3>
+                <h3 className="font-medium text-black dark:text-white">{t('certificateDetails')}</h3>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm mb-4">
                 <div>
-                  <span className="text-white/70">{t('name')}:</span>
-                  <span className="ml-2 text-white">{title || t('noName')}</span>
+                  <span className="text-black/70 dark:text-white/70">{t('name')}:</span>
+                  <span className="ml-2 text-black dark:text-white">{title || t('noName')}</span>
                 </div>
                 <div>
-                  <span className="text-white/70">{t('date')}:</span>
-                  <span className="ml-2 text-white">{issuedAt ? new Date(issuedAt).toLocaleDateString('id-ID') : t('noDateAvailable')}</span>
+                  <span className="text-black/70 dark:text-white/70">{t('date')}:</span>
+                  <span className="ml-2 text-black dark:text-white">{issuedAt ? new Date(issuedAt).toLocaleDateString('id-ID') : t('noDateAvailable')}</span>
                 </div>
                 <div>
-                  <span className="text-white/70">{t('category')}:</span>
-                  <span className="ml-2 text-white">{category || "-"}</span>
+                  <span className="text-black/70 dark:text-white/70">{t('category')}:</span>
+                  <span className="ml-2 text-black dark:text-white">{category || '-'}</span>
                 </div>
                 <div>
-                  <span className="text-white/70">{t('description')}:</span>
-                  <span className="ml-2 text-white">{description || "-"}</span>
+                  <span className="text-black/70 dark:text-white/70">{t('description')}:</span>
+                  <span className="ml-2 text-black dark:text-white">{description || '-'}</span>
                 </div>
               </div>
-              
+
               {/* Action Buttons */}
               <div className="flex gap-2">
                 <button
@@ -397,21 +416,21 @@ Terima kasih.`
                   Download PDF
                 </button>
                 <button
-                  className="rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm hover:bg-white/10"
+                  className="rounded-md border border-gray-300 bg-black/5 px-3 py-2 text-sm hover:bg-black/10 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
                   onClick={handleCopyImageLink}
                   disabled={!certificateId}
                 >
                   Copy Image Link
                 </button>
                 <button
-                  className="rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm hover:bg-white/10"
+                  className="rounded-md border border-gray-300 bg-black/5 px-3 py-2 text-sm hover:bg-black/10 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
                   onClick={handleCopyLink}
                   disabled={!number}
                 >
                   Copy Link
                 </button>
                 <button
-                  className="rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm hover:bg-white/10"
+                  className="rounded-md border border-gray-300 bg-black/5 px-3 py-2 text-sm hover:bg-black/10 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
                   onClick={handleSendEmail}
                   disabled={!number}
                 >

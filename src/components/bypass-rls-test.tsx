@@ -74,7 +74,7 @@ export function BypassRLSTest() {
 
   if (isLoading) {
     return (
-      <div className="bg-[#0d172b] border border-white/10 rounded-xl p-4 text-white">
+      <div className="rounded-xl border border-gray-200 bg-white p-4 text-black dark:border-white/10 dark:bg-[#0d172b] dark:text-white">
         <h3 className="text-lg font-semibold mb-4">Testing RLS Bypass...</h3>
         <div className="animate-pulse">Loading...</div>
       </div>
@@ -82,34 +82,34 @@ export function BypassRLSTest() {
   }
 
   return (
-    <div className="bg-[#0d172b] border border-white/10 rounded-xl p-4 text-white">
+    <div className="rounded-xl border border-gray-200 bg-white p-4 text-black dark:border-white/10 dark:bg-[#0d172b] dark:text-white">
       <h3 className="text-lg font-semibold mb-4">RLS Bypass Test Results</h3>
       
       <div className="space-y-4">
         <div>
-          <h4 className="font-medium text-blue-400 mb-2">Direct Query ({(testResults?.directQuery as { count?: number })?.count || 0}):</h4>
-          <div className="bg-black/20 p-2 rounded text-xs max-h-40 overflow-auto">
+          <h4 className="font-medium text-blue-700 mb-2 dark:text-blue-400">Direct Query ({(testResults?.directQuery as { count?: number })?.count || 0}):</h4>
+          <div className="bg-black/5 dark:bg-black/20 p-2 rounded text-xs max-h-40 overflow-auto">
             <pre>{JSON.stringify(testResults?.directQuery, null, 2)}</pre>
           </div>
         </div>
 
         <div>
-          <h4 className="font-medium text-blue-400 mb-2">Table Structure:</h4>
-          <div className="bg-black/20 p-2 rounded text-xs">
+          <h4 className="font-medium text-blue-700 mb-2 dark:text-blue-400">Table Structure:</h4>
+          <div className="bg-black/5 dark:bg-black/20 p-2 rounded text-xs">
             <pre>{JSON.stringify(testResults?.structure, null, 2)}</pre>
           </div>
         </div>
 
         <div>
-          <h4 className="font-medium text-blue-400 mb-2">Minimal Query ({(testResults?.minimalQuery as { count?: number })?.count || 0}):</h4>
-          <div className="bg-black/20 p-2 rounded text-xs max-h-40 overflow-auto">
+          <h4 className="font-medium text-blue-700 mb-2 dark:text-blue-400">Minimal Query ({(testResults?.minimalQuery as { count?: number })?.count || 0}):</h4>
+          <div className="bg-black/5 dark:bg-black/20 p-2 rounded text-xs max-h-40 overflow-auto">
             <pre>{JSON.stringify(testResults?.minimalQuery, null, 2)}</pre>
           </div>
         </div>
 
         <div>
-          <h4 className="font-medium text-blue-400 mb-2">RLS Status:</h4>
-          <div className="bg-black/20 p-2 rounded text-xs">
+          <h4 className="font-medium text-blue-700 mb-2 dark:text-blue-400">RLS Status:</h4>
+          <div className="bg-black/5 dark:bg-black/20 p-2 rounded text-xs">
             <pre>{JSON.stringify(testResults?.rlsStatus, null, 2)}</pre>
           </div>
         </div>

@@ -64,7 +64,7 @@ export function RLSTest() {
 
   if (isLoading) {
     return (
-      <div className="bg-[#0d172b] border border-white/10 rounded-xl p-4 text-white">
+      <div className="rounded-xl border border-gray-200 bg-white p-4 text-black dark:border-white/10 dark:bg-[#0d172b] dark:text-white">
         <h3 className="text-lg font-semibold mb-4">Testing RLS & Authentication...</h3>
         <div className="animate-pulse">Loading...</div>
       </div>
@@ -72,34 +72,34 @@ export function RLSTest() {
   }
 
   return (
-    <div className="bg-[#0d172b] border border-white/10 rounded-xl p-4 text-white">
+    <div className="rounded-xl border border-gray-200 bg-white p-4 text-black dark:border-white/10 dark:bg-[#0d172b] dark:text-white">
       <h3 className="text-lg font-semibold mb-4">RLS & Authentication Test Results</h3>
       
       <div className="space-y-4">
         <div>
-          <h4 className="font-medium text-blue-400 mb-2">Authentication Status:</h4>
-          <div className="bg-black/20 p-2 rounded text-xs">
+          <h4 className="font-medium text-blue-700 mb-2 dark:text-blue-400">Authentication Status:</h4>
+          <div className="bg-black/5 dark:bg-black/20 p-2 rounded text-xs">
             <pre>{renderJson(testResults?.auth)}</pre>
           </div>
         </div>
 
         <div>
-          <h4 className="font-medium text-blue-400 mb-2">Members Access ({(testResults?.members as { count?: number })?.count || 0}):</h4>
-          <div className="bg-black/20 p-2 rounded text-xs max-h-40 overflow-auto">
+          <h4 className="font-medium text-blue-700 mb-2 dark:text-blue-400">Members Access ({(testResults?.members as { count?: number })?.count || 0}):</h4>
+          <div className="bg-black/5 dark:bg-black/20 p-2 rounded text-xs max-h-40 overflow-auto">
             <pre>{renderJson(testResults?.members)}</pre>
           </div>
         </div>
 
         <div>
-          <h4 className="font-medium text-blue-400 mb-2">Insert Test:</h4>
-          <div className="bg-black/20 p-2 rounded text-xs">
+          <h4 className="font-medium text-blue-700 mb-2 dark:text-blue-400">Insert Test:</h4>
+          <div className="bg-black/5 dark:bg-black/20 p-2 rounded text-xs">
             <pre>{renderJson(testResults?.insert)}</pre>
           </div>
         </div>
 
         <div>
-          <h4 className="font-medium text-blue-400 mb-2">Policies:</h4>
-          <div className="bg-black/20 p-2 rounded text-xs">
+          <h4 className="font-medium text-blue-700 mb-2 dark:text-blue-400">Policies:</h4>
+          <div className="bg-black/5 dark:bg-black/20 p-2 rounded text-xs">
             <pre>{renderJson(testResults?.policies)}</pre>
           </div>
         </div>

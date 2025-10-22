@@ -87,12 +87,12 @@ export default function TeamPage() {
   }
   return (
     <ProtectedRoute allowedRoles={['team']}>
-      <div className="min-h-svh bg-gradient-to-b from-[#0b1220] to-[#0f1c35] text-white">
+      <div className="min-h-svh bg-white text-black dark:bg-gradient-to-b dark:from-[#0b1220] dark:to-[#0f1c35] dark:text-white">
         <TeamNavbar />
         <main className="mx-auto max-w-7xl px-4 md:px-6 py-6 grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-6">
-        <section className="rounded-xl border border-white/10 bg-[#0d172b] p-6 shadow-xl shadow-blue-500/10">
-          <h2 className="text-3xl font-bold text-blue-400 mb-4">{t('howToUse')}</h2>
-          <ol className="space-y-3 text-white/80 list-decimal pl-5">
+        <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-[#0d172b] dark:shadow-xl dark:shadow-blue-500/10">
+          <h2 className="text-3xl font-bold text-blue-700 mb-4 dark:text-blue-400">{t('howToUse')}</h2>
+          <ol className="space-y-3 text-black/70 list-decimal pl-5 dark:text-white/80">
             <li>{t('step1')}</li>
             <li>{t('step2')}</li>
             <li>{t('step3')}</li>
@@ -102,23 +102,23 @@ export default function TeamPage() {
           </ol>
         </section>
 
-        <aside className="rounded-xl border border-white/10 bg-[#0d172b] p-5 space-y-4">
+        <aside className="rounded-xl border border-gray-200 bg-white p-5 space-y-4 dark:border-white/10 dark:bg-[#0d172b]">
           <div>
-            <label className="block text-sm text-white/70 mb-2">{t('searchCertificate')}</label>
+            <label className="block text-sm text-black/70 mb-2 dark:text-white/70">{t('searchCertificate')}</label>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50" />
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-black/50 dark:text-white/50" />
                 <input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder={t('searchPlaceholder')}
-                  className="w-full rounded-md border border-white/10 bg-white/5 pl-9 pr-3 py-2 text-sm placeholder:text-white/50"
+                  className="w-full rounded-md border border-gray-300 bg-white pl-9 pr-3 py-2 text-sm text-black placeholder:text-black/50 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/50"
                 />
               </div>
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
-                className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500/60"
+                className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-black focus:outline-none focus:ring-1 focus:ring-blue-500/60 dark:border-white/10 dark:bg-[#0f1c35] dark:text-white"
               >
                 <option value="">{t('allCategories')}</option>
                 <option value="kunjungan industri">{t('industrialVisit')}</option>
@@ -127,22 +127,22 @@ export default function TeamPage() {
                 <option value="pelatihan">{t('training')}</option>
               </select>
             </div>
-            <div className="mt-2 max-h-64 overflow-auto rounded-md border border-white/10 bg-[#0f1c35]">
+            <div className="mt-2 max-h-64 overflow-auto rounded-md border border-gray-200 bg-white dark:border-white/10 dark:bg-[#0f1c35]">
               {isSearching ? (
-                <div className="px-3 py-2 text-sm text-white/60">{t('loading')}</div>
+                <div className="px-3 py-2 text-sm text-black/60 dark:text-white/60">{t('loading')}</div>
               ) : results.length === 0 ? (
-                <div className="px-3 py-2 text-sm text-white/60">{t('noData')}</div>
+                <div className="px-3 py-2 text-sm text-black/60 dark:text-white/60">{t('noData')}</div>
               ) : (
-                <ul className="divide-y divide-white/5">
+                <ul className="divide-y divide-gray-200 dark:divide-white/5">
                   {results.map((r) => (
-                    <li key={r.id} className="px-3 py-2 flex items-center justify-between gap-3 hover:bg-white/5">
+                    <li key={r.id} className="px-3 py-2 flex items-center justify-between gap-3 hover:bg-black/5 dark:hover:bg-white/5">
                       <div className="min-w-0">
-                        <div className="truncate text-white text-sm font-medium">{r.name || t('noName')}</div>
-                        <div className="truncate text-white/60 text-xs">No: {r.number || "-"} • {t('category')}: {r.category || "-"}</div>
+                        <div className="truncate text-black text-sm font-medium dark:text-white">{r.name || t('noName')}</div>
+                        <div className="truncate text-black/60 text-xs dark:text-white/60">No: {r.number || "-"} • {t('category')}: {r.category || "-"}</div>
                       </div>
                       <div className="shrink-0 flex gap-2">
-                        <button onClick={() => goEdit(r.id)} className="rounded-md border border-white/10 bg-white/5 p-1 hover:bg-white/10" aria-label="Edit">
-                          <Pencil className="h-4 w-4 text-white" />
+                        <button onClick={() => goEdit(r.id)} className="rounded-md border border-gray-300 bg-black/5 p-1 hover:bg-black/10 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10" aria-label="Edit">
+                          <Pencil className="h-4 w-4 text-black dark:text-white" />
                         </button>
                       </div>
                     </li>
@@ -152,7 +152,7 @@ export default function TeamPage() {
             </div>
           </div>
           <div className="pt-1">
-            <button onClick={goCreateNew} className="w-full rounded-md bg-blue-600 hover:bg-blue-500 px-4 py-2 text-sm font-medium">{t('createNew')}</button>
+            <button onClick={goCreateNew} className="w-full rounded-md bg-blue-600 hover:bg-blue-500 px-4 py-2 text-sm font-medium text-white dark:bg-blue-500 dark:hover:bg-blue-400">{t('createNew')}</button>
           </div>
         </aside>
         </main>
@@ -160,42 +160,42 @@ export default function TeamPage() {
           <>
             <ModalOverlay onClick={() => setShowAddModal(false)} />
             <ModalContent>
-              <div className="w-full max-w-2xl rounded-xl border border-white/10 bg-[#0d1223] p-4 text-sm">
+              <div className="w-full max-w-2xl rounded-xl border border-gray-200 bg-white p-4 text-sm dark:border-white/10 dark:bg-[#0d1223]">
                 <div className="mb-3 flex items-center justify-between">
                   <div className="font-semibold">{t('addNewCertificate')}</div>
-                  <button onClick={() => setShowAddModal(false)} className="rounded-md border border-white/10 bg-white/5 p-1" aria-label="Close">
-                    <X className="h-4 w-4" />
+                  <button onClick={() => setShowAddModal(false)} className="rounded-md border border-gray-300 bg-black/5 p-1 dark:border-white/10 dark:bg-white/5" aria-label="Close">
+                    <X className="h-4 w-4 text-black dark:text-white" />
                   </button>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
-                    <div className="mb-1 text-white/70">{t('name')}</div>
-                    <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.name ?? ""} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
+                    <div className="mb-1 text-black/70 dark:text-white/70">{t('name')}</div>
+                    <input className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-black dark:border-white/10 dark:bg-[#0d172b] dark:text-white" value={draft.name ?? ""} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
                   </div>
                   <div>
-                    <div className="mb-1 text-white/70">{t('number')}</div>
-                    <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.number ?? ""} onChange={(e) => setDraft({ ...draft, number: e.target.value })} />
+                    <div className="mb-1 text-black/70 dark:text-white/70">{t('number')}</div>
+                    <input className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-black dark:border-white/10 dark:bg-[#0d172b] dark:text-white" value={draft.number ?? ""} onChange={(e) => setDraft({ ...draft, number: e.target.value })} />
                   </div>
                   <div>
-                    <div className="mb-1 text-white/70">{t('issuer')}</div>
-                    <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.issuer ?? ""} onChange={(e) => setDraft({ ...draft, issuer: e.target.value })} />
+                    <div className="mb-1 text-black/70 dark:text-white/70">{t('issuer')}</div>
+                    <input className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-black dark:border-white/10 dark:bg-[#0d172b] dark:text-white" value={draft.issuer ?? ""} onChange={(e) => setDraft({ ...draft, issuer: e.target.value })} />
                   </div>
                   <div>
-                    <div className="mb-1 text-white/70">{t('recipientOrganization')}</div>
-                    <input className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.recipientOrg ?? ""} onChange={(e) => setDraft({ ...draft, recipientOrg: e.target.value })} />
+                    <div className="mb-1 text-black/70 dark:text-white/70">{t('recipientOrganization')}</div>
+                    <input className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-black dark:border-white/10 dark:bg-[#0d172b] dark:text-white" value={draft.recipientOrg ?? ""} onChange={(e) => setDraft({ ...draft, recipientOrg: e.target.value })} />
                   </div>
                   <div>
-                    <div className="mb-1 text-white/70">{t('issuedDate')}</div>
-                    <input type="date" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.issuedAt ?? ""} onChange={(e) => setDraft({ ...draft, issuedAt: e.target.value })} />
+                    <div className="mb-1 text-black/70 dark:text-white/70">{t('issuedDate')}</div>
+                    <input type="date" className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-black dark:border-white/10 dark:bg-[#0d172b] dark:text-white" value={draft.issuedAt ?? ""} onChange={(e) => setDraft({ ...draft, issuedAt: e.target.value })} />
                   </div>
                   <div>
-                    <div className="mb-1 text-white/70">{t('expiredDate')}</div>
-                    <input type="date" className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2" value={draft.expiresAt ?? ""} onChange={(e) => setDraft({ ...draft, expiresAt: e.target.value })} />
+                    <div className="mb-1 text-black/70 dark:text-white/70">{t('expiredDate')}</div>
+                    <input type="date" className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-black dark:border-white/10 dark:bg-[#0d172b] dark:text-white" value={draft.expiresAt ?? ""} onChange={(e) => setDraft({ ...draft, expiresAt: e.target.value })} />
                   </div>
                   <div className="md:col-span-2">
-                    <div className="mb-1 text-white/70">{t('category')}</div>
+                    <div className="mb-1 text-black/70 dark:text-white/70">{t('category')}</div>
                     <select
-                      className="w-full rounded-md border border-white/10 bg-[#0d172b] px-3 py-2"
+                      className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-black dark:border-white/10 dark:bg-[#0d172b] dark:text-white"
                       value={draft.category ?? ""}
                       onChange={(e) => setDraft({ ...draft, category: e.target.value })}
                     >
@@ -210,16 +210,16 @@ export default function TeamPage() {
                 {updateMessage && (
                   <div className={`mb-6 mt-6 rounded-md p-4 text-sm ${
                     updateMessage.includes('berhasil') 
-                      ? 'bg-green-500/10 border border-green-500/20 text-green-400' 
-                      : 'bg-red-500/10 border border-red-500/20 text-red-400'
+                      ? 'bg-green-500/10 border border-green-500/20 text-green-700 dark:text-green-300' 
+                      : 'bg-red-500/10 border border-red-500/20 text-red-700 dark:text-red-300'
                   }`}>
                     {updateMessage}
                   </div>
                 )}
                 <div className="mt-4 flex justify-end gap-2">
-                  <button className="rounded-md border border-white/10 bg-white/5 px-3 py-2" onClick={() => setShowAddModal(false)}>{t('cancel')}</button>
+                  <button className="rounded-md border border-gray-300 bg-black/5 px-3 py-2 text-black dark:border-white/10 dark:bg-white/5 dark:text-white" onClick={() => setShowAddModal(false)}>{t('cancel')}</button>
                   <button
-                    className="rounded-md border border-green-500/30 bg-green-500/10 px-3 py-2 text-green-300"
+                    className="rounded-md border border-green-500/30 bg-green-500/10 px-3 py-2 text-green-700 dark:text-green-300"
                     onClick={async () => {
                       if (!draft) return
                       setIsUpdating(true)
@@ -258,12 +258,11 @@ export default function TeamPage() {
           </>
         )}
         <style jsx global>{`
-          select option { background-color: #0f1c35; color: #ffffff; }
-          select { color-scheme: dark; }
+          .dark select option { background-color: #0f1c35; color: #ffffff; }
+          .dark select { color-scheme: dark; }
         `}</style>
       </div>
     </ProtectedRoute>
   )
 }
-
 
