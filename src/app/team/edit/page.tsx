@@ -481,7 +481,12 @@ function TeamEditContent() {
         if (row.template_path) {
           const templatePath = row.template_path as string
           setSelectedTemplate(templatePath)
-          setPreviewSrc(`/${templatePath}`)
+          try {
+            const abs = typeof window !== 'undefined' ? new URL(`/${templatePath}`, window.location.origin).toString() : `/${templatePath}`
+            setPreviewSrc(abs)
+          } catch {
+            setPreviewSrc(`/${templatePath}`)
+          }
           const config = getTemplateConfig(templatePath)
           setCurrentTemplateConfig(config)
           if (config && config.defaultPositions) {
@@ -528,7 +533,12 @@ function TeamEditContent() {
           const first = getTemplates(row.category as string)[0]
           if (first) {
             setSelectedTemplate(first)
-            setPreviewSrc(`/${first}`)
+            try {
+              const abs = typeof window !== 'undefined' ? new URL(`/${first}`, window.location.origin).toString() : `/${first}`
+              setPreviewSrc(abs)
+            } catch {
+              setPreviewSrc(`/${first}`)
+            }
             const config = getTemplateConfig(first)
             setCurrentTemplateConfig(config)
             await supabase.from("certificates").update({ template_path: first }).eq("id", certificateId)
@@ -656,6 +666,7 @@ function TeamEditContent() {
         <TeamNavbar />
          <main className="mx-auto max-w-7xl px-4 md:px-6 py-6 grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-6 items-start">
         <PreviewPanel
+          key={(previewSrc || selectedTemplate) as string}
           category={category}
           previewSrc={previewSrc}
           title={title}
@@ -712,8 +723,8 @@ function TeamEditContent() {
                 <button className={`rounded-md border border-white/10 px-3 py-2 text-sm ${activeElement==='title'?'bg-white/15':'bg-white/5'}`} onClick={()=>setActiveElement('title')}>{t('name')}</button>
                 <button className={`rounded-md border border-white/10 px-3 py-2 text-sm ${activeElement==='description'?'bg-white/15':'bg-white/5'}`} onClick={()=>setActiveElement('description')}>{t('description')}</button>
                 <button className={`rounded-md border border-white/10 px-3 py-2 text-sm ${activeElement==='date'?'bg-white/15':'bg-white/5'}`} onClick={()=>setActiveElement('date')}>{t('date')}</button>
-                <button className={`rounded-md border border-white/10 px-3 py-2 text-sm ${activeElement==='number'?'bg-white/15':'bg-white/5'}`} onClick={()=>setActiveElement('number')}>Number</button>
-                <button className={`rounded-md border border-white/10 px-3 py-2 text-sm ${activeElement==='expired'?'bg-white/15':'bg-white/5'}`} onClick={()=>setActiveElement('expired')}>Expired</button>
+                <button className={`rounded-md border border-white/10 px-3 py-2 text-sm ${activeElement==='number'?'bg-white/15':'bg-white/5'}`} onClick={()=>setActiveElement('number')}>{t('number')}</button>
+                <button className={`rounded-md border border-white/10 px-3 py-2 text-sm ${activeElement==='expired'?'bg-white/15':'bg-white/5'}`} onClick={()=>setActiveElement('expired')}>{t('expired')}</button>
               </div>
             </div>
             {activeElement === 'title' && (
@@ -730,7 +741,7 @@ function TeamEditContent() {
             )}
             {activeElement === 'number' && (
               <div>
-                <label className="block text-sm text-white/70 mb-1">Nomor Sertifikat</label>
+                <label className="block text-sm text-white/70 mb-1">{t('certificateNumber')}</label>
                 <input className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm" value={numberText} onChange={async (e) => { const v = e.target.value; setNumberText(v); saveToHistory(); if (certificateId) { queueSave({ number: v }) } }} placeholder="Nomor sertifikat" />
               </div>
             )}
@@ -761,7 +772,7 @@ function TeamEditContent() {
             )}
             {activeElement === 'expired' && (
               <div>
-                <label className="block text-sm text-white/70 mb-1">Expired Date</label>
+                <label className="block text-sm text-white/70 mb-1">{t('expiredDate')}</label>
                 <div className="space-y-3">
                   <div>
                     <input type="date" className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white" value={expiresAt || ""} onChange={async (e) => { const v = e.target.value; setExpiresAt(v); saveToHistory(); if (certificateId) { queueSave({ expires_at: v }) } }} />
@@ -859,7 +870,7 @@ function TeamEditContent() {
             {activeElement === 'number' && (
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm text-white/70 mb-1">Justify (Number)</label>
+                  <label className="block text-sm text-white/70 mb-1">{t('justify')}</label>
                   <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={numberAlign} onChange={(e)=>{ const v = e.target.value as "left"|"center"|"right"; setNumberAlign(v); saveToHistory(); queueSave({ number_align: v }) }}>
                     <option value="left">{t('left')}</option>
                     <option value="center">{t('center')}</option>
@@ -867,7 +878,7 @@ function TeamEditContent() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm text-white/70 mb-1">Font (Number)</label>
+                  <label className="block text-sm text-white/70 mb-1">{t('font')}</label>
                   <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={numberFont} onChange={(e)=>{ const v=e.target.value; setNumberFont(v); saveToHistory(); queueSave({ number_font: v }) }}>
                     <option value="Inter, ui-sans-serif, system-ui">{t('inter')}</option>
                     <option value="Arial, Helvetica, sans-serif">{t('arial')}</option>
@@ -880,7 +891,7 @@ function TeamEditContent() {
             {activeElement === 'expired' && (
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm text-white/70 mb-1">Justify (Expired)</label>
+                  <label className="block text-sm text-white/70 mb-1">{t('justify')}</label>
                   <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={expAlign} onChange={(e)=>{ const v = e.target.value as "left"|"center"|"right"; setExpAlign(v); saveToHistory(); queueSave({ expires_align: v }) }}>
                     <option value="left">{t('left')}</option>
                     <option value="center">{t('center')}</option>
@@ -888,7 +899,7 @@ function TeamEditContent() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm text-white/70 mb-1">Font (Expired)</label>
+                  <label className="block text-sm text-white/70 mb-1">{t('font')}</label>
                   <select className="w-full rounded-md border border-white/10 bg-[#0f1c35] px-3 py-2 text-sm" value={expFont} onChange={(e)=>{ const v=e.target.value; setExpFont(v); saveToHistory(); queueSave({ expires_font: v }) }}>
                     <option value="Inter, ui-sans-serif, system-ui">{t('inter')}</option>
                     <option value="Arial, Helvetica, sans-serif">{t('arial')}</option>
